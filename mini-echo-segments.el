@@ -27,6 +27,7 @@
 (defvar evil-state)
 (defvar evil-visual-beginning)
 (defvar evil-visual-end)
+(defvar evil-this-macro)
 
 (declare-function flymake--mode-line-counter "flymake")
 
@@ -59,6 +60,10 @@
 (defface mini-echo-selection-info
   '((t (:foreground "#EBBF83" :bold t)))
   "Face for mini-echo segment of selection info.")
+
+(defface mini-echo-macro-record
+  '((t (:foreground "#8BD49C" :bold t)))
+  "Face for mini-echo segment of macro record.")
 
 (defvar mini-echo-segment-alist nil)
 
@@ -104,6 +109,15 @@
   "Display process info."
   (when-let ((str (format-mode-line mode-line-process)))
     (propertize str 'face 'mini-echo-process)))
+
+(mini-echo-define-segment "macro-record"
+  "Display macro being recorded."
+  (when (or defining-kbd-macro executing-kbd-macro)
+    (let ((name (if (bound-and-true-p evil-this-macro)
+                          (format "@%s" (char-to-string evil-this-macro))
+                        "MACRO"))
+          (status (if defining-kbd-macro "<<" ">>")))
+      (propertize (concat name status) 'face 'miACROho-macro-record))))
 
 (mini-echo-define-segment "meow"
   "Display the meow status of current buffer."

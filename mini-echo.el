@@ -39,10 +39,10 @@
   :group 'mini-echo)
 
 (defcustom mini-echo-segments
-  '("selection-info" "process" "flymake" "buffer-size" "buffer-position"
-    "major-mode" "meow")
+  '("macro-record" "selection-info" "process" "flymake" "buffer-size"
+    "buffer-position" "major-mode" "meow")
   ""
-  :type '(repeat symbol)
+  :type '(repeat string)
   :group 'mini-echo)
 
 (defvar mini-echo--old-mdf nil)
