@@ -38,9 +38,15 @@
   "docstring"
   :group 'mini-echo)
 
-(defcustom mini-echo-segments
+(defcustom mini-echo-full-segments
   '("macro-record" "selection-info" "process" "flymake" "buffer-size"
     "buffer-position" "major-mode" "meow")
+  ""
+  :type '(repeat string)
+  :group 'mini-echo)
+
+(defcustom mini-echo-short-segments
+  '("macro-record" "selection-info" "process" "flymake" "buffer-position" "meow")
   ""
   :type '(repeat string)
   :group 'mini-echo)
@@ -108,7 +114,9 @@
   (condition-case nil
       (mapconcat 'identity (seq-remove #'string-empty-p
                                        (mapcar #'mini-echo-get-segment-string
-                                               mini-echo-segments))
+                                               (if (> (mini-echo-get-frame-width) 120)
+                                                   mini-echo-full-segments
+                                                 mini-echo-short-segments)))
                  " ")
     (format "error happends")))
 
