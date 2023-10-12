@@ -85,19 +85,19 @@
 
 (mini-echo-define-segment "major-mode"
   "Display the major mode in mini-echo."
-  (when-let ((str (format-mode-line mode-name)))
-    (propertize str 'face 'mini-echo-major-mode)))
+  (when-let ((mode (format-mode-line mode-name)))
+    (propertize mode 'face 'mini-echo-major-mode)))
 
 (mini-echo-define-segment "buffer-position"
   "Display the cursor position of current buffer."
-  (when-let ((str (string-replace "Bottom" "Bot"
-                                  (format-mode-line mini-echo-position-format))))
-    (propertize str 'face 'mini-echo-buffer-position)))
+  (when-let ((pos (format-mode-line mini-echo-position-format)))
+    (propertize (string-replace "Bottom" "Bot" pos)
+                'face 'mini-echo-buffer-position)))
 
 (mini-echo-define-segment "buffer-size"
   "Display the size of current buffer."
-  (when-let ((str (format-mode-line "%I")))
-    (propertize str 'face 'mini-echo-buffer-size)))
+  (when-let ((size (format-mode-line "%I")))
+    (propertize size 'face 'mini-echo-buffer-size)))
 
 (mini-echo-define-segment "remote-host"
   "Display the hostname of remote buffer."
@@ -108,14 +108,14 @@
 (mini-echo-define-segment "process"
   "Display process info."
   (when-let ((str (format-mode-line mode-line-process)))
-    (propertize str 'face 'mini-echo-process)))
+    (propertize str 'face 'mini-echo-procesize)))
 
 (mini-echo-define-segment "macro-record"
   "Display macro being recorded."
   (when (or defining-kbd-macro executing-kbd-macro)
     (let ((name (if (bound-and-true-p evil-this-macro)
-                          (format "@%s" (char-to-string evil-this-macro))
-                        "MACRO"))
+                    (format "@%s" (char-to-string evil-this-macro))
+                  "MACRO"))
           (status (if defining-kbd-macro "<<" ">>")))
       (propertize (concat name status) 'face 'miACROho-macro-record))))
 
