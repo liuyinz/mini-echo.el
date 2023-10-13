@@ -31,8 +31,12 @@
 (defvar evil-visual-beginning)
 (defvar evil-visual-end)
 (defvar evil-this-macro)
+(defvar flymake--state)
 
 (declare-function flymake--mode-line-counter "flymake")
+(declare-function flymake-running-backends "flymake")
+(declare-function flymake-disabled-backends "flymake")
+(declare-function flymake-reporting-backends "flymake")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -157,13 +161,24 @@
 (mini-echo-define-segment "flymake"
   "Display flymake diagnostics of current buffer."
   (when (bound-and-true-p flymake-mode)
-    (mapconcat
-     (lambda (s)
-       (let ((counter (cadr (flymake--mode-line-counter s t))))
-         (propertize (or (plist-get counter :propertize) "0")
-                     'face
-                     (or (plist-get counter 'face) 'compilation-info))))
-     '(:error :warning :note) "/")))
+    (let* ((no-known (zerop (hash-table-count flymake--state)))
+           (running (flymake-running-backends))
+           (disabled (flymake-disabled-backends))
+           (reported (flymake-reporting-backends))
+           (all-disabled (and disabled (null running)))
+           (some-waiting (cl-set-difference running reported)))
+      (concat (cond
+               (no-known (propertize "?" 'face 'error))
+               (some-waiting (propertize "*" 'face 'warning))
+               (all-disabled (propertize "!" 'face 'error))
+               (t  (propertize "-" 'face 'success)))
+              (mapconcat
+               (lambda (s)
+                 (let ((counter (cadr (flymake--mode-line-counter s t))))
+                   (propertize (or (plist-get counter :propertize) "0")
+                               'face (or (plist-get counter 'face)
+                                         'compilation-info))))
+               '(:error :warning :note) "/")))))
 
 (defsubst mini-echo-column (pos)
   "Get the column of the position `POS'."
@@ -226,7 +241,6 @@
 (mini-echo-define-segment "vcs"
   "Display current branch."
   (or mini-echo--vcs-status ""))
-
 
 (provide 'mini-echo-segments)
 ;;; mini-echo-segments.el ends here
