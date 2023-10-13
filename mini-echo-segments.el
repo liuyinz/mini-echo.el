@@ -19,6 +19,9 @@
 
 ;;; Commentary:
 
+;; Most segments are ported from other mode line package.
+;; SEE https://github.com/seagle0128/doom-modeline/blob/master/doom-modeline-segments.el
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -34,6 +37,11 @@
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
   :type 'string
+  :group 'mini-echo)
+
+(defcustom mini-echo-vcs-max-length 10
+  ""
+  :type 'number
   :group 'mini-echo)
 
 ;; faces
@@ -164,6 +172,37 @@
                (t
                 (format "%dC" (- end beg))))
          'face 'mini-echo-selection-info)))))
+
+(defvar-local mini-echo--vcs-status nil)
+(defun mini-echo-update-vcs-status (&rest _)
+  "docstring"
+  (setq mini-echo--vcs-status
+        (when (and vc-mode buffer-file-name)
+          (let* ((backend (vc-backend buffer-file-name))
+                 (state (vc-state buffer-file-name backend))
+                 (str (if vc-display-status
+                          (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2))
+                        ""))
+                 (face (cond ((eq state 'needs-update)
+                              'warning)
+                             ((memq state '(removed conflict unregistered))
+                              'error)
+                             (t 'success))))
+            (propertize (if (length> str mini-echo-vcs-max-length)
+                            (concat
+                             (substring str 0 (- mini-echo-vcs-max-length 3))
+                             "..")
+                          str)
+                        'face `(:inherit (,face bold)))))))
+
+(add-hook 'find-file-hook #'mini-echo-update-vcs-status)
+(add-hook 'after-save-hook #'mini-echo-update-vcs-status)
+(advice-add #'vc-refresh-state :after #'mini-echo-update-vcs-status)
+
+(mini-echo-define-segment "vcs"
+  "Display current branch."
+  (or mini-echo--vcs-status ""))
+
 
 (provide 'mini-echo-segments)
 ;;; mini-echo-segments.el ends here

@@ -40,7 +40,7 @@
 
 (defcustom mini-echo-full-segments
   '("macro-record" "selection-info" "process" "flymake" "buffer-size"
-    "buffer-position" "major-mode" "meow")
+    "buffer-position" "vcs" "major-mode" "meow")
   ""
   :type '(repeat string)
   :group 'mini-echo)
@@ -90,21 +90,6 @@
     (mapc #'delete-overlay mini-echo-overlays)
     (setq mini-echo-overlays nil)))
 
-(defun mini-echo-set-text (text)
-  "docstring"
-  (unless (active-minibuffer-window)
-    (let* ((width (+ 2 (string-width text)))
-           (info (concat (propertize "  " 'cursor 1 'display
-                                     `(space :align-to (- right-fringe ,width)))
-                         text)))
-      (dolist (ov mini-echo-overlays)
-        (overlay-put ov 'after-string info))
-
-      ;; Display the text in Minibuf-0
-      (with-current-buffer " *Minibuf-0*"
-        (delete-region (point-min) (point-max))
-        (insert info)))))
-
 (defun mini-echo-get-frame-width ()
   "docstring"
   (with-selected-frame (window-frame (minibuffer-window))
@@ -123,17 +108,31 @@
                                                    mini-echo-full-segments
                                                  mini-echo-short-segments)))
                  " ")
-    (format "error happends")))
+    (format "mini-echo error happends")))
 
 (defun mini-echo-update ()
   "docstring"
-  (let* ((active-info (mini-echo-build-info))
-         (echo-message (substring-no-properties (or (current-message) "")))
-         (last-line (car (last (split-string echo-message "\n"))))
-         (blank-width (- (mini-echo-get-frame-width)
-                         (string-width active-info)
-                         (string-width last-line))))
-    (mini-echo-set-text (if (> blank-width 0) active-info ""))))
+  (let* ((last-message (car (last (split-string (substring-no-properties
+                                                 (or (current-message) ""))
+                                                "\n"))))
+         (info (mini-echo-build-info))
+         (info-length (+ mini-echo-right-padding (string-width info)))
+         (align-info (concat (propertize "  " 'cursor 1 'display
+                                         `(space :align-to
+                                                 (- right-fringe ,info-length)))
+                             info))
+         (overlay-info (if (> (- (mini-echo-get-frame-width)
+                                 (string-width info)
+                                 (string-width last-message)) 0)
+                           align-info "")))
+    (unless (active-minibuffer-window)
+      ;; Display overlays in echo area
+      (dolist (ov mini-echo-overlays)
+        (overlay-put ov 'after-string overlay-info))
+      ;; Display the text in Minibuf-0
+      (with-current-buffer " *Minibuf-0*"
+        (delete-region (point-min) (point-max))
+        (insert align-info)))))
 
 ;;;###autoload
 (define-minor-mode mini-echo-mode
@@ -146,14 +145,10 @@
         (mini-echo-show-divider)
         (mini-echo-hide-modeline)
         (mini-echo-init-overlays)
-        ;; added overlays when switch to a new frame
-        ;; (add-function :after after-focus-change-function
-        ;;               #'mini-echo-update)
         (run-with-timer 0 0.2 #'mini-echo-update))
     (mini-echo-show-divider 'hide)
     (mini-echo-hide-modeline 'show)
     (mini-echo-init-overlays 'deinit)
-    ;; (remove-function after-focus-change-function #'mini-echo-update)
     (cancel-function-timers #'mini-echo-update)))
 
 (provide 'mini-echo)
