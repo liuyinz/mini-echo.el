@@ -78,7 +78,7 @@
 (defun mini-echo-init-overlays (&optional deinit)
   "docstring"
   (if (null deinit)
-      (dolist (buf '(" *Echo Area 0*" " *Minibuf-0*"))
+      (dolist (buf '(" *Echo Area 0*" " *Echo Area 1*"))
         (with-current-buffer (get-buffer-create buf)
           (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
             (push ov mini-echo-overlays))))
