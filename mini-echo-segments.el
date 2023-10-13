@@ -69,9 +69,13 @@
   '((t (:foreground "#EBBF83" :bold t)))
   "Face for mini-echo segment of selection info.")
 
-(defface mini-echo-macro-record
+(defface mini-echo-macro
   '((t (:foreground "#8BD49C" :bold t)))
-  "Face for mini-echo segment of macro record.")
+  "Face for mini-echo segment of macro status.")
+
+(defface mini-echo-narrow
+  '((t (:foreground "#5EC4FF" :bold t)))
+  "Face for mini-echo segment of narrow status.")
 
 (defvar mini-echo-segment-alist nil)
 
@@ -107,6 +111,18 @@
   (when-let ((size (format-mode-line "%I")))
     (propertize size 'face 'mini-echo-buffer-size)))
 
+(mini-echo-define-segment "buffer-status"
+  "Display th status of current buffer."
+  (ignore-errors
+    (concat (mapconcat #'format-mode-line
+                       '(mode-line-client
+                         mode-line-modified
+                         mode-line-remote))
+            (and buffer-file-name
+                 (not (file-remote-p buffer-file-name))
+                 (not (file-exists-p buffer-file-name))
+                 (propertize "!" 'face 'error)))))
+
 (mini-echo-define-segment "remote-host"
   "Display the hostname of remote buffer."
   (when default-directory
@@ -118,14 +134,19 @@
   (when-let ((str (format-mode-line mode-line-process)))
     (propertize str 'face 'mini-echo-procesize)))
 
-(mini-echo-define-segment "macro-record"
+(mini-echo-define-segment "macro"
   "Display macro being recorded."
   (when (or defining-kbd-macro executing-kbd-macro)
-    (let ((name (if (bound-and-true-p evil-this-macro)
-                    (format "@%s" (char-to-string evil-this-macro))
-                  "MACRO"))
-          (status (if defining-kbd-macro "<<" ">>")))
-      (propertize (concat name status) 'face 'mini-echo-macro-record))))
+    (let ((status (if (bound-and-true-p evil-this-macro)
+                      (format "@%s" (char-to-string evil-this-macro))
+                    (concat "MACRO" (if defining-kbd-macro "<<" ">>")))))
+      (propertize status 'face 'mini-echo-macro))))
+
+(mini-echo-define-segment "narrow"
+  "Display narrow status of current buffer."
+  (when (or (buffer-narrowed-p)
+            (bound-and-true-p dired-narrow-mode))
+    (propertize "><" 'face 'mini-echo-narrow)))
 
 (mini-echo-define-segment "meow"
   "Display the meow status of current buffer."
@@ -140,7 +161,7 @@
        (let ((counter (cadr (flymake--mode-line-counter s t))))
          (propertize (or (plist-get counter :propertize) "0")
                      'face
-                     (plist-get counter 'face))))
+                     (or (plist-get counter 'face) 'compilation-info))))
      '(:error :warning :note) "/")))
 
 (defsubst mini-echo-column (pos)
@@ -188,11 +209,13 @@
                              ((memq state '(removed conflict unregistered))
                               'error)
                              (t 'success))))
-            (propertize (if (length> str mini-echo-vcs-max-length)
-                            (concat
-                             (substring str 0 (- mini-echo-vcs-max-length 3))
-                             "..")
-                          str)
+            (propertize (concat
+                         "@"
+                         (if (length> str mini-echo-vcs-max-length)
+                             (concat
+                              (substring str 0 (- mini-echo-vcs-max-length 3))
+                              "..")
+                           str))
                         'face `(:inherit (,face bold)))))))
 
 (add-hook 'find-file-hook #'mini-echo-update-vcs-status)
