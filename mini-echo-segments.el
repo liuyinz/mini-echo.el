@@ -62,7 +62,7 @@
   "Face for mini-echo segment of remote host.")
 
 (defface mini-echo-process
-  '((t (:foreground "#E27E8D")))
+  '((t (:foreground "#8BD49C" :bold t)))
   "Face for mini-echo segment of process.")
 
 (defface mini-echo-selection-info
@@ -70,11 +70,11 @@
   "Face for mini-echo segment of selection info.")
 
 (defface mini-echo-macro
-  '((t (:foreground "#8BD49C" :bold t)))
+  '((t (:foreground "#5EC4FF" :bold t)))
   "Face for mini-echo segment of macro status.")
 
 (defface mini-echo-narrow
-  '((t (:foreground "#5EC4FF" :bold t)))
+  '((t (:foreground "#8BD49C" :bold t)))
   "Face for mini-echo segment of narrow status.")
 
 (defvar mini-echo-segment-alist nil)
@@ -131,22 +131,23 @@
 
 (mini-echo-define-segment "process"
   "Display process info."
-  (when-let ((str (format-mode-line mode-line-process)))
-    (propertize str 'face 'mini-echo-procesize)))
+  (when-let ((str (format-mode-line mode-line-process))
+             ((not (string-empty-p str))))
+    (concat ">>" (propertize str 'face 'mini-echo-process))))
 
 (mini-echo-define-segment "macro"
   "Display macro being recorded."
   (when (or defining-kbd-macro executing-kbd-macro)
     (let ((status (if (bound-and-true-p evil-this-macro)
                       (format "@%s" (char-to-string evil-this-macro))
-                    (concat "MACRO" (if defining-kbd-macro "<<" ">>")))))
+                    "MACRO")))
       (propertize status 'face 'mini-echo-macro))))
 
 (mini-echo-define-segment "narrow"
   "Display narrow status of current buffer."
   (when (or (buffer-narrowed-p)
             (bound-and-true-p dired-narrow-mode))
-    (propertize "><" 'face 'mini-echo-narrow)))
+    (propertize "NARROW" 'face 'mini-echo-narrow)))
 
 (mini-echo-define-segment "meow"
   "Display the meow status of current buffer."

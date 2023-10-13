@@ -40,7 +40,7 @@
 
 (defcustom mini-echo-default-segments
   '("macro" "narrow" "selection-info" "process" "flymake" "buffer-size"
-    "buffer-position" "buffer-status" "vcs" "major-mode" "meow")
+    "buffer-position" "major-mode" "vcs" "buffer-status" "meow")
   "Segments displayed in mini-echo by default."
   :type '(repeat string)
   :group 'mini-echo)
