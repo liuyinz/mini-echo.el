@@ -110,7 +110,8 @@ If optional arg DEINIT is non-nil, remove all overlays."
 
 (defun mini-echo-get-frame-width ()
   "Return current frame width for characters display."
-  (with-selected-frame (window-frame (minibuffer-window))
+  (with-selected-frame (or (frame-parent (window-frame))
+                           (window-frame))
     (- (frame-width) left-margin-width right-margin-width)))
 
 (defun mini-echo-get-segment-string (segment)
