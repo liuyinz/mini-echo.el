@@ -51,6 +51,11 @@
   :type '(repeat string)
   :group 'mini-echo)
 
+(defcustom mini-echo-right-padding 0
+  ""
+  :type 'number
+  :group 'mini-echo)
+
 (defvar mini-echo--old-mdf nil)
 (defvar mini-echo-overlays nil)
 
