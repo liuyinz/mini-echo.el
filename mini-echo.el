@@ -6,7 +6,7 @@
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "27.1"))
-;; Keywords:
+;; Keywords: frames
 ;; Homepage: https://github.com/liuyinz/mini-echo.el
 
 ;; This file is not a part of GNU Emacs.
@@ -35,24 +35,37 @@
 (require 'mini-echo-segments)
 
 (defgroup mini-echo nil
-  "docstring"
+  "Show buffer status in echo area."
   :group 'mini-echo)
 
-(defcustom mini-echo-full-segments
+(defcustom mini-echo-default-segments
   '("macro-record" "selection-info" "process" "flymake" "buffer-size"
     "buffer-position" "vcs" "major-mode" "meow")
-  ""
+  "Segments displayed in mini-echo by default."
   :type '(repeat string)
   :group 'mini-echo)
 
 (defcustom mini-echo-short-segments
   '("macro-record" "selection-info" "process" "flymake" "buffer-position" "meow")
-  ""
+  "Segments displayed in mini-echo in short style."
   :type '(repeat string)
   :group 'mini-echo)
 
+(defcustom mini-echo-short-segments-predicate
+  #'mini-echo-frame-width-lessp
+  "Predicate to use short style segments."
+  :type '(choice
+          (const :tag "" mini-echo-frame-width-lessp)
+          function)
+  :group 'mini-echo)
+
 (defcustom mini-echo-right-padding 0
-  ""
+  "Number of characters appended after mini-echo information."
+  :type 'number
+  :group 'mini-echo)
+
+(defcustom mini-echo-update-interval 0.5
+  "Seconds between update mini echo segments."
   :type 'number
   :group 'mini-echo)
 
@@ -60,7 +73,8 @@
 (defvar mini-echo-overlays nil)
 
 (defun mini-echo-show-divider (&optional hide)
-  "docstring"
+  "Enable `window-divider-mode' in mini echo.
+If optional arg HIDE is non-nil, disable the mode instead."
   ;; TODO recover values if disable the mode
   (setq window-divider-default-places t)
   (setq window-divider-default-bottom-width 1)
@@ -70,7 +84,8 @@
     (window-divider-mode -1)))
 
 (defun mini-echo-hide-modeline (&optional show)
-  "docstring"
+  "Hide mode-line in mini echo.
+If optional arg SHOW is non-nil, show the mode-line instead."
   (if (null show)
       (progn
         (setq mini-echo--old-mdf mode-line-format)
@@ -80,18 +95,21 @@
   (when (called-interactively-p 'any)
     (redraw-display)))
 
-(defun mini-echo-init-overlays (&optional deinit)
-  "docstring"
+(defun mini-echo-init-echo-area (&optional deinit)
+  "Initialize echo area and minibuffer in mini echo.
+If optional arg DEINIT is non-nil, remove all overlays."
   (if (null deinit)
       (dolist (buf '(" *Echo Area 0*" " *Echo Area 1*"))
         (with-current-buffer (get-buffer-create buf)
           (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
             (push ov mini-echo-overlays))))
     (mapc #'delete-overlay mini-echo-overlays)
-    (setq mini-echo-overlays nil)))
+    (setq mini-echo-overlays nil)
+    (with-current-buffer " *Minibuf-0*"
+      (delete-region (point-min) (point-max)))))
 
 (defun mini-echo-get-frame-width ()
-  "docstring"
+  "Return current frame width for characters display."
   (with-selected-frame (window-frame (minibuffer-window))
     (- (frame-width) left-margin-width right-margin-width)))
 
@@ -99,37 +117,43 @@
   "Return string of SEGMENT info."
   (or (funcall (cdr (assoc segment mini-echo-segment-alist))) ""))
 
+(defun mini-echo-frame-width-lessp ()
+  "Return non-nil if current frame width less than 120."
+  (< (mini-echo-get-frame-width) 120))
+
 (defun mini-echo-build-info ()
-  "docstring"
+  "Build mini-echo information."
   (condition-case nil
-      (mapconcat 'identity (seq-remove #'string-empty-p
-                                       (mapcar #'mini-echo-get-segment-string
-                                               (if (> (mini-echo-get-frame-width) 120)
-                                                   mini-echo-full-segments
-                                                 mini-echo-short-segments)))
+      (mapconcat 'identity
+                 (seq-remove #'string-empty-p
+                             (mapcar #'mini-echo-get-segment-string
+                                     (if (funcall mini-echo-short-segments-predicate)
+                                         mini-echo-short-segments
+                                       mini-echo-default-segments)))
                  " ")
     (format "mini-echo error happends")))
 
 (defun mini-echo-update ()
-  "docstring"
+  "Update mini-echo information."
   (let* ((last-message (car (last (split-string (substring-no-properties
                                                  (or (current-message) ""))
                                                 "\n"))))
          (info (mini-echo-build-info))
          (info-length (+ mini-echo-right-padding (string-width info)))
-         (align-info (concat (propertize "  " 'cursor 1 'display
+         (align-info (concat (propertize " " 'cursor 1 'display
                                          `(space :align-to
                                                  (- right-fringe ,info-length)))
                              info))
          (overlay-info (if (> (- (mini-echo-get-frame-width)
-                                 (string-width info)
+                                 info-length
                                  (string-width last-message)) 0)
                            align-info "")))
     (unless (active-minibuffer-window)
       ;; Display overlays in echo area
       (dolist (ov mini-echo-overlays)
         (overlay-put ov 'after-string overlay-info))
-      ;; Display the text in Minibuf-0
+      ;; Display the text in Minibuf-0, every time Minibuf killed and recreate
+      ;; overlays failed, so only can insert text
       (with-current-buffer " *Minibuf-0*"
         (delete-region (point-min) (point-max))
         (insert align-info)))))
@@ -144,11 +168,11 @@
       (progn
         (mini-echo-show-divider)
         (mini-echo-hide-modeline)
-        (mini-echo-init-overlays)
-        (run-with-timer 0 0.2 #'mini-echo-update))
+        (mini-echo-init-echo-area)
+        (run-with-timer 0 mini-echo-update-interval #'mini-echo-update))
     (mini-echo-show-divider 'hide)
     (mini-echo-hide-modeline 'show)
-    (mini-echo-init-overlays 'deinit)
+    (mini-echo-init-echo-area 'deinit)
     (cancel-function-timers #'mini-echo-update)))
 
 (provide 'mini-echo)

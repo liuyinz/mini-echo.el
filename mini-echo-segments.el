@@ -40,7 +40,7 @@
   :group 'mini-echo)
 
 (defcustom mini-echo-vcs-max-length 10
-  ""
+  "Max length limit of vcs segment string."
   :type 'number
   :group 'mini-echo)
 
@@ -125,7 +125,7 @@
                     (format "@%s" (char-to-string evil-this-macro))
                   "MACRO"))
           (status (if defining-kbd-macro "<<" ">>")))
-      (propertize (concat name status) 'face 'miACROho-macro-record))))
+      (propertize (concat name status) 'face 'mini-echo-macro-record))))
 
 (mini-echo-define-segment "meow"
   "Display the meow status of current buffer."
@@ -175,7 +175,7 @@
 
 (defvar-local mini-echo--vcs-status nil)
 (defun mini-echo-update-vcs-status (&rest _)
-  "docstring"
+  "Update vcs segment status."
   (setq mini-echo--vcs-status
         (when (and vc-mode buffer-file-name)
           (let* ((backend (vc-backend buffer-file-name))
