@@ -53,10 +53,10 @@
   :group 'mini-echo)
 
 (defcustom mini-echo-short-segments-predicate
-  #'mini-echo-frame-width-lessp
+  #'mini-echo-minibuffer-width-lessp
   "Predicate to use short style segments."
   :type '(choice
-          (const :tag "" mini-echo-frame-width-lessp)
+          (const :tag "" mini-echo-minibuffer-width-lessp)
           function)
   :group 'mini-echo)
 
@@ -109,19 +109,19 @@ If optional arg DEINIT is non-nil, remove all overlays."
     (with-current-buffer " *Minibuf-0*"
       (delete-region (point-min) (point-max)))))
 
-(defun mini-echo-get-frame-width ()
-  "Return current frame width for characters display."
+(defun mini-echo-minibuffer-width ()
+  "Return current minibuffer window."
   (with-selected-frame (or (frame-parent (window-frame))
                            (window-frame))
-    (- (frame-width) left-margin-width right-margin-width)))
+    (window-width (minibuffer-window))))
 
 (defun mini-echo-get-segment-string (segment)
   "Return string of SEGMENT info."
   (or (funcall (cdr (assoc segment mini-echo-segment-alist))) ""))
 
-(defun mini-echo-frame-width-lessp ()
-  "Return non-nil if current frame width less than 120."
-  (< (mini-echo-get-frame-width) 120))
+(defun mini-echo-minibuffer-width-lessp ()
+  "Return non-nil if current minibuffer window width less than 120."
+  (< (mini-echo-minibuffer-width) 120))
 
 (defun mini-echo-build-info ()
   "Build mini-echo information."
@@ -146,7 +146,7 @@ If optional arg DEINIT is non-nil, remove all overlays."
                                          `(space :align-to
                                                  (- right-fringe ,info-length)))
                              info))
-         (overlay-info (if (> (- (mini-echo-get-frame-width)
+         (overlay-info (if (> (- (mini-echo-minibuffer-width)
                                  info-length
                                  (string-width last-message)) 0)
                            align-info "")))
