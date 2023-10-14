@@ -32,6 +32,7 @@
 (defvar evil-visual-end)
 (defvar evil-this-macro)
 (defvar flymake--state)
+(defvar magit-blob-mode)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -71,7 +72,7 @@ nil means to use `default-directory'.
   "Face for mini-echo segment of buffer size.")
 
 (defface mini-echo-buffer-position
-  '((t (:foreground "#FF6EB4")))
+  '((t (:foreground "violet")))
   "Face for mini-echo segment of buffer position.")
 
 (defface mini-echo-remote-host
@@ -97,6 +98,10 @@ nil means to use `default-directory'.
 (defface mini-echo-project
   '((t (:foreground "#5EC4FF")))
   "Face for mini-echo segment of project directory.")
+
+(defface mini-echo-blob-revision
+  '((t (:foreground "violet")))
+  "Face for mini-echo segment of blob revision.")
 
 (defvar mini-echo-segment-alist nil)
 
@@ -147,15 +152,16 @@ nil means to use `default-directory'.
 (defun mini-echo-buffer-status ()
   "Display th status of current buffer."
   (cl-destructuring-bind (str . face)
-      (cond (buffer-read-only
-             (cons "%" 'error))
-            ((and buffer-file-name (buffer-modified-p))
-             (cons "*" 'warning))
-            ((and buffer-file-name
-                  (not (file-remote-p buffer-file-name))
-                  (not (file-exists-p buffer-file-name)))
-             (cons "!" 'error))
-            (t (cons "" nil)))
+      (cond
+       ((bound-and-true-p magit-blob-mode) (cons "" nil))
+       (buffer-read-only (cons "%" 'error))
+       ((and buffer-file-name (buffer-modified-p))
+        (cons "*" 'warning))
+       ((and buffer-file-name
+             (not (file-remote-p buffer-file-name))
+             (not (file-exists-p buffer-file-name)))
+        (cons "!" 'error))
+       (t (cons "" nil)))
     (propertize str 'face face)))
 
 (defvar-local mini-echo-project-root nil)
@@ -182,6 +188,19 @@ Return nil if no project was found."
                         (car (with-no-warnings
                                (project-roots project))))))))))))
 
+(defun mini-echo-buffer-name ()
+  "Return current buffer name for mini echo."
+  (cond
+   (;; TODO need timemachine support
+    (or (bound-and-true-p magit-blob-mode))
+    (save-match-data
+      (let ((str (buffer-name)))
+        (when (string-match "\\(.+\\)\\.~\\(.+\\)~" str)
+          (concat (file-name-nondirectory (match-string 1 str))
+                  (propertize (concat "@" (substring (match-string 2 str) 0 7))
+                              'face 'mini-echo-blob-revision))))))
+   (t (buffer-name))))
+
 (mini-echo-define-segment "buffer-name"
   "Display file path of current buffer."
   (concat
@@ -196,12 +215,12 @@ Return nil if no project was found."
           ,@(mapcar (lambda (x) (substring x 0 1)) (butlast parts))
           ,(car (last parts)))
         "/")
-     (buffer-name))
+     (mini-echo-buffer-name))
    (mini-echo-buffer-status)))
 
 (mini-echo-define-segment "buffer-name-short"
   "Display file path of current buffer."
-  (concat (buffer-name) (mini-echo-buffer-status)))
+  (concat (mini-echo-buffer-name) (mini-echo-buffer-status)))
 
 (mini-echo-define-segment "macro"
   "Display macro being recorded."
