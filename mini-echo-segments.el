@@ -37,6 +37,8 @@
 (declare-function flymake-running-backends "flymake")
 (declare-function flymake-disabled-backends "flymake")
 (declare-function flymake-reporting-backends "flymake")
+(declare-function projectile-project-root "projectile")
+(declare-function ffip-project-root "ffip")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -46,6 +48,17 @@
 (defcustom mini-echo-vcs-max-length 10
   "Max length limit of vcs segment string."
   :type 'number
+  :group 'mini-echo)
+
+(defcustom mini-echo-project-detection 'project
+  "How to detect the project root in mini echo.
+nil means to use `default-directory'.
+`auto' means to detect the following options in order."
+  :type '(choice (const :tag "Auto-detect" auto)
+                 (const :tag "Find File in Project" ffip)
+                 (const :tag "Projectile" projectile)
+                 (const :tag "Built-in Project" project)
+                 (const :tag "Disable" nil))
   :group 'mini-echo)
 
 ;; faces
@@ -81,6 +94,10 @@
   '((t (:foreground "#8BD49C" :bold t)))
   "Face for mini-echo segment of narrow status.")
 
+(defface mini-echo-project
+  '((t (:foreground "#5EC4FF")))
+  "Face for mini-echo segment of project directory.")
+
 (defvar mini-echo-segment-alist nil)
 
 (defmacro mini-echo-define-segment (name &rest body)
@@ -115,18 +132,6 @@
   (when-let ((size (format-mode-line "%I")))
     (propertize size 'face 'mini-echo-buffer-size)))
 
-(mini-echo-define-segment "buffer-status"
-  "Display th status of current buffer."
-  (ignore-errors
-    (concat (mapconcat #'format-mode-line
-                       '(mode-line-client
-                         mode-line-modified
-                         mode-line-remote))
-            (and buffer-file-name
-                 (not (file-remote-p buffer-file-name))
-                 (not (file-exists-p buffer-file-name))
-                 (propertize "!" 'face 'error)))))
-
 (mini-echo-define-segment "remote-host"
   "Display the hostname of remote buffer."
   (when default-directory
@@ -138,6 +143,65 @@
   (when-let ((str (format-mode-line mode-line-process))
              ((not (string-empty-p str))))
     (concat ">>" (propertize str 'face 'mini-echo-process))))
+
+(defun mini-echo-buffer-status ()
+  "Display th status of current buffer."
+  (cl-destructuring-bind (str . face)
+      (cond (buffer-read-only
+             (cons "%" 'error))
+            ((and buffer-file-name (buffer-modified-p))
+             (cons "*" 'warning))
+            ((and buffer-file-name
+                  (not (file-remote-p buffer-file-name))
+                  (not (file-exists-p buffer-file-name)))
+             (cons "!" 'error))
+            (t (cons "" nil)))
+    (propertize str 'face face)))
+
+(defvar-local mini-echo-project-root nil)
+(defun mini-echo-project-root ()
+  "Get the path to the project root.
+Return nil if no project was found."
+  (or mini-echo-project-root
+      (and (buffer-file-name)
+           (setq mini-echo-project-root
+                 (cond
+                  ((and (memq mini-echo-project-detection '(auto ffip))
+                        (fboundp 'ffip-project-root))
+                   (let ((inhibit-message t))
+                     (ffip-project-root)))
+                  ((and (memq mini-echo-project-detection '(auto projectile))
+                        (bound-and-true-p projectile-mode))
+                   (projectile-project-root))
+                  ((and (memq mini-echo-project-detection '(auto project))
+                        (fboundp 'project-current))
+                   (when-let ((project (project-current)))
+                     (expand-file-name
+                      (if (fboundp 'project-root)
+                          (project-root project)
+                        (car (with-no-warnings
+                               (project-roots project))))))))))))
+
+(mini-echo-define-segment "buffer-name"
+  "Display file path of current buffer."
+  (concat
+   (if-let* ((filepath (buffer-file-name))
+             (project (mini-echo-project-root))
+             (parts (split-string (string-trim filepath project) "/")))
+       (mapconcat
+        #'identity
+        `(,(propertize
+            (file-name-nondirectory (directory-file-name project))
+            'face 'mini-echo-project)
+          ,@(mapcar (lambda (x) (substring x 0 1)) (butlast parts))
+          ,(car (last parts)))
+        "/")
+     (buffer-name))
+   (mini-echo-buffer-status)))
+
+(mini-echo-define-segment "buffer-name-short"
+  "Display file path of current buffer."
+  (concat (buffer-name) (mini-echo-buffer-status)))
 
 (mini-echo-define-segment "macro"
   "Display macro being recorded."
