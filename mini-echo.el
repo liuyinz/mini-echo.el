@@ -126,56 +126,69 @@ If optional arg DEINIT is non-nil, remove all overlays."
 (defun mini-echo-build-info ()
   "Build mini-echo information."
   (condition-case nil
-      (mapconcat 'identity
-                 (seq-remove #'string-empty-p
-                             (mapcar #'mini-echo-get-segment-string
-                                     (if (funcall mini-echo-short-segments-predicate)
-                                         mini-echo-short-segments
-                                       mini-echo-default-segments)))
-                 " ")
+      (let* ((info (mapconcat
+                    'identity
+                    (seq-remove
+                     #'string-empty-p
+                     (mapcar #'mini-echo-get-segment-string
+                             (if (funcall mini-echo-short-segments-predicate)
+                                 mini-echo-short-segments
+                               mini-echo-default-segments)))
+                    " ")))
+        (concat (propertize " "
+                            'cursor 1
+                            'display `(space :align-to
+                                             (- right-fringe
+                                                ,(+ mini-echo-right-padding
+                                                    (string-width info)))))
+                info))
     (format "mini-echo error happends")))
 
-(defun mini-echo-update ()
-  "Update mini-echo information."
-  (let* ((last-message (car (last (split-string (substring-no-properties
-                                                 (or (current-message) ""))
-                                                "\n"))))
-         (info (mini-echo-build-info))
-         (info-length (+ mini-echo-right-padding (string-width info)))
-         (align-info (concat (propertize " " 'cursor 1 'display
-                                         `(space :align-to
-                                                 (- right-fringe ,info-length)))
-                             info))
-         (overlay-info (if (> (- (mini-echo-minibuffer-width)
-                                 info-length
-                                 (string-width last-message)) 0)
-                           align-info "")))
-    (unless (active-minibuffer-window)
-      ;; Display overlays in echo area
-      (dolist (ov mini-echo-overlays)
-        (overlay-put ov 'after-string overlay-info))
-      ;; Display the text in Minibuf-0, every time Minibuf killed and recreate
-      ;; overlays failed, so only can insert text
+(defun mini-echo-update-minibuf ()
+  "Update mini echo info in minibuf."
+  (unless (active-minibuffer-window)
+    ;; Display the text in Minibuf-0, every time Minibuf killed and recreate
+    ;; overlays failed, so only can insert text
+    (let ((info (mini-echo-build-info)))
       (with-current-buffer " *Minibuf-0*"
-        (delete-region (point-min) (point-max))
-        (insert align-info)))))
+        (erase-buffer)
+        (insert info)))))
+
+(defun mini-echo-update-overlays (fn &rest args)
+  "Update mini echo info in echo area before FN.
+ARGS is optional."
+  ;; update overlay before message print
+  (when-let (((car args))
+             (msg (apply #'format-message args)))
+    (unless (active-minibuffer-window)
+      (let* ((info (mini-echo-build-info)))
+        (dolist (ov mini-echo-overlays)
+          (overlay-put ov 'after-string
+                       (if (> (- (mini-echo-minibuffer-width)
+                                 (string-width info)
+                                 (string-width msg))
+                              0)
+                           info ""))))))
+  (apply fn args))
 
 ;;;###autoload
 (define-minor-mode mini-echo-mode
   "Minor mode to show buffer status in echo area."
   :group 'mini-echo
   :global t
-  :init-value nil
   (if mini-echo-mode
       (progn
         (mini-echo-show-divider)
         (mini-echo-hide-modeline)
         (mini-echo-init-echo-area)
-        (run-with-timer 0 mini-echo-update-interval #'mini-echo-update))
+        ;; FIXME sometimes update twice when switch from echo to minibuf
+        (run-with-timer 0 mini-echo-update-interval #'mini-echo-update-minibuf)
+        (advice-add 'message :around #'mini-echo-update-overlays))
     (mini-echo-show-divider 'hide)
     (mini-echo-hide-modeline 'show)
     (mini-echo-init-echo-area 'deinit)
-    (cancel-function-timers #'mini-echo-update)))
+    (cancel-function-timers #'mini-echo-update-minibuf)
+    (advice-remove 'message #'mini-echo-update-overlays)))
 
 (provide 'mini-echo)
 ;;; mini-echo.el ends here
