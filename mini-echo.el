@@ -5,7 +5,7 @@
 ;; Author: liuyinz <liuyinz95@gmail.com>
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: frames
 ;; Homepage: https://github.com/liuyinz/mini-echo.el
 
@@ -72,7 +72,7 @@ Set this to avoid truncation."
   :group 'mini-echo)
 
 (defcustom mini-echo-window-divider-args '(t 1 1)
-  "List of arguments to initialize `window-divider-mode'.
+  "List of arguments to initialize command `window-divider-mode'.
 Format is a list of three argument:
   (`window-divider-default-places'
    `window-divider-default-right-width'
@@ -90,7 +90,7 @@ Format is a list of three argument:
 (defvar mini-echo-overlays nil)
 
 (defun mini-echo-show-divider (&optional hide)
-  "Enable `window-divider-mode' in mini echo.
+  "Show window divider when enable mini echo.
 If optional arg HIDE is non-nil, disable the mode instead."
   (if (null hide)
       (cl-destructuring-bind (window-divider-default-places

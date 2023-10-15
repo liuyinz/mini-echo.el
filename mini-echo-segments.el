@@ -65,43 +65,53 @@ nil means to use `default-directory'.
 ;; faces
 (defface mini-echo-major-mode
   '((t (:inherit bold)))
-  "Face for mini-echo segment of major mode.")
+  "Face for mini-echo segment of major mode."
+  :group 'mini-echo)
 
 (defface mini-echo-buffer-size
   '((t (:inherit default)))
-  "Face for mini-echo segment of buffer size.")
+  "Face for mini-echo segment of buffer size."
+  :group 'mini-echo)
 
 (defface mini-echo-buffer-position
   '((t (:foreground "violet")))
-  "Face for mini-echo segment of buffer position.")
+  "Face for mini-echo segment of buffer position."
+  :group 'mini-echo)
 
 (defface mini-echo-remote-host
   '((t (:foreground "#E27E8D")))
-  "Face for mini-echo segment of remote host.")
+  "Face for mini-echo segment of remote host."
+  :group 'mini-echo)
 
 (defface mini-echo-process
   '((t (:foreground "#8BD49C" :bold t)))
-  "Face for mini-echo segment of process.")
+  "Face for mini-echo segment of process."
+  :group 'mini-echo)
 
 (defface mini-echo-selection-info
   '((t (:foreground "#EBBF83" :bold t)))
-  "Face for mini-echo segment of selection info.")
+  "Face for mini-echo segment of selection info."
+  :group 'mini-echo)
 
 (defface mini-echo-macro
   '((t (:foreground "#5EC4FF" :bold t)))
-  "Face for mini-echo segment of macro status.")
+  "Face for mini-echo segment of macro status."
+  :group 'mini-echo)
 
 (defface mini-echo-narrow
   '((t (:foreground "#8BD49C" :bold t)))
-  "Face for mini-echo segment of narrow status.")
+  "Face for mini-echo segment of narrow status."
+  :group 'mini-echo)
 
 (defface mini-echo-project
   '((t (:foreground "#5EC4FF")))
-  "Face for mini-echo segment of project directory.")
+  "Face for mini-echo segment of project directory."
+  :group 'mini-echo)
 
 (defface mini-echo-blob-revision
   '((t (:foreground "violet")))
-  "Face for mini-echo segment of blob revision.")
+  "Face for mini-echo segment of blob revision."
+  :group 'mini-echo)
 
 (defvar mini-echo-segment-alist nil)
 
