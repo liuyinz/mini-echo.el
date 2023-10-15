@@ -60,6 +60,15 @@
           function)
   :group 'mini-echo)
 
+(defcustom mini-echo-window-divider-args '(t 1 1)
+  "List of arguments to initialize `window-divider-mode'.
+Format is a list of three argument:
+  (`window-divider-default-places'
+   `window-divider-default-right-width'
+   `window-divider-default-bottom-width')."
+  :type '(symbol number number)
+  :group 'mini-echo)
+
 (defcustom mini-echo-right-padding 0
   "Number of characters appended after mini-echo information."
   :type 'number
@@ -76,12 +85,12 @@
 (defun mini-echo-show-divider (&optional hide)
   "Enable `window-divider-mode' in mini echo.
 If optional arg HIDE is non-nil, disable the mode instead."
-  ;; TODO recover values if disable the mode
-  (setq window-divider-default-places t)
-  (setq window-divider-default-bottom-width 1)
-  (setq window-divider-default-right-width 1)
   (if (null hide)
-      (window-divider-mode 1)
+      (cl-destructuring-bind (window-divider-default-places
+                              window-divider-default-right-width
+                              window-divider-default-bottom-width)
+          mini-echo-window-divider-args
+        (window-divider-mode 1))
     (window-divider-mode -1)))
 
 (defun mini-echo-hide-modeline (&optional show)
