@@ -98,19 +98,17 @@ If optional arg HIDE is non-nil, disable the mode instead."
 If optional arg SHOW is non-nil, show the mode-line instead."
   (if (null show)
       (progn
-        (mapc (lambda (buf)
-                (with-current-buffer buf
-                  (setq mini-echo--old-mdf mode-line-format)
-                  (setq mode-line-format nil)))
-              (buffer-list))
+        (dolist (buf (buffer-list))
+          (with-current-buffer buf
+            (setq mini-echo--old-mdf mode-line-format)
+            (setq mode-line-format nil)))
         (setq-default mode-line-format nil))
     ;; FIXME new buffer under mini-echo recover face problem
     (let ((orig-value (get 'mode-line-format 'standard-value)))
-      (mapc (lambda (buf)
-              (with-current-buffer buf
-                (setq mode-line-format (or mini-echo--old-mdf orig-value))
-                (setq mini-echo--old-mdf nil)))
-            (buffer-list))
+      (dolist (buf (buffer-list))
+        (with-current-buffer buf
+          (setq mode-line-format (or mini-echo--old-mdf orig-value))
+          (setq mini-echo--old-mdf nil)))
       (setq-default mode-line-format orig-value)))
   (when (called-interactively-p 'any)
     (redraw-display)))
