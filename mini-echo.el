@@ -1,4 +1,4 @@
-;;; mini-echo.el --- Show buffer status in echo area -*- lexical-binding: t -*-
+;;; mini-echo.el --- Echo buffer status in minibuffer window -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2023 liuyinz
 
@@ -28,14 +28,14 @@
 
 ;;; Commentary:
 
-;; Show buffer status in echo area instead of modeline.
+;; Echo buffer status in minibuffer window
 
 ;;; Code:
 
 (require 'mini-echo-segments)
 
 (defgroup mini-echo nil
-  "Show buffer status in echo area."
+  "Echo buffer status in minibuffer window."
   :group 'mini-echo)
 
 (defcustom mini-echo-default-segments
@@ -103,7 +103,7 @@ If optional arg SHOW is non-nil, show the mode-line instead."
             (setq mini-echo--old-mdf mode-line-format)
             (setq mode-line-format nil)))
         (setq-default mode-line-format nil))
-    ;; FIXME new buffer under mini-echo recover face problem
+    ;; FIXME new buffer under mini-echo recover has modeline face bug
     (let ((orig-value (get 'mode-line-format 'standard-value)))
       (dolist (buf (buffer-list))
         (with-current-buffer buf
