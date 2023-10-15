@@ -171,22 +171,30 @@ If optional arg DEINIT is non-nil, remove all overlays."
         (erase-buffer)
         (insert info)))))
 
-(defun mini-echo-update-overlays (fn &rest args)
+(defun mini-echo-update-overlays (&optional msg)
+  "Update mini echo info in overlays according to MSG.
+If MSG is nil, then use `current-message' instead."
+  (when-let* (((not (active-minibuffer-window)))
+              (msg (or msg (current-message)))
+              (info (mini-echo-build-info)))
+    (dolist (ov mini-echo-overlays)
+      (overlay-put ov 'after-string
+                   (if (> (- (mini-echo-minibuffer-width)
+                             (string-width info)
+                             (string-width msg))
+                          0)
+                       info "")))))
+
+;; update overlay before message print
+(defun mini-echo-message (fn &rest args)
   "Update mini echo info in echo area before FN.
 ARGS is optional."
-  ;; update overlay before message print
-  (when-let (((car args))
-             (msg (apply #'format-message args)))
-    (unless (active-minibuffer-window)
-      (let* ((info (mini-echo-build-info)))
-        (dolist (ov mini-echo-overlays)
-          (overlay-put ov 'after-string
-                       (if (> (- (mini-echo-minibuffer-width)
-                                 (string-width info)
-                                 (string-width msg))
-                              0)
-                           info ""))))))
+  (mini-echo-update-overlays (and (car args) (apply #'format-message args)))
   (apply fn args))
+
+(defun mini-echo-update-when-resized (&rest _)
+  "Update mini echo info after resize frame size."
+  (mini-echo-update-overlays))
 
 ;;;###autoload
 (define-minor-mode mini-echo-mode
@@ -200,12 +208,14 @@ ARGS is optional."
         (mini-echo-init-echo-area)
         ;; FIXME sometimes update twice when switch from echo to minibuf
         (run-with-timer 0 mini-echo-update-interval #'mini-echo-update-minibuf)
-        (advice-add 'message :around #'mini-echo-update-overlays))
+        (advice-add 'message :around #'mini-echo-message)
+        (add-hook 'window-size-change-functions #'mini-echo-update-when-resized))
     (mini-echo-show-divider 'hide)
     (mini-echo-hide-modeline 'show)
     (mini-echo-init-echo-area 'deinit)
     (cancel-function-timers #'mini-echo-update-minibuf)
-    (advice-remove 'message #'mini-echo-update-overlays)))
+    (advice-remove 'message #'mini-echo-message)
+    (remove-hook 'window-size-change-functions #'mini-echo-update-when-resized)))
 
 (provide 'mini-echo)
 ;;; mini-echo.el ends here
