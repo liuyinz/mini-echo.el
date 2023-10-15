@@ -79,7 +79,7 @@ Format is a list of three argument:
   :type 'number
   :group 'mini-echo)
 
-(defvar mini-echo--old-mdf nil)
+(defvar-local mini-echo--old-mdf nil)
 (defvar mini-echo-overlays nil)
 
 (defun mini-echo-show-divider (&optional hide)
@@ -98,10 +98,20 @@ If optional arg HIDE is non-nil, disable the mode instead."
 If optional arg SHOW is non-nil, show the mode-line instead."
   (if (null show)
       (progn
-        (setq mini-echo--old-mdf mode-line-format)
+        (mapc (lambda (buf)
+                (with-current-buffer buf
+                  (setq mini-echo--old-mdf mode-line-format)
+                  (setq mode-line-format nil)))
+              (buffer-list))
         (setq-default mode-line-format nil))
-    (setq-default mode-line-format mini-echo--old-mdf)
-    (setq-default mini-echo--old-mdf nil))
+    ;; FIXME new buffer under mini-echo recover face problem
+    (let ((orig-value (get 'mode-line-format 'standard-value)))
+      (mapc (lambda (buf)
+              (with-current-buffer buf
+                (setq mode-line-format (or mini-echo--old-mdf orig-value))
+                (setq mini-echo--old-mdf nil)))
+            (buffer-list))
+      (setq-default mode-line-format orig-value)))
   (when (called-interactively-p 'any)
     (redraw-display)))
 
