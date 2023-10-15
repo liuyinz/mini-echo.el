@@ -60,6 +60,17 @@
           function)
   :group 'mini-echo)
 
+(defcustom mini-echo-right-padding 0
+  "Padding to append after mini echo info.
+Set this to avoid truncation."
+  :type 'number
+  :group 'mini-echo)
+
+(defcustom mini-echo-update-interval 0.5
+  "Seconds between update mini echo segments."
+  :type 'number
+  :group 'mini-echo)
+
 (defcustom mini-echo-window-divider-args '(t 1 1)
   "List of arguments to initialize `window-divider-mode'.
 Format is a list of three argument:
@@ -69,17 +80,13 @@ Format is a list of three argument:
   :type '(symbol number number)
   :group 'mini-echo)
 
-(defcustom mini-echo-right-padding 0
-  "Number of characters appended after mini-echo information."
-  :type 'number
-  :group 'mini-echo)
-
-(defcustom mini-echo-update-interval 0.5
-  "Seconds between update mini echo segments."
-  :type 'number
+(defcustom mini-echo-window-border-color "#5d6a76"
+  "Color of window border."
+  :type 'string
   :group 'mini-echo)
 
 (defvar-local mini-echo--old-mdf nil)
+(defvar mini-echo-old-window-border-color nil)
 (defvar mini-echo-overlays nil)
 
 (defun mini-echo-show-divider (&optional hide)
@@ -90,7 +97,17 @@ If optional arg HIDE is non-nil, disable the mode instead."
                               window-divider-default-right-width
                               window-divider-default-bottom-width)
           mini-echo-window-divider-args
+        (setq mini-echo-old-window-border-color
+              (cons (face-foreground 'window-divider nil 'default)
+                    (face-background 'window-divider nil 'default)))
+        (set-face-attribute 'window-divider nil
+                            :foreground mini-echo-window-border-color
+                            :background mini-echo-window-border-color)
         (window-divider-mode 1))
+    (set-face-attribute 'window-divider nil
+                        :foreground (car mini-echo-old-window-border-color)
+                        :background (cdr mini-echo-old-window-border-color))
+    (setq mini-echo-old-window-border-color nil)
     (window-divider-mode -1)))
 
 (defun mini-echo-hide-modeline (&optional show)
