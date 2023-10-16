@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/liuyinz/mini-echo.el/compare/v0.1.0..v0.1.1) - 2023-10-16
+
+### Bug Fixes
+
+- return empty string if not in a project - ([d54a03b](https://github.com/liuyinz/mini-echo.el/commit/d54a03b91a99c134da13eaaf8c81279edd5175b6))
+- mini-echo-define-segment macro error - ([4b9fcca](https://github.com/liuyinz/mini-echo.el/commit/4b9fcca1773d2a0abd8e423f5d353a77e363d021))
+
 ## [0.1.0] - 2023-10-15
 
 ### Bug Fixes
