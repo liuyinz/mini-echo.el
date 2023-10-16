@@ -149,33 +149,27 @@ If optional arg DEINIT is non-nil, remove all overlays."
                            (window-frame))
     (window-width (minibuffer-window))))
 
-(defun mini-echo-get-segment-string (segment)
-  "Return string of SEGMENT info."
-  (or (funcall (cdr (assoc segment mini-echo-segment-alist))) ""))
-
 (defun mini-echo-minibuffer-width-lessp ()
   "Return non-nil if current minibuffer window width less than 120."
   (< (mini-echo-minibuffer-width) 120))
 
+(defun mini-echo-combine-segments ()
+  "Return combined segments information."
+  (cl-loop for segment in (if (funcall mini-echo-short-segments-predicate)
+                              mini-echo-short-segments
+                            mini-echo-default-segments)
+           when (funcall (cdr (assoc segment mini-echo-segment-alist)))
+           collect it into result
+           finally return
+           (mapconcat 'identity (seq-remove #'string-empty-p result) " ")))
+
 (defun mini-echo-build-info ()
   "Build mini-echo information."
   (condition-case nil
-      (let* ((info (mapconcat
-                    'identity
-                    (seq-remove
-                     #'string-empty-p
-                     (mapcar #'mini-echo-get-segment-string
-                             (if (funcall mini-echo-short-segments-predicate)
-                                 mini-echo-short-segments
-                               mini-echo-default-segments)))
-                    " ")))
-        (concat (propertize " "
-                            'cursor 1
-                            'display `(space :align-to
-                                             (- right-fringe
-                                                ,(+ mini-echo-right-padding
-                                                    (string-width info)))))
-                info))
+      (let* ((combined (mini-echo-combine-segments))
+             (padding (+ mini-echo-right-padding (string-width combined)))
+             (prop `(space :align-to (- right-fringe ,padding))))
+        (concat (propertize " " 'cursor 1 'display prop) combined))
     (format "mini-echo error happends")))
 
 (defun mini-echo-update-minibuf ()

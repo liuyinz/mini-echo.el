@@ -121,7 +121,7 @@ nil means to use `default-directory'.
         (docstring (if (stringp (car body))
                        (pop body)
                      (format "Display %s in mini-echo" name))))
-    (cond ((and (symbolp (car body))
+    (cond ((and (functionp (car body))
                 (not (cdr body)))
            `(add-to-list 'mini-echo-segment-alist
                          (cons ,name ',(car body))))
@@ -309,22 +309,15 @@ Return nil if no project was found."
   (setq mini-echo--vcs-status
         (when (and vc-mode buffer-file-name)
           (let* ((backend (vc-backend buffer-file-name))
-                 (state (vc-state buffer-file-name backend))
-                 (str (if vc-display-status
-                          (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2))
-                        ""))
-                 (face (cond ((eq state 'needs-update)
-                              'warning)
-                             ((memq state '(removed conflict unregistered))
-                              'error)
-                             (t 'success))))
-            (propertize (concat
-                         "@"
-                         (if (length> str mini-echo-vcs-max-length)
-                             (concat
-                              (substring str 0 (- mini-echo-vcs-max-length 3))
-                              "..")
-                           str))
+                 (branch (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
+                 (limit mini-echo-vcs-max-length)
+                 (face (cl-case (vc-state buffer-file-name backend)
+                         (needs-update 'warning)
+                         ((removed conflict unregistered) 'error)
+                         (t 'success))))
+            (propertize (concat "@" (if (length> branch limit)
+                                        (concat (substring branch 0 (- limit 3)) "..")
+                                      branch))
                         'face `(:inherit (,face bold)))))))
 
 (add-hook 'find-file-hook #'mini-echo-update-vcs-status)
@@ -333,7 +326,7 @@ Return nil if no project was found."
 
 (mini-echo-define-segment "vcs"
   "Display current branch."
-  (or mini-echo--vcs-status ""))
+  (buffer-local-value 'mini-echo--vcs-status (current-buffer)))
 
 (provide 'mini-echo-segments)
 ;;; mini-echo-segments.el ends here
