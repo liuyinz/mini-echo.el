@@ -11,6 +11,8 @@ Echo buffer status in minibuffer window instead of mode-line.
 
 ## Similar Package
 
-[feebleline](https://github.com/tautologyclub/feebleline)
-[mini-modeline](https://github.com/kiennq/emacs-mini-modeline)
-[awesome-tray](https://github.com/manateelazycat/awesome-tray)
+- [feebleline](https://github.com/tautologyclub/feebleline)
+
+- [mini-modeline](https://github.com/kiennq/emacs-mini-modeline)
+
+- [awesome-tray](https://github.com/manateelazycat/awesome-tray)
