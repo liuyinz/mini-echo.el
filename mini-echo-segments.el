@@ -55,11 +55,10 @@
   "How to detect the project root in mini echo.
 nil means to use `default-directory'.
 `auto' means to detect the following options in order."
-  :type '(choice (const :tag "Auto-detect" auto)
-                 (const :tag "Find File in Project" ffip)
+  :type '(choice (const :tag "Find File in Project" ffip)
                  (const :tag "Projectile" projectile)
                  (const :tag "Built-in Project" project)
-                 (const :tag "Disable" nil))
+                 function)
   :group 'mini-echo)
 
 ;; faces
@@ -179,24 +178,23 @@ nil means to use `default-directory'.
   "Get the path to the project root.
 Return nil if no project was found."
   (or mini-echo-project-root
-      (and (buffer-file-name)
-           (setq mini-echo-project-root
-                 (cond
-                  ((and (memq mini-echo-project-detection '(auto ffip))
-                        (fboundp 'ffip-project-root))
-                   (let ((inhibit-message t))
-                     (ffip-project-root)))
-                  ((and (memq mini-echo-project-detection '(auto projectile))
-                        (bound-and-true-p projectile-mode))
-                   (projectile-project-root))
-                  ((and (memq mini-echo-project-detection '(auto project))
-                        (fboundp 'project-current))
-                   (when-let ((project (project-current)))
-                     (expand-file-name
-                      (if (fboundp 'project-root)
-                          (project-root project)
-                        (car (with-no-warnings
-                               (project-roots project))))))))))))
+      (setq mini-echo-project-root
+            (or (and (buffer-file-name)
+                     (cl-case mini-echo-project-detection
+                       (ffip (and (fboundp 'ffip-project-root)
+                                  (let ((inhibit-message t))
+                                    (ffip-project-root))))
+                       (projectile (and (bound-and-true-p projectile-mode)
+                                        (projectile-project-root)))
+                       (project (when-let (((fboundp 'project-current))
+                                           (project (project-current)))
+                                  (expand-file-name
+                                   (if (fboundp 'project-root)
+                                       (project-root project)
+                                     (car (with-no-warnings
+                                            (project-roots project)))))))
+                       (_ (funcall mini-echo-project-detection))))
+                ""))))
 
 (defun mini-echo-buffer-name ()
   "Return current buffer name for mini echo."
@@ -216,6 +214,8 @@ Return nil if no project was found."
   (concat
    (if-let* ((filepath (buffer-file-name))
              (project (mini-echo-project-root))
+             ((not (string-empty-p project)))
+             ((string-prefix-p project filepath))
              (parts (split-string (string-trim filepath project) "/")))
        (mapconcat
         #'identity
