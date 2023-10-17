@@ -248,7 +248,7 @@ Return nil if no project was found."
 
 (mini-echo-define-segment "meow"
   "Display the meow status of current buffer."
-  (when (bound-and-true-p meow-mode)
+  (when (bound-and-true-p meow--indicator)
     (string-trim meow--indicator)))
 
 (mini-echo-define-segment "flymake"
