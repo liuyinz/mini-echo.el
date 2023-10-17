@@ -90,24 +90,9 @@ nil means to use `default-directory'.
   "Face for mini-echo segment of remote host."
   :group 'mini-echo)
 
-(defface mini-echo-process
-  '((t (:foreground "#8BD49C" :bold t)))
-  "Face for mini-echo segment of process."
-  :group 'mini-echo)
-
 (defface mini-echo-selection-info
   '((t (:foreground "#EBBF83" :bold t)))
   "Face for mini-echo segment of selection info."
-  :group 'mini-echo)
-
-(defface mini-echo-macro
-  '((t (:foreground "#5EC4FF" :bold t)))
-  "Face for mini-echo segment of macro status."
-  :group 'mini-echo)
-
-(defface mini-echo-narrow
-  '((t (:foreground "#8BD49C" :bold t)))
-  "Face for mini-echo segment of narrow status."
   :group 'mini-echo)
 
 (defface mini-echo-project
@@ -116,8 +101,28 @@ nil means to use `default-directory'.
   :group 'mini-echo)
 
 (defface mini-echo-blob-revision
-  '((t (:foreground "violet")))
+  '((t (:foreground "#E27E8D")))
   "Face for mini-echo segment of blob revision."
+  :group 'mini-echo)
+
+(defface mini-echo-macro
+  '((t (:foreground "#8BD49C" :bold t)))
+  "Face for mini-echo segment of macro status."
+  :group 'mini-echo)
+
+(defface mini-echo-process
+  '((t (:foreground "#8BD49C" :bold t)))
+  "Face for mini-echo segment of process."
+  :group 'mini-echo)
+
+(defface mini-echo-narrow
+  '((t (:foreground "#8BD49C" :bold t)))
+  "Face for mini-echo segment of narrow status."
+  :group 'mini-echo)
+
+(defface mini-echo-profiler
+  '((t (:foreground "#8BD49C" :bold t)))
+  "Face for mini-echo segment of profiler status."
   :group 'mini-echo)
 
 (defvar mini-echo-segment-alist nil)
@@ -167,6 +172,12 @@ nil means to use `default-directory'.
              ((not (string-empty-p str))))
     (concat ">>" (propertize str 'face 'mini-echo-process))))
 
+(mini-echo-define-segment "profiler"
+  "Display profiler status"
+  (when (or (profiler-cpu-running-p)
+            (profiler-memory-running-p))
+    (propertize "Profiler" 'face 'mini-echo-profiler)))
+
 (defun mini-echo-buffer-status ()
   "Display th status of current buffer."
   (cond
@@ -212,8 +223,7 @@ Return nil if no project was found."
       (let ((str (buffer-name)))
         (when (string-match "\\(.+\\)\\.~\\(.+\\)~" str)
           (concat (file-name-nondirectory (match-string 1 str))
-                  (propertize (concat "@"
-                                      (substring (match-string 2 str) 0 7))
+                  (propertize (concat "@" (substring (match-string 2 str) 0 7))
                               'face 'mini-echo-blob-revision))))))
    (t (let ((name (buffer-name)))
         (cl-destructuring-bind (sign . face)
