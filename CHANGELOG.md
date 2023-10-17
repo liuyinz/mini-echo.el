@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/liuyinz/mini-echo.el/compare/v0.1.1..v0.2.0) - 2023-10-17
+
+### Bug Fixes
+
+- get meow status only through meow--indicator - ([30bd072](https://github.com/liuyinz/mini-echo.el/commit/30bd072b87fd76a54add645c36a964efab15465d))
+- update overlays with timer too as long as it's not hide - ([b0e7b4b](https://github.com/liuyinz/mini-echo.el/commit/b0e7b4b8d420938a4d55b8ecf4bff51e7ecfa520))
+
 ## [0.1.1](https://github.com/liuyinz/mini-echo.el/compare/v0.1.0..v0.1.1) - 2023-10-16
 
 ### Bug Fixes
