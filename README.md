@@ -16,3 +16,7 @@ Echo buffer status in minibuffer window instead of mode-line.
 - [mini-modeline](https://github.com/kiennq/emacs-mini-modeline)
 
 - [awesome-tray](https://github.com/manateelazycat/awesome-tray)
+
+## Todo
+- [ ] add env support
+- [ ] rewrite mini-echo-define-macro
