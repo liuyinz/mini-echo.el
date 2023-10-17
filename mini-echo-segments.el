@@ -47,6 +47,13 @@
   :type 'string
   :group 'mini-echo)
 
+(defcustom mini-echo-buffer-status-style 'sign
+  "Style used to display buffer status in mini echo."
+  :type '(choice (const :tag "Change extra sign after buffer name" sign)
+                 (const :tag "Change color of buffer name" color)
+                 (const :tag "Change both color and sign" both))
+  :group 'mini-echo)
+
 (defcustom mini-echo-vcs-max-length 10
   "Max length limit of vcs segment string."
   :type 'number
@@ -162,18 +169,16 @@ nil means to use `default-directory'.
 
 (defun mini-echo-buffer-status ()
   "Display th status of current buffer."
-  (cl-destructuring-bind (str . face)
-      (cond
-       ((bound-and-true-p magit-blob-mode) (cons "" nil))
-       (buffer-read-only (cons "%" 'error))
-       ((and buffer-file-name (buffer-modified-p))
-        (cons "*" 'warning))
-       ((and buffer-file-name
-             (not (file-remote-p buffer-file-name))
-             (not (file-exists-p buffer-file-name)))
-        (cons "!" 'error))
-       (t (cons "" nil)))
-    (propertize str 'face face)))
+  (cond
+   ((bound-and-true-p magit-blob-mode) (cons "" nil))
+   (buffer-read-only (cons "%" 'warning))
+   ((and buffer-file-name (buffer-modified-p))
+    (cons "*" 'success))
+   ((and buffer-file-name
+         (not (file-remote-p buffer-file-name))
+         (not (file-exists-p buffer-file-name)))
+    (cons "!" 'error))
+   (t (cons " " nil))))
 
 (defvar-local mini-echo-project-root nil)
 (defun mini-echo-project-root ()
@@ -195,7 +200,7 @@ Return nil if no project was found."
                                        (project-root project)
                                      (car (with-no-warnings
                                             (project-roots project)))))))
-                       (_ (funcall mini-echo-project-detection))))
+                       (t (funcall mini-echo-project-detection))))
                 ""))))
 
 (defun mini-echo-buffer-name ()
@@ -207,9 +212,16 @@ Return nil if no project was found."
       (let ((str (buffer-name)))
         (when (string-match "\\(.+\\)\\.~\\(.+\\)~" str)
           (concat (file-name-nondirectory (match-string 1 str))
-                  (propertize (concat "@" (substring (match-string 2 str) 0 7))
+                  (propertize (concat "@"
+                                      (substring (match-string 2 str) 0 7))
                               'face 'mini-echo-blob-revision))))))
-   (t (buffer-name))))
+   (t (let ((name (buffer-name)))
+        (cl-destructuring-bind (sign . face)
+            (mini-echo-buffer-status)
+          (cl-case mini-echo-buffer-status-style
+            (sign (concat name (propertize sign 'face face)))
+            (color (propertize name 'face face))
+            (both (propertize (concat name sign) 'face face))))))))
 
 (mini-echo-define-segment "buffer-name"
   "Display file path of current buffer."
@@ -219,20 +231,18 @@ Return nil if no project was found."
              ((not (string-empty-p project)))
              ((string-prefix-p project filepath))
              (parts (split-string (string-trim filepath project) "/")))
-       (mapconcat
-        #'identity
-        `(,(propertize
-            (file-name-nondirectory (directory-file-name project))
-            'face 'mini-echo-project)
-          ,@(mapcar (lambda (x) (substring x 0 1)) (butlast parts))
-          ,(car (last parts)))
-        "/")
-     (mini-echo-buffer-name))
-   (mini-echo-buffer-status)))
+       (mapconcat #'identity
+                  `(,(propertize
+                      (file-name-nondirectory (directory-file-name project))
+                      'face 'mini-echo-project)
+                    ,@(mapcar (lambda (x) (substring x 0 1)) (butlast parts))
+                    nil)
+                  "/"))
+   (mini-echo-buffer-name)))
 
 (mini-echo-define-segment "buffer-name-short"
   "Display file path of current buffer."
-  (concat (mini-echo-buffer-name) (mini-echo-buffer-status)))
+  (mini-echo-buffer-name))
 
 (mini-echo-define-segment "macro"
   "Display macro being recorded."
