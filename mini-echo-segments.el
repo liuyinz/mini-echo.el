@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
 
 (defvar meow--indicator)
 (defvar evil-state)
@@ -316,7 +317,7 @@ Return nil if no project was found."
                          (needs-update 'warning)
                          ((removed conflict unregistered) 'error)
                          (t 'success))))
-            (propertize (concat "@" (if (length> branch limit)
+            (propertize (concat "@" (if (> (length branch) limit)
                                         (concat (substring branch 0 (- limit 3)) "..")
                                       branch))
                         'face `(:inherit (,face bold)))))))

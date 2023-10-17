@@ -32,6 +32,10 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+(require 'seq)
+(require 'subr-x)
+
 (require 'mini-echo-segments)
 
 (defgroup mini-echo nil
