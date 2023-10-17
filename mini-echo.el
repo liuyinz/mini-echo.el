@@ -70,7 +70,7 @@ Set this to avoid truncation."
   :type 'number
   :group 'mini-echo)
 
-(defcustom mini-echo-update-interval 0.5
+(defcustom mini-echo-update-interval 0.3
   "Seconds between update mini echo segments."
   :type 'number
   :group 'mini-echo)
