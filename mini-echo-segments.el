@@ -268,11 +268,6 @@ Return nil if no project was found."
             (bound-and-true-p dired-narrow-mode))
     (propertize "NARROW" 'face 'mini-echo-narrow)))
 
-(mini-echo-define-segment "meow"
-  "Display the meow status of current buffer."
-  (when (bound-and-true-p meow--indicator)
-    (string-trim meow--indicator)))
-
 (mini-echo-define-segment "flymake"
   "Display flymake diagnostics of current buffer."
   (when (bound-and-true-p flymake-mode)
@@ -349,6 +344,22 @@ Return nil if no project was found."
 (mini-echo-define-segment "vcs"
   "Display current branch."
   (buffer-local-value 'mini-echo--vcs-status (current-buffer)))
+
+(mini-echo-define-segment "meow"
+  "Display the meow status of current buffer."
+  (when (bound-and-true-p meow--indicator)
+    (string-trim meow--indicator)))
+
+;; TODO add more segments
+;; (mini-echo-define-segment "evil")
+
+;; (mini-echo-define-segment "keycast"
+;;   "Display keycast info."
+;;   (when (bound-and-true-p keycast-mode-line-format)
+;;     (keycast--format keycast-mode-line-format)))
+
+;; (mini-echo-define-segment "interaction-log"
+;;   (when (bound-and-true-p interaction-log-mode)))
 
 (provide 'mini-echo-segments)
 ;;; mini-echo-segments.el ends here
