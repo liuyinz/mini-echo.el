@@ -127,7 +127,7 @@ nil means to use `default-directory'.
 
 (defvar mini-echo-segment-alist nil)
 
-;; TODO refactor :var :func :hook to separate update frequency and hooks
+;; TODO refactor :var :func :hook :toggle to separate update frequency and hooks
 (defmacro mini-echo-define-segment (name &rest body)
   "Define a mini-echo segment NAME with DOCSTRING and BODY."
   (declare (indent defun) (doc-string 2))

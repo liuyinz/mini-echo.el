@@ -92,6 +92,7 @@ Format is a list of three argument:
 (defvar-local mini-echo--old-mdf nil)
 (defvar mini-echo-old-window-border-color nil)
 (defvar mini-echo-overlays nil)
+(defvar mini-echo-toggle-segments nil)
 
 (defun mini-echo-show-divider (&optional hide)
   "Show window divider when enable mini echo.
@@ -157,11 +158,17 @@ If optional arg DEINIT is non-nil, remove all overlays."
   "Return non-nil if current minibuffer window width less than 120."
   (< (mini-echo-minibuffer-width) 120))
 
-(defun mini-echo-combine-segments ()
-  "Return combined segments information."
-  (cl-loop for segment in (if (funcall mini-echo-short-segments-predicate)
-                              mini-echo-short-segments
-                            mini-echo-default-segments)
+;; TODO add toggle option for temporary display
+(defun mini-echo-fetch-segments ()
+  "Return segments list to display in mini echo."
+  (append mini-echo-toggle-segments
+          (if (funcall mini-echo-short-segments-predicate)
+              mini-echo-short-segments
+            mini-echo-default-segments)))
+
+(defun mini-echo-concat-segments ()
+  "Return concatenated segments information."
+  (cl-loop for segment in (mini-echo-fetch-segments)
            when (funcall (cdr (assoc segment mini-echo-segment-alist)))
            collect it into result
            finally return
@@ -170,7 +177,7 @@ If optional arg DEINIT is non-nil, remove all overlays."
 (defun mini-echo-build-info ()
   "Build mini-echo information."
   (condition-case nil
-      (let* ((combined (mini-echo-combine-segments))
+      (let* ((combined (mini-echo-concat-segments))
              (padding (+ mini-echo-right-padding (string-width combined)))
              (prop `(space :align-to (- right-fringe ,padding))))
         (concat (propertize " " 'cursor 1 'display prop) combined))
