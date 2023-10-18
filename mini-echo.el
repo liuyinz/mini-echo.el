@@ -89,7 +89,7 @@ Format is a list of three argument:
   :type 'string
   :group 'mini-echo)
 
-(defvar-local mini-echo--old-mdf nil)
+(defvar-local mini-echo--orig-mdf nil)
 (defvar mini-echo--orig-colors nil)
 (defvar mini-echo-overlays nil)
 (defvar mini-echo-toggle-segments nil)
@@ -128,15 +128,15 @@ If optional arg SHOW is non-nil, show the mode-line instead."
       (progn
         (dolist (buf (buffer-list))
           (with-current-buffer buf
-            (setq mini-echo--old-mdf mode-line-format)
+            (setq mini-echo--orig-mdf mode-line-format)
             (setq mode-line-format nil)))
         (setq-default mode-line-format nil))
     ;; FIXME new buffer under mini-echo recover has modeline face bug
     (let ((orig-value (get 'mode-line-format 'standard-value)))
       (dolist (buf (buffer-list))
         (with-current-buffer buf
-          (setq mode-line-format (or mini-echo--old-mdf orig-value))
-          (setq mini-echo--old-mdf nil)))
+          (setq mode-line-format (or mini-echo--orig-mdf orig-value))
+          (setq mini-echo--orig-mdf nil)))
       (setq-default mode-line-format orig-value)))
   (when (called-interactively-p 'any)
     (redraw-display)))
