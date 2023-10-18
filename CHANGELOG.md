@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.3.0](https://github.com/liuyinz/mini-echo.el/compare/v0.2.0..v0.3.0) - 2023-10-18
+
+### Bug Fixes
+
+- require pakcages to silent compile warning - ([be2ecf7](https://github.com/liuyinz/mini-echo.el/commit/be2ecf7f6f3936cc2627fe127ebcbc3f37a376db))
+
+### Documentation
+
+- **(README)** update todo list - ([e7f485f](https://github.com/liuyinz/mini-echo.el/commit/e7f485f6e2fd017f9cb96dec7e71d6551e719ca7))
+
+### Features
+
+- add option mini-echo-buffer-status-style - ([7676b1f](https://github.com/liuyinz/mini-echo.el/commit/7676b1f562595428914bd819148f74eea7d3b79d))
+- add segment of profiler - ([5aa6ff7](https://github.com/liuyinz/mini-echo.el/commit/5aa6ff7dbf155e5ace11869db8afe228b5d08bcc))
+- add var mini-echo-toggle-segments - ([8b5c99a](https://github.com/liuyinz/mini-echo.el/commit/8b5c99ae3ecc3df4ee26d2fc4e9c7827c2daaf39))
+
+### Performance
+
+- set mini-echo-update-interval to 0.3 - ([67d7569](https://github.com/liuyinz/mini-echo.el/commit/67d75690cd9374724444e86369118e21118afd6c))
+
+### Refactoring
+
+- internal function of set window border color - ([2cda5ce](https://github.com/liuyinz/mini-echo.el/commit/2cda5ce9bfebb3cb8fd05883d75a941e9dca5d87))
+
 ## [0.2.0](https://github.com/liuyinz/mini-echo.el/compare/v0.1.1..v0.2.0) - 2023-10-17
 
 ### Bug Fixes
