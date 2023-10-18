@@ -90,9 +90,23 @@ Format is a list of three argument:
   :group 'mini-echo)
 
 (defvar-local mini-echo--old-mdf nil)
-(defvar mini-echo-old-window-border-color nil)
+(defvar mini-echo--orig-colors nil)
 (defvar mini-echo-overlays nil)
 (defvar mini-echo-toggle-segments nil)
+
+(defun mini-echo-change-border-color (&optional restore)
+  "Change color of window border when mini echo enable.
+If optional arg RESTORE is non-nil, restore origin values."
+  (dolist (face '(internal-border window-divider))
+    (or restore (push (cons face (cons (face-foreground face)
+                                       (face-background face)))
+                      mini-echo--orig-colors))
+    (let* ((color mini-echo-window-border-color)
+           (colors (if restore (alist-get face mini-echo--orig-colors)
+                     (cons color color))))
+      (set-face-attribute face nil :foreground (or (car colors) 'unspecified)
+                                   :background (or (cdr colors) 'unspecified)))
+    (and restore (setq mini-echo--orig-colors nil))))
 
 (defun mini-echo-show-divider (&optional hide)
   "Show window divider when enable mini echo.
@@ -102,18 +116,10 @@ If optional arg HIDE is non-nil, disable the mode instead."
                               window-divider-default-right-width
                               window-divider-default-bottom-width)
           mini-echo-window-divider-args
-        (setq mini-echo-old-window-border-color
-              (cons (face-foreground 'window-divider nil 'default)
-                    (face-background 'window-divider nil 'default)))
-        (set-face-attribute 'window-divider nil
-                            :foreground mini-echo-window-border-color
-                            :background mini-echo-window-border-color)
+        (mini-echo-change-border-color)
         (window-divider-mode 1))
-    (set-face-attribute 'window-divider nil
-                        :foreground (car mini-echo-old-window-border-color)
-                        :background (cdr mini-echo-old-window-border-color))
-    (setq mini-echo-old-window-border-color nil)
-    (window-divider-mode -1)))
+    (window-divider-mode -1)
+    (mini-echo-change-border-color 'restore)))
 
 (defun mini-echo-hide-modeline (&optional show)
   "Hide mode-line in mini echo.
