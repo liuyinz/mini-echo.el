@@ -84,8 +84,8 @@ Format is a list of three argument:
   :type '(symbol number number)
   :group 'mini-echo)
 
-(defcustom mini-echo-window-border-color "#5d6a76"
-  "Color of window border."
+(defcustom mini-echo-window-divider-color "#5d6a76"
+  "Color of window divider."
   :type 'string
   :group 'mini-echo)
 
@@ -94,14 +94,14 @@ Format is a list of three argument:
 (defvar mini-echo-overlays nil)
 (defvar mini-echo-toggle-segments nil)
 
-(defun mini-echo-change-border-color (&optional restore)
-  "Change color of window border when mini echo enable.
+(defun mini-echo-change-divider-color (&optional restore)
+  "Change color of window divider when mini echo enable.
 If optional arg RESTORE is non-nil, restore origin values."
   (dolist (face '(internal-border window-divider))
     (or restore (push (cons face (cons (face-foreground face)
                                        (face-background face)))
                       mini-echo--orig-colors))
-    (let* ((color mini-echo-window-border-color)
+    (let* ((color mini-echo-window-divider-color)
            (colors (if restore (alist-get face mini-echo--orig-colors)
                      (cons color color))))
       (set-face-attribute face nil :foreground (or (car colors) 'unspecified)
@@ -116,10 +116,10 @@ If optional arg HIDE is non-nil, disable the mode instead."
                               window-divider-default-right-width
                               window-divider-default-bottom-width)
           mini-echo-window-divider-args
-        (mini-echo-change-border-color)
+        (mini-echo-change-divider-color)
         (window-divider-mode 1))
     (window-divider-mode -1)
-    (mini-echo-change-border-color 'restore)))
+    (mini-echo-change-divider-color 'restore)))
 
 (defun mini-echo-hide-modeline (&optional show)
   "Hide mode-line in mini echo.
