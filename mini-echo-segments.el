@@ -34,6 +34,7 @@
 (defvar evil-this-macro)
 (defvar flymake--state)
 (defvar magit-blob-mode)
+(defvar display-time-string)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -123,6 +124,11 @@ nil means to use `default-directory'.
 (defface mini-echo-profiler
   '((t (:foreground "#8BD49C" :bold t)))
   "Face for mini-echo segment of profiler status."
+  :group 'mini-echo)
+
+(defface mini-echo-time
+  '((t (:foreground "#EBBF83")))
+  "Face for mini-echo segment of time."
   :group 'mini-echo)
 
 (defvar mini-echo-segment-alist nil)
@@ -268,6 +274,12 @@ nil means to use `default-directory'.
   (when-let ((str (format-mode-line mode-line-process))
              ((not (string-empty-p str))))
     (concat ">>" (propertize str 'face 'mini-echo-process))))
+
+(mini-echo-define-segment "time"
+  "Return current time if display-time-mode is enable."
+  :fetch
+  (when (bound-and-true-p display-time-mode)
+    (propertize display-time-string 'face 'mini-echo-time)))
 
 (mini-echo-define-segment "profiler"
   "Return current profiler status"
