@@ -155,7 +155,7 @@ If optional arg DEINIT is non-nil, remove all overlays."
       (delete-region (point-min) (point-max)))))
 
 (defun mini-echo-minibuffer-width ()
-  "Return current minibuffer window."
+  "Return width of minibuffer window in current non-child frame."
   (with-selected-frame (or (frame-parent (window-frame))
                            (window-frame))
     (window-width (minibuffer-window))))
