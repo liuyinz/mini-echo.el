@@ -145,14 +145,19 @@ If optional arg SHOW is non-nil, show the mode-line instead."
   "Initialize echo area and minibuffer in mini echo.
 If optional arg DEINIT is non-nil, remove all overlays."
   (if (null deinit)
-      (dolist (buf '(" *Echo Area 0*" " *Echo Area 1*"))
-        (with-current-buffer (get-buffer-create buf)
-          (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
-            (push ov mini-echo-overlays))))
+      (progn
+        (dolist (buf '(" *Echo Area 0*" " *Echo Area 1*" " *Minibuf-0*"))
+          (with-current-buffer (get-buffer-create buf)
+            (push (make-overlay (point-min) (point-max) nil nil t)
+                  mini-echo-overlays)))
+        ;; HACK echo area and minibuf buffer must not be empty if you want to
+        ;; show it in minibuffer-window persistently. minibuf-0* is empty by
+        ;; default, so insert a space instead.
+        (with-current-buffer " *Minibuf-0*"
+          (when (= (buffer-size) 0) (insert " "))))
     (mapc #'delete-overlay mini-echo-overlays)
     (setq mini-echo-overlays nil)
-    (with-current-buffer " *Minibuf-0*"
-      (delete-region (point-min) (point-max)))))
+    (with-current-buffer " *Minibuf-0*" (erase-buffer))))
 
 (defun mini-echo-minibuffer-width ()
   "Return width of minibuffer window in current non-child frame."
@@ -222,16 +227,10 @@ ARGS is optional."
 (defun mini-echo-update ()
   "Update mini echo info in minibuf and echo area."
   (unless (active-minibuffer-window)
-    (let ((info (mini-echo-build-info)))
-      ;; update echo area overlays after string only if it's not empty
-      (dolist (ov mini-echo-overlays)
-        (unless (string-empty-p (overlay-get ov 'after-string))
-          (overlay-put ov 'after-string info)))
-      ;; Every time Minibuf killed and recreate, overlays failed,
-      ;; so insert text instead
-      (with-current-buffer " *Minibuf-0*"
-        (erase-buffer)
-        (insert info)))))
+    ;; update echo area overlays after-string only if it's not empty
+    (dolist (ov mini-echo-overlays)
+      (unless (string-empty-p (overlay-get ov 'after-string))
+        (overlay-put ov 'after-string (mini-echo-build-info))))))
 
 ;;;###autoload
 (define-minor-mode mini-echo-mode
