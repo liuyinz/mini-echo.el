@@ -19,4 +19,5 @@ Echo buffer status in minibuffer window instead of mode-line.
 
 ## Todo
 - [ ] add env support
-- [ ] rewrite mini-echo-define-macro
+- [x] rewrite mini-echo-define-macro
+- [ ] add minibuffer background to distinguish in terminal

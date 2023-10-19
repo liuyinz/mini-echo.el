@@ -127,56 +127,81 @@ nil means to use `default-directory'.
 
 (defvar mini-echo-segment-alist nil)
 
-;; TODO refactor :var :func :hook :toggle to separate update frequency and hooks
-(defmacro mini-echo-define-segment (name &rest body)
-  "Define a mini-echo segment NAME with DOCSTRING and BODY."
+(defmacro mini-echo-define-segment (name docstring &rest args)
+  "Define a mini echo segment NAME with DOCSTRING and ARGS."
   (declare (indent defun) (doc-string 2))
-  (let ((sym (intern (format "mini-echo-segment--%s" name)))
-        (docstring (if (stringp (car body))
-                       (pop body)
-                     (format "Display %s in mini-echo" name))))
-    (cond ((and (functionp (car body))
-                (not (cdr body)))
-           `(add-to-list 'mini-echo-segment-alist
-                         (cons ,name ',(car body))))
-          (t
-           `(progn
-              (defun ,sym () ,docstring ,@body)
-              (add-to-list 'mini-echo-segment-alist (cons ,name ',sym)))))))
+  (if (plistp args)
+      (let* ((fetch (plist-get args :fetch))
+             (update (plist-get args :update))
+             (hook (plist-get args :hook))
+             (advice (plist-get args :advice))
+             (toggle (plist-get args :toggle))
+             (prefix "mini-echo-segment-")
+             (fetch-func (intern (concat prefix (format "-fetch-%s" name))))
+             (update-func (intern (concat prefix (format "-update-%s" name))))
+             (toggle-func (intern (concat prefix (format "toggle-%s" name)))))
+        `(progn
+           (defun ,fetch-func () ,docstring ,fetch)
+           (add-to-list 'mini-echo-segment-alist (cons ,name ',fetch-func))
+           (when ,toggle
+             (defun ,toggle-func ()
+               (format "Toggle mini echo segment of %s." ,name)
+               (interactive)
+               (mini-echo-toggle-segment ,name)))
+           (when (consp ',update)
+             (defun ,update-func () ,update)
+             (when (consp ,hook)
+               (mapc (lambda (x) (add-hook x ',update-func))
+                     ,hook))
+             (when (consp ,advice)
+               (mapc (lambda (x) (advice-add (car x) (cdr x) ',update-func))
+                     ,advice)))))
+    (message "mini-echo-define-segment: %s formats error" ,name)))
 
 (mini-echo-define-segment "major-mode"
-  "Display the major mode in mini-echo."
+  "Return major mode info of current buffer."
+  :fetch
   (when-let ((mode (format-mode-line mode-name)))
     (propertize mode 'face 'mini-echo-major-mode)))
 
 (mini-echo-define-segment "buffer-position"
-  "Display the cursor position of current buffer."
+  "Return the cursor position of current buffer."
+  :fetch
   (when-let ((pos (format-mode-line mini-echo-position-format)))
     (propertize (string-replace "Bottom" "Bot" pos)
                 'face 'mini-echo-buffer-position)))
 
 (mini-echo-define-segment "buffer-size"
-  "Display the size of current buffer."
+  "Return the size of current buffer."
+  :fetch
   (when-let ((size (format-mode-line "%I")))
     (propertize size 'face 'mini-echo-buffer-size)))
 
-(mini-echo-define-segment "remote-host"
-  "Display the hostname of remote buffer."
-  (when default-directory
-    (when-let ((host (file-remote-p default-directory 'host)))
-      (propertize (concat "@" host) 'face 'mini-echo-remote-host))))
-
-(mini-echo-define-segment "process"
-  "Display process info."
-  (when-let ((str (format-mode-line mode-line-process))
-             ((not (string-empty-p str))))
-    (concat ">>" (propertize str 'face 'mini-echo-process))))
-
-(mini-echo-define-segment "profiler"
-  "Display profiler status"
-  (when (or (profiler-cpu-running-p)
-            (profiler-memory-running-p))
-    (propertize "Profiler" 'face 'mini-echo-profiler)))
+(defvar-local mini-echo-project-root nil)
+(mini-echo-define-segment "project"
+  "Display the project name of current buffer."
+  :hook '(find-file-hook after-revert-hook)
+  :fetch
+  (when-let ((project mini-echo-project-root))
+    (propertize (file-name-nondirectory (directory-file-name project))
+                'face 'mini-echo-project))
+  :update
+  (setq mini-echo-project-root
+        (and (buffer-file-name)
+             (cl-case mini-echo-project-detection
+               (ffip (and (fboundp 'ffip-project-root)
+                          (let ((inhibit-message t))
+                            (ffip-project-root))))
+               (projectile (and (bound-and-true-p projectile-mode)
+                                (projectile-project-root)))
+               (project (when-let (((fboundp 'project-current))
+                                   (project (project-current)))
+                          (expand-file-name
+                           (if (fboundp 'project-root)
+                               (project-root project)
+                             (car (with-no-warnings
+                                    (project-roots project)))))))
+               (t (funcall mini-echo-project-detection))))))
 
 (defun mini-echo-buffer-status ()
   "Display th status of current buffer."
@@ -191,30 +216,7 @@ nil means to use `default-directory'.
     (cons "!" 'error))
    (t (cons " " nil))))
 
-(defvar-local mini-echo-project-root nil)
-(defun mini-echo-project-root ()
-  "Get the path to the project root.
-Return nil if no project was found."
-  (or mini-echo-project-root
-      (setq mini-echo-project-root
-            (or (and (buffer-file-name)
-                     (cl-case mini-echo-project-detection
-                       (ffip (and (fboundp 'ffip-project-root)
-                                  (let ((inhibit-message t))
-                                    (ffip-project-root))))
-                       (projectile (and (bound-and-true-p projectile-mode)
-                                        (projectile-project-root)))
-                       (project (when-let (((fboundp 'project-current))
-                                           (project (project-current)))
-                                  (expand-file-name
-                                   (if (fboundp 'project-root)
-                                       (project-root project)
-                                     (car (with-no-warnings
-                                            (project-roots project)))))))
-                       (t (funcall mini-echo-project-detection))))
-                ""))))
-
-(defun mini-echo-buffer-name ()
+(defun mini-echo-buffer-name-short ()
   "Return current buffer name for mini echo."
   (cond
    (;; TODO need timemachine support
@@ -234,28 +236,48 @@ Return nil if no project was found."
             (both (propertize (concat name sign) 'face face))))))))
 
 (mini-echo-define-segment "buffer-name"
-  "Display file path of current buffer."
+  "Return file path of current buffer."
+  :fetch
   (concat
    (if-let* ((filepath (buffer-file-name))
-             (project (mini-echo-project-root))
-             ((not (string-empty-p project)))
+             (project mini-echo-project-root)
              ((string-prefix-p project filepath))
              (parts (split-string (string-trim filepath project) "/")))
        (mapconcat #'identity
-                  `(,(propertize
-                      (file-name-nondirectory (directory-file-name project))
-                      'face 'mini-echo-project)
+                  `(,(mini-echo-segment--fetch-project)
                     ,@(mapcar (lambda (x) (substring x 0 1)) (butlast parts))
                     nil)
                   "/"))
-   (mini-echo-buffer-name)))
+   (mini-echo-buffer-name-short)))
 
 (mini-echo-define-segment "buffer-name-short"
-  "Display file path of current buffer."
-  (mini-echo-buffer-name))
+  "Return file path of current buffer."
+  :fetch (mini-echo-buffer-name-short))
+
+(mini-echo-define-segment "remote-host"
+  "Return the hostname of remote buffer."
+  :fetch
+  (when default-directory
+    (when-let ((host (file-remote-p default-directory 'host)))
+      (propertize (concat "@" host) 'face 'mini-echo-remote-host))))
+
+(mini-echo-define-segment "process"
+  "Return current process info."
+  :fetch
+  (when-let ((str (format-mode-line mode-line-process))
+             ((not (string-empty-p str))))
+    (concat ">>" (propertize str 'face 'mini-echo-process))))
+
+(mini-echo-define-segment "profiler"
+  "Return current profiler status"
+  :fetch
+  (when (or (profiler-cpu-running-p)
+            (profiler-memory-running-p))
+    (propertize "Profiler" 'face 'mini-echo-profiler)))
 
 (mini-echo-define-segment "macro"
-  "Display macro being recorded."
+  "Return macro being recorded."
+  :fetch
   (when (or defining-kbd-macro executing-kbd-macro)
     (let ((status (if (bound-and-true-p evil-this-macro)
                       (format "@%s" (char-to-string evil-this-macro))
@@ -263,13 +285,15 @@ Return nil if no project was found."
       (propertize status 'face 'mini-echo-macro))))
 
 (mini-echo-define-segment "narrow"
-  "Display narrow status of current buffer."
+  "Return narrow status of current buffer."
+  :fetch
   (when (or (buffer-narrowed-p)
             (bound-and-true-p dired-narrow-mode))
     (propertize "NARROW" 'face 'mini-echo-narrow)))
 
 (mini-echo-define-segment "flymake"
-  "Display flymake diagnostics of current buffer."
+  "Return flymake diagnostics of current buffer."
+  :fetch
   (when (bound-and-true-p flymake-mode)
     (let* ((no-known (zerop (hash-table-count flymake--state)))
            (running (flymake-running-backends))
@@ -296,7 +320,8 @@ Return nil if no project was found."
                   (current-column)))
 
 (mini-echo-define-segment "selection-info"
-  "Display current selection in current buffer."
+  "Return current selection in current buffer."
+  :fetch
   (when (or mark-active (and (bound-and-true-p evil-local-mode)
                              (eq evil-state 'visual)))
     (cl-destructuring-bind (beg . end)
@@ -321,11 +346,15 @@ Return nil if no project was found."
          'face 'mini-echo-selection-info)))))
 
 (defvar-local mini-echo--vcs-status nil)
-(defun mini-echo-update-vcs-status (&rest _)
-  "Update vcs segment status."
+(mini-echo-define-segment "vcs"
+  "Return vcs info for mini echo mode."
+  :fetch mini-echo--vcs-status
+  :hook '(find-file-hook after-save-hook after-revert-hook)
+  :advice '((vc-refresh-state . :after))
+  :update
   (setq mini-echo--vcs-status
         (when (and vc-mode buffer-file-name)
-          (let* ((backend (vc-backend buffer-file-name))
+          0(let* ((backend (vc-backend buffer-file-name))
                  (branch (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
                  (limit mini-echo-vcs-max-length)
                  (face (cl-case (vc-state buffer-file-name backend)
@@ -337,16 +366,9 @@ Return nil if no project was found."
                                       branch))
                         'face `(:inherit (,face bold)))))))
 
-(add-hook 'find-file-hook #'mini-echo-update-vcs-status)
-(add-hook 'after-save-hook #'mini-echo-update-vcs-status)
-(advice-add #'vc-refresh-state :after #'mini-echo-update-vcs-status)
-
-(mini-echo-define-segment "vcs"
-  "Display current branch."
-  (buffer-local-value 'mini-echo--vcs-status (current-buffer)))
-
 (mini-echo-define-segment "meow"
-  "Display the meow status of current buffer."
+  "Return the meow status of current buffer."
+  :fetch
   (when (bound-and-true-p meow--indicator)
     (string-trim meow--indicator)))
 
@@ -362,4 +384,4 @@ Return nil if no project was found."
 ;;   (when (bound-and-true-p interaction-log-mode)))
 
 (provide 'mini-echo-segments)
-;;; mini-echo-segments.el ends here
+;;; mini-echo-segments.el ends here.

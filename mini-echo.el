@@ -164,17 +164,24 @@ If optional arg DEINIT is non-nil, remove all overlays."
   "Return non-nil if current minibuffer window width less than 120."
   (< (mini-echo-minibuffer-width) 120))
 
+(defun mini-echo-toggle-segment (segment)
+  "Enable or disable SEGMENT temporary."
+  (if (member segment mini-echo-toggle-segments)
+      (setq mini-echo-toggle-segments
+            (delete segment mini-echo-toggle-segments))
+    (push segment mini-echo-toggle-segments)))
+
 ;; TODO add toggle option for temporary display
-(defun mini-echo-fetch-segments ()
-  "Return segments list to display in mini echo."
+(defun mini-echo-selected-segments ()
+  "Return selected segments list to display in current frame."
   (append mini-echo-toggle-segments
           (if (funcall mini-echo-short-segments-predicate)
               mini-echo-short-segments
             mini-echo-default-segments)))
 
 (defun mini-echo-concat-segments ()
-  "Return concatenated segments information."
-  (cl-loop for segment in (mini-echo-fetch-segments)
+  "Return concatenated information of selected segments."
+  (cl-loop for segment in (mini-echo-selected-segments)
            when (funcall (cdr (assoc segment mini-echo-segment-alist)))
            collect it into result
            finally return
