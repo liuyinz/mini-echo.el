@@ -163,7 +163,7 @@ nil means to use `default-directory'.
              (when (consp ,advice)
                (mapc (lambda (x) (advice-add (car x) (cdr x) ',update-func))
                      ,advice)))))
-    (message "mini-echo-define-segment: %s formats error" ,name)))
+    (message "mini-echo-define-segment: %s formats error" name)))
 
 (mini-echo-define-segment "major-mode"
   "Return major mode info of current buffer."
