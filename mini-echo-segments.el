@@ -130,7 +130,8 @@ nil means to use `default-directory'.
 (defmacro mini-echo-define-segment (name docstring &rest args)
   "Define a mini echo segment NAME with DOCSTRING and ARGS."
   (declare (indent defun) (doc-string 2))
-  (if (plistp args)
+  (if (and-let* ((len (proper-list-p args)))
+        (and (> len 0) (zerop (% len 2))))
       (let* ((fetch (plist-get args :fetch))
              (update (plist-get args :update))
              (hook (plist-get args :hook))
@@ -354,7 +355,7 @@ nil means to use `default-directory'.
   :update
   (setq mini-echo--vcs-status
         (when (and vc-mode buffer-file-name)
-          0(let* ((backend (vc-backend buffer-file-name))
+          (let* ((backend (vc-backend buffer-file-name))
                  (branch (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
                  (limit mini-echo-vcs-max-length)
                  (face (cl-case (vc-state buffer-file-name backend)
