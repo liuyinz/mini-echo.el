@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/liuyinz/mini-echo.el/compare/v0.3.0..v0.3.1) - 2023-10-19
+
+### Refactoring
+
+- rename internal var mini-echo--orig-mdf - ([3f4ab02](https://github.com/liuyinz/mini-echo.el/commit/3f4ab02959d121d24b903003a940aa33229d71d0))
+- rewrite macro mini-echo-define-segment - ([f9ce7e8](https://github.com/liuyinz/mini-echo.el/commit/f9ce7e8d99bfa06fd2e95cac11af979b833201a8))
+
 ## [0.3.0](https://github.com/liuyinz/mini-echo.el/compare/v0.2.0..v0.3.0) - 2023-10-18
 
 ### Bug Fixes
