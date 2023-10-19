@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.2](https://github.com/liuyinz/mini-echo.el/compare/v0.3.1..v0.3.2) - 2023-10-19
+
+### Bug Fixes
+
+- do not use plistp for compatiblility with emacs 28 - ([1797ddb](https://github.com/liuyinz/mini-echo.el/commit/1797ddbc4f68a7d6c8c83d17166b023d2829e9bd))
+- warning of unknown function - ([786c38e](https://github.com/liuyinz/mini-echo.el/commit/786c38ee2e40fabca438e1d0640f7e7fef35983b))
+
+### Features
+
+- **(segment)** add new segment - time - ([93e3d8b](https://github.com/liuyinz/mini-echo.el/commit/93e3d8b511833c0a5a62a13076782907c4ecbacf))
+
 ## [0.3.1](https://github.com/liuyinz/mini-echo.el/compare/v0.3.0..v0.3.1) - 2023-10-19
 
 ### Refactoring
