@@ -35,6 +35,7 @@
 (require 'cl-lib)
 (require 'seq)
 (require 'subr-x)
+(require 'face-remap)
 
 (require 'mini-echo-segments)
 
@@ -86,13 +87,27 @@ Format is a list of three argument:
 
 (defcustom mini-echo-window-divider-color "#5d6a76"
   "Color of window divider."
-  :type 'string
+  :type 'color
   :group 'mini-echo)
 
-(defvar-local mini-echo--orig-mdf nil)
+(defcustom mini-echo-minibuffer-background "#181f25"
+  "Color of minibuffer windowb background, useful for terminal especially.
+If nil, do not set background at all."
+  :type '(choice
+          (const :tag "no background" nil)
+          color)
+  :group 'mini-echo)
+
+(defconst mini-echo-area-buffers
+  '(" *Echo Area 0*" " *Echo Area 1*" " *Minibuf-0*"))
+
+(defvar mini-echo-toggle-segments nil)
 (defvar mini-echo--orig-colors nil)
 (defvar mini-echo-overlays nil)
-(defvar mini-echo-toggle-segments nil)
+
+(defvar-local mini-echo--orig-mdf nil)
+(defvar-local mini-echo--remap-cookie nil)
+
 
 (defun mini-echo-change-divider-color (&optional restore)
   "Change color of window divider when mini echo enable.
@@ -141,23 +156,42 @@ If optional arg SHOW is non-nil, show the mode-line instead."
   (when (called-interactively-p 'any)
     (redraw-display)))
 
+(defun mini-echo-set-echo-area-background ()
+  "Setup echo area backgound color."
+  (face-remap-add-relative 'default
+                           :background
+                           mini-echo-minibuffer-background))
+
 (defun mini-echo-init-echo-area (&optional deinit)
   "Initialize echo area and minibuffer in mini echo.
 If optional arg DEINIT is non-nil, remove all overlays."
   (if (null deinit)
-      (progn
-        (dolist (buf '(" *Echo Area 0*" " *Echo Area 1*" " *Minibuf-0*"))
-          (with-current-buffer (get-buffer-create buf)
-            (push (make-overlay (point-min) (point-max) nil nil t)
-                  mini-echo-overlays)))
-        ;; HACK echo area and minibuf buffer must not be empty if you want to
-        ;; show it in minibuffer-window persistently. minibuf-0* is empty by
-        ;; default, so insert a space instead.
-        (with-current-buffer " *Minibuf-0*"
-          (when (= (buffer-size) 0) (insert " "))))
+      (dolist (buf mini-echo-area-buffers)
+        (with-current-buffer (get-buffer-create buf)
+          (when (minibufferp)
+            ;; HACK echo area and minibuf buffer must not be empty if you want
+            ;; to show it in minibuffer-window persistently. minibuf-0* is empty
+            ;; by default, so insert a space instead.
+            (and (= (buffer-size) 0) (insert " "))
+            ;; HACK every time activating minibuffer would reset face,
+            ;; so add a hook for entering inactive-mode
+            (and mini-echo-minibuffer-background
+                 (add-hook 'minibuffer-inactive-mode-hook
+                           #'mini-echo-set-echo-area-background)))
+          (push (make-overlay (point-min) (point-max) nil nil t)
+                mini-echo-overlays)
+          (setq-local mini-echo--remap-cookie
+                      (mini-echo-set-echo-area-background))))
+    (dolist (buf mini-echo-area-buffers)
+      (with-current-buffer (get-buffer-create buf)
+        (when (minibufferp)
+          (delete-minibuffer-contents)
+          (remove-hook 'minibuffer-inactive-mode-hook
+                       #'mini-echo-set-echo-area-background))
+        (face-remap-remove-relative mini-echo--remap-cookie)
+        (setq-local mini-echo--remap-cookie nil)))
     (mapc #'delete-overlay mini-echo-overlays)
-    (setq mini-echo-overlays nil)
-    (with-current-buffer " *Minibuf-0*" (erase-buffer))))
+    (setq mini-echo-overlays nil)))
 
 (defun mini-echo-minibuffer-width ()
   "Return width of minibuffer window in current non-child frame."
