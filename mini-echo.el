@@ -103,6 +103,9 @@ Format is a list of three argument:
 (defvar-local mini-echo--orig-mdf nil)
 (defvar-local mini-echo--remap-cookie nil)
 
+(defvar mini-echo-current-segments-hook nil
+  "Hook run whenever calculate current segments.")
+
 (defun mini-echo-change-divider-color (&optional restore)
   "Change color of window divider when mini echo enable.
 If optional arg RESTORE is non-nil, restore origin values."
@@ -199,16 +202,23 @@ If optional arg DEINIT is non-nil, remove all overlays."
             (delete segment mini-echo-toggle-segments))
     (push segment mini-echo-toggle-segments)))
 
-(defun mini-echo-selected-segments ()
-  "Return selected segments list to display in current frame."
-  (append mini-echo-toggle-segments
-          (if (funcall mini-echo-short-segments-predicate)
-              mini-echo-short-segments
-            mini-echo-default-segments)))
+(defun mini-echo-current-segments ()
+  "Return a list of current displayed segments of mini echo."
+  (prog1 (append mini-echo-toggle-segments
+                 (if (funcall mini-echo-short-segments-predicate)
+                     mini-echo-short-segments
+                   mini-echo-default-segments))
+    (run-hooks 'mini-echo-current-segments-hook)))
+
+(defun mini-echo-activated-segments ()
+  "Return a list of activated segments of mini echo."
+  (cl-reduce #'cl-union (list mini-echo-toggle-segments
+                              mini-echo-short-segments
+                              mini-echo-default-segments)))
 
 (defun mini-echo-concat-segments ()
   "Return concatenated information of selected segments."
-  (cl-loop for segment in (mini-echo-selected-segments)
+  (cl-loop for segment in (mini-echo-current-segments)
            when (funcall (cdr (assoc segment mini-echo-segment-alist)))
            collect it into result
            finally return
