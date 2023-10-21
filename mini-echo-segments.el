@@ -35,6 +35,7 @@
 (defvar flymake--state)
 (defvar magit-blob-mode)
 (defvar display-time-string)
+(defvar keycast-mode-line-format)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -42,6 +43,8 @@
 (declare-function flymake-reporting-backends "flymake")
 (declare-function projectile-project-root "projectile")
 (declare-function ffip-project-root "ffip")
+(declare-function keycast--format "keycast")
+(declare-function keycast--update "keycast")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -152,11 +155,11 @@ nil means to use `default-directory'.
            (add-to-list 'mini-echo-segment-alist (cons ,name ',fetch-func))
            (when ,toggle
              (defun ,toggle-func ()
-               (format "Toggle mini echo segment of %s." ,name)
                (interactive)
                (mini-echo-toggle-segment ,name)))
            (when (consp ',update)
              (defun ,update-func () ,update)
+             ;; FIXME only add hook and advice when segments are activated.
              (when (consp ,hook)
                (mapc (lambda (x) (add-hook x ',update-func))
                      ,hook))
@@ -385,13 +388,17 @@ nil means to use `default-directory'.
   (when (bound-and-true-p meow--indicator)
     (string-trim meow--indicator)))
 
+(mini-echo-define-segment "keycast"
+  "Display keycast info."
+  :toggle t
+  :hook '(post-command-hook)
+  :fetch
+  (keycast--format keycast-mode-line-format)
+  :update
+  (keycast--update))
+
 ;; TODO add more segments
 ;; (mini-echo-define-segment "evil")
-
-;; (mini-echo-define-segment "keycast"
-;;   "Display keycast info."
-;;   (when (bound-and-true-p keycast-mode-line-format)
-;;     (keycast--format keycast-mode-line-format)))
 
 ;; (mini-echo-define-segment "interaction-log"
 ;;   (when (bound-and-true-p interaction-log-mode)))
