@@ -85,42 +85,34 @@ Format is a list of three argument:
   :type '(symbol number number)
   :group 'mini-echo)
 
-(defcustom mini-echo-window-divider-color "#5d6a76"
-  "Color of window divider."
-  :type 'color
-  :group 'mini-echo)
+(defface mini-echo-window-divider
+  '((t (:foreground "#5d6a76")))
+  "Face used to highlight the window divider.")
 
-(defcustom mini-echo-minibuffer-background "#181f25"
-  "Color of minibuffer windowb background, useful for terminal especially.
-If nil, do not set background at all."
-  :type '(choice
-          (const :tag "no background" nil)
-          color)
-  :group 'mini-echo)
+(defface mini-echo-minibuffer-window
+  '((t (:background "#181f25")))
+  "Face used to highlight the minibuffer window.")
 
 (defconst mini-echo-area-buffers
   '(" *Echo Area 0*" " *Echo Area 1*" " *Minibuf-0*"))
 
 (defvar mini-echo-toggle-segments nil)
-(defvar mini-echo--orig-colors nil)
 (defvar mini-echo-overlays nil)
 
+(defvar mini-echo--orig-colors nil)
 (defvar-local mini-echo--orig-mdf nil)
 (defvar-local mini-echo--remap-cookie nil)
-
 
 (defun mini-echo-change-divider-color (&optional restore)
   "Change color of window divider when mini echo enable.
 If optional arg RESTORE is non-nil, restore origin values."
   (dolist (face '(internal-border window-divider))
-    (or restore (push (cons face (cons (face-foreground face)
-                                       (face-background face)))
+    (or restore (push (cons face (face-foreground face))
                       mini-echo--orig-colors))
-    (let* ((color mini-echo-window-divider-color)
-           (colors (if restore (alist-get face mini-echo--orig-colors)
-                     (cons color color))))
-      (set-face-attribute face nil :foreground (or (car colors) 'unspecified)
-                                   :background (or (cdr colors) 'unspecified)))
+    (set-face-attribute face nil
+                        :foreground
+                        (if restore (alist-get face mini-echo--orig-colors)
+                          (face-foreground 'mini-echo-window-divider)))
     (and restore (setq mini-echo--orig-colors nil))))
 
 (defun mini-echo-show-divider (&optional hide)
@@ -156,11 +148,9 @@ If optional arg SHOW is non-nil, show the mode-line instead."
   (when (called-interactively-p 'any)
     (redraw-display)))
 
-(defun mini-echo-set-echo-area-background ()
-  "Setup echo area backgound color."
-  (face-remap-add-relative 'default
-                           :background
-                           mini-echo-minibuffer-background))
+(defun mini-echo-fontify-minibuffer-window ()
+  "Fontify whole window with user defined face attributes."
+  (face-remap-add-relative 'default 'mini-echo-minibuffer-window))
 
 (defun mini-echo-init-echo-area (&optional deinit)
   "Initialize echo area and minibuffer in mini echo.
@@ -173,21 +163,20 @@ If optional arg DEINIT is non-nil, remove all overlays."
             ;; to show it in minibuffer-window persistently. minibuf-0* is empty
             ;; by default, so insert a space instead.
             (and (= (buffer-size) 0) (insert " "))
-            ;; HACK every time activating minibuffer would reset face,
-            ;; so add a hook for entering inactive-mode
-            (and mini-echo-minibuffer-background
-                 (add-hook 'minibuffer-inactive-mode-hook
-                           #'mini-echo-set-echo-area-background)))
+            ;; NOTE every time activating minibuffer would reset face,
+            ;; so re-fontify when entering inactive-minibuffer-mode
+            (add-hook 'minibuffer-inactive-mode-hook
+                      #'mini-echo-fontify-minibuffer-window))
           (push (make-overlay (point-min) (point-max) nil nil t)
                 mini-echo-overlays)
           (setq-local mini-echo--remap-cookie
-                      (mini-echo-set-echo-area-background))))
+                      (mini-echo-fontify-minibuffer-window))))
     (dolist (buf mini-echo-area-buffers)
       (with-current-buffer (get-buffer-create buf)
         (when (minibufferp)
           (delete-minibuffer-contents)
           (remove-hook 'minibuffer-inactive-mode-hook
-                       #'mini-echo-set-echo-area-background))
+                       #'mini-echo-fontify-minibuffer-window))
         (face-remap-remove-relative mini-echo--remap-cookie)
         (setq-local mini-echo--remap-cookie nil)))
     (mapc #'delete-overlay mini-echo-overlays)
@@ -210,7 +199,6 @@ If optional arg DEINIT is non-nil, remove all overlays."
             (delete segment mini-echo-toggle-segments))
     (push segment mini-echo-toggle-segments)))
 
-;; TODO add toggle option for temporary display
 (defun mini-echo-selected-segments ()
   "Return selected segments list to display in current frame."
   (append mini-echo-toggle-segments
