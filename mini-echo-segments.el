@@ -164,7 +164,7 @@ nil means to use `default-directory'.
              (toggle-cmd  (mini-echo-segment--internal "toggle"))
              (segment (make-mini-echo-segment :name name :activate nil)))
         `(progn
-           (add-to-list 'mini-echo-segment-alist (cons ,name ,segment))
+           (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal) ,segment)
            ;; fetch
            (defun ,fetch-func () ,docstring ,fetch)
            (setf (mini-echo-segment-fetch ,segment) ',fetch-func)
