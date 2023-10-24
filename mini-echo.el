@@ -215,35 +215,20 @@ If optional arg DEINIT is non-nil, remove all overlays."
 
 (defun mini-echo-current-segments ()
   "Return a list of current displayed segments of mini echo."
-  (prog1
-      (seq-filter #'mini-echo-segment-valid-p
-                  (append mini-echo-toggle-segments
-                          (if (funcall mini-echo-short-segments-predicate)
-                              mini-echo-short-segments
-                            mini-echo-default-segments)))
-    (let ((active (mini-echo-activated-segments)))
-      (dolist (pair mini-echo-segment-alist)
-        (cl-destructuring-bind (segment . struct)
-            pair
-          (let ((orig (mini-echo-segment-activate struct))
-                (setup (mini-echo-segment-setup struct)))
-            (when (xor orig (member segment active))
-              (setf (mini-echo-segment-activate struct) (not orig))
-              (and (functionp setup)
-                   (funcall (mini-echo-segment-setup struct))))))))
-
-    ;; ;; BUG name,segment is not a var, cannot used in sexp
-    ;; (cl-loop for (name . segment) in mini-echo-segment-alist
-    ;;          with active = (mini-echo-activated-segments)
-    ;;          with orig = (mini-echo-segment-activate segment)
-    ;;          do (message "%S, %S" name segment)
-    ;;          when (xor orig (member name active))
-    ;;          do
-    ;;          (progn
-    ;;            (setf (mini-echo-segment-activate segment) (not orig))
-    ;;            (funcall (mini-echo-segment-setup segment)))
-    ;;          )
-    ))
+  (dolist (pair mini-echo-segment-alist)
+    (cl-destructuring-bind (segment . struct)
+        pair
+      (let ((orig (mini-echo-segment-activate struct))
+            (setup (mini-echo-segment-setup struct)))
+        (when (xor orig (member segment (mini-echo-activated-segments)))
+          (setf (mini-echo-segment-activate struct) (not orig))
+          (and (functionp setup)
+               (funcall (mini-echo-segment-setup struct)))))))
+  (seq-filter #'mini-echo-segment-valid-p
+              (append mini-echo-toggle-segments
+                      (if (funcall mini-echo-short-segments-predicate)
+                          mini-echo-short-segments
+                        mini-echo-default-segments))))
 
 (defun mini-echo-concat-segments ()
   "Return concatenated information of selected segments."

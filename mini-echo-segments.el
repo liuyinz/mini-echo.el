@@ -144,55 +144,58 @@ nil means to use `default-directory'.
 (cl-defstruct mini-echo-segment
   name &key fetch activate toggle update hook advice setup)
 
-(defmacro mini-echo-segment--internal (prop)
-  "Generate mini echo internal symbol with PROP."
-  `(intern (concat "mini-echo-segment-" (format "%s-%s" ,prop name))))
+(defun mini-echo-segment--internals (name)
+  "Generate mini echo internal symbol with NAME."
+  (mapcar (lambda (prop)
+            (intern (concat "mini-echo-segment-" (format "%s-%s" prop name))))
+          '("-fetch" "-update" "-setup" "toggle")))
 
 (defmacro mini-echo-define-segment (name docstring &rest props)
   "Define a mini echo segment NAME with DOCSTRING and PROPS."
   (declare (indent defun) (doc-string 2))
-  (if (and-let* ((len (proper-list-p props)))
-        (and (> len 0) (zerop (% len 2))))
-      (let* ((fetch (plist-get props :fetch))
-             (update (plist-get props :update))
-             (hook (plist-get props :hook))
-             (advice (plist-get props :advice))
-             (toggle (plist-get props :toggle))
-             (fetch-func  (mini-echo-segment--internal "-fetch"))
-             (update-func (mini-echo-segment--internal "-update"))
-             (setup-func  (mini-echo-segment--internal "-setup"))
-             (toggle-cmd  (mini-echo-segment--internal "toggle"))
-             (segment (make-mini-echo-segment :name name :activate nil)))
-        `(progn
-           (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal) ,segment)
-           ;; fetch
-           (defun ,fetch-func () ,docstring ,fetch)
-           (setf (mini-echo-segment-fetch ,segment) ',fetch-func)
-           ;; toggle
-           (when ,toggle
+  (if-let* (;; plistp check
+            (len (proper-list-p props))
+            ((and (> len 0) (zerop (% len 2))))
+            (segment (make-mini-echo-segment :name name)))
+      (cl-destructuring-bind (&key fetch update hook advice mode setup)
+          props
+        (cl-destructuring-bind (fetch-func update-func setup-func toggle-cmd)
+            (mini-echo-segment--internals name)
+          `(progn
+             (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal) ,segment)
+             ;; fetch
+             (defun ,fetch-func () ,docstring ,fetch)
+             (setf (mini-echo-segment-fetch ,segment) ',fetch-func)
+             ;; toggle
              (defun ,toggle-cmd ()
                (interactive)
                (mini-echo-toggle-segment ,name))
-             (setf (mini-echo-segment-toggle ,segment) ',toggle-cmd))
-           ;; update
-           (when (consp ',update)
-             (defun ,update-func () ,update)
-             ;; FIXME only add hook and advice when segments are activated.
-             (setf (mini-echo-segment-update ,segment) ',update-func)
-             ;; hook
-             (setf (mini-echo-segment-hook ,segment) ,hook)
-             ;; advice
-             (setf (mini-echo-segment-advice ,segment) ,advice)
-             (defun ,setup-func ()
-               (if (mini-echo-segment-activate ,segment)
-                   (progn
-                     (mapc (lambda (x) (add-hook x ',update-func)) ,hook)
-                     (mapc (lambda (x) (advice-add (car x) (cdr x) ',update-func))
-                           ,advice))
-                 (mapc (lambda (x) (remove-hook x ',update-func)) ,hook)
-                 (mapc (lambda (x) (advice-remove (car x) ',update-func)) ,advice)))
-             (setf (mini-echo-segment-setup ,segment) ',setup-func))
-           ,segment))
+             (setf (mini-echo-segment-toggle ,segment) ',toggle-cmd)
+             ;; update
+             (when (consp ',update)
+               (defun ,update-func () ,update)
+               (setf (mini-echo-segment-update ,segment) ',update-func)
+               (setf (mini-echo-segment-hook ,segment) ,hook)
+               (setf (mini-echo-segment-advice ,segment) ,advice))
+             ;; setup
+             (and (or ,mode ,hook ,advice ,setup)
+                  (defun ,setup-func ()
+                    (if (mini-echo-segment-activate ,segment)
+                        (progn
+                          (eval (plist-get ,setup :activate))
+                          (mapc (lambda (x) (funcall x 1)) ,mode)
+                          (mapc (lambda (x) (add-hook x ',update-func)) ,hook)
+                          (mapc (lambda (x)
+                                  (advice-add (car x) (cdr x) ',update-func))
+                                ,advice))
+                      (eval (plist-get ,setup :deactivate))
+                      ;; NOTE do not turn off modes even if deactivate segment
+                      ;; to avoid interface other functionality
+                      ;; (mapc (lambda (x) (funcall x -1)) ,mode)
+                      (mapc (lambda (x) (remove-hook x ',update-func)) ,hook)
+                      (mapc (lambda (x) (advice-remove (car x) ',update-func)) ,advice)))
+                  (setf (mini-echo-segment-setup ,segment) ',setup-func))
+             ,segment)))
     (message "mini-echo-define-segment: %s formats error" name)))
 
 (mini-echo-define-segment "major-mode"
@@ -307,11 +310,9 @@ nil means to use `default-directory'.
 
 (mini-echo-define-segment "time"
   "Return current time if display-time-mode is enable."
+  :mode '(display-time-mode)
   :fetch
-  (progn
-    (unless display-time-mode
-      (display-time-mode 1))
-    (propertize display-time-string 'face 'mini-echo-time)))
+  (propertize display-time-string 'face 'mini-echo-time))
 
 (mini-echo-define-segment "profiler"
   "Return current profiler status"
@@ -419,13 +420,12 @@ nil means to use `default-directory'.
 
 (mini-echo-define-segment "keycast"
   "Display keycast info."
-  :toggle t
   :hook '(post-command-hook)
   :fetch
-  (progn
-    (require 'keycast)
-    (keycast--format mini-echo-keycast-format))
-  :update (keycast--update))
+  (keycast--format mini-echo-keycast-format)
+  :update
+  (keycast--update)
+  :setup '(:activate (require 'keycast)))
 
 ;; TODO add more segments
 ;; (mini-echo-define-segment "evil")
