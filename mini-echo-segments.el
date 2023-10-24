@@ -45,6 +45,7 @@
 (declare-function ffip-project-root "ffip")
 (declare-function keycast--format "keycast")
 (declare-function keycast--update "keycast")
+(declare-function mini-echo-toggle-segment "mini-echo")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -136,36 +137,58 @@ nil means to use `default-directory'.
 
 (defvar mini-echo-segment-alist nil)
 
-(defmacro mini-echo-define-segment (name docstring &rest args)
-  "Define a mini echo segment NAME with DOCSTRING and ARGS."
+(cl-defstruct mini-echo-segment
+  name &key fetch activate toggle update hook advice setup)
+
+(defmacro mini-echo-segment--internal (prop)
+  "Generate mini echo internal symbol with PROP."
+  `(intern (concat "mini-echo-segment-" (format "%s-%s" ,prop name))))
+
+(defmacro mini-echo-define-segment (name docstring &rest props)
+  "Define a mini echo segment NAME with DOCSTRING and PROPS."
   (declare (indent defun) (doc-string 2))
-  (if (and-let* ((len (proper-list-p args)))
+  (if (and-let* ((len (proper-list-p props)))
         (and (> len 0) (zerop (% len 2))))
-      (let* ((fetch (plist-get args :fetch))
-             (update (plist-get args :update))
-             (hook (plist-get args :hook))
-             (advice (plist-get args :advice))
-             (toggle (plist-get args :toggle))
-             (prefix "mini-echo-segment-")
-             (fetch-func (intern (concat prefix (format "-fetch-%s" name))))
-             (update-func (intern (concat prefix (format "-update-%s" name))))
-             (toggle-func (intern (concat prefix (format "toggle-%s" name)))))
+      (let* ((fetch (plist-get props :fetch))
+             (update (plist-get props :update))
+             (hook (plist-get props :hook))
+             (advice (plist-get props :advice))
+             (toggle (plist-get props :toggle))
+             (fetch-func  (mini-echo-segment--internal "-fetch"))
+             (update-func (mini-echo-segment--internal "-update"))
+             (setup-func  (mini-echo-segment--internal "-setup"))
+             (toggle-cmd  (mini-echo-segment--internal "toggle"))
+             (segment (make-mini-echo-segment :name name :activate nil)))
         `(progn
+           (add-to-list 'mini-echo-segment-alist (cons ,name ,segment))
+           ;; fetch
            (defun ,fetch-func () ,docstring ,fetch)
-           (add-to-list 'mini-echo-segment-alist (cons ,name ',fetch-func))
+           (setf (mini-echo-segment-fetch ,segment) ',fetch-func)
+           ;; toggle
            (when ,toggle
-             (defun ,toggle-func ()
+             (defun ,toggle-cmd ()
                (interactive)
-               (mini-echo-toggle-segment ,name)))
+               (mini-echo-toggle-segment ,name))
+             (setf (mini-echo-segment-toggle ,segment) ',toggle-cmd))
+           ;; update
            (when (consp ',update)
              (defun ,update-func () ,update)
              ;; FIXME only add hook and advice when segments are activated.
-             (when (consp ,hook)
-               (mapc (lambda (x) (add-hook x ',update-func))
-                     ,hook))
-             (when (consp ,advice)
-               (mapc (lambda (x) (advice-add (car x) (cdr x) ',update-func))
-                     ,advice)))))
+             (setf (mini-echo-segment-update ,segment) ',update-func)
+             ;; hook
+             (setf (mini-echo-segment-hook ,segment) ,hook)
+             ;; advice
+             (setf (mini-echo-segment-advice ,segment) ,advice)
+             (defun ,setup-func ()
+               (if (mini-echo-segment-activate ,segment)
+                   (progn
+                     (mapc (lambda (x) (add-hook x ',update-func)) ,hook)
+                     (mapc (lambda (x) (advice-add (car x) (cdr x) ',update-func))
+                           ,advice))
+                 (mapc (lambda (x) (remove-hook x ',update-func)) ,hook)
+                 (mapc (lambda (x) (advice-remove (car x) ',update-func)) ,advice)))
+             (setf (mini-echo-segment-setup ,segment) ',setup-func))
+           ,segment))
     (message "mini-echo-define-segment: %s formats error" name)))
 
 (mini-echo-define-segment "major-mode"
