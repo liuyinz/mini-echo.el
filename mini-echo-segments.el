@@ -35,7 +35,6 @@
 (defvar flymake--state)
 (defvar magit-blob-mode)
 (defvar display-time-string)
-(defvar keycast-mode-line-format)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -72,6 +71,11 @@ nil means to use `default-directory'.
                  (const :tag "Projectile" projectile)
                  (const :tag "Built-in Project" project)
                  function)
+  :group 'mini-echo)
+
+(defcustom mini-echo-keycast-format "%10s%k%c%r"
+  "The format spec used by keycast segment in mini echo."
+  :type 'string
   :group 'mini-echo)
 
 ;; faces
@@ -304,7 +308,9 @@ nil means to use `default-directory'.
 (mini-echo-define-segment "time"
   "Return current time if display-time-mode is enable."
   :fetch
-  (when (bound-and-true-p display-time-mode)
+  (progn
+    (unless display-time-mode
+      (display-time-mode 1))
     (propertize display-time-string 'face 'mini-echo-time)))
 
 (mini-echo-define-segment "profiler"
@@ -416,9 +422,10 @@ nil means to use `default-directory'.
   :toggle t
   :hook '(post-command-hook)
   :fetch
-  (keycast--format keycast-mode-line-format)
-  :update
-  (keycast--update))
+  (progn
+    (require 'keycast)
+    (keycast--format mini-echo-keycast-format))
+  :update (keycast--update))
 
 ;; TODO add more segments
 ;; (mini-echo-define-segment "evil")
