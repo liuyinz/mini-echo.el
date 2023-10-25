@@ -197,6 +197,8 @@ nil means to use `default-directory'.
   (funcall (intern (concat "mini-echo-segment-" (substring (symbol-name prop) 1)))
            (cdr (assoc segment mini-echo-segment-alist))))
 
+;;; built-in
+
 (mini-echo-define-segment "major-mode"
   "Return major mode info of current buffer."
   :fetch
@@ -422,6 +424,8 @@ nil means to use `default-directory'.
                                                 "..")
                                       branch))
                         'face `(:inherit (,face bold)))))))
+
+;;; third-party
 
 (mini-echo-define-segment "meow"
   "Return the meow status of current buffer."
