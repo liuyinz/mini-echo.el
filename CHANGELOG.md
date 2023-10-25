@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.4.0](https://github.com/liuyinz/mini-echo.el/compare/v0.3.2..v0.4.0) - 2023-10-25
+
+### Bug Fixes
+
+- do not add duplicate segments - ([394ddcd](https://github.com/liuyinz/mini-echo.el/commit/394ddcd0c7df4166ce2d1a85ed4fd002ed9df04a))
+- generate segment when load file instead of compile - ([960d5f4](https://github.com/liuyinz/mini-echo.el/commit/960d5f4bca3bf02633ae3d93dba6b4323c8606e6))
+- wrong result of calculate project root - ([0573de2](https://github.com/liuyinz/mini-echo.el/commit/0573de274b515683e5d976ec446e3a60d243f558))
+
+### Documentation
+
+- **(README)** update todo list - ([4e0d7dc](https://github.com/liuyinz/mini-echo.el/commit/4e0d7dc4ea9f7482b72c675c6ef296c5346cbc49))
+- **(README)** Update README for publish to Melpa - ([deefef7](https://github.com/liuyinz/mini-echo.el/commit/deefef7fa05a586bf6cbedecd6add0307b6ed3db))
+- improve docstrings of segments - ([a7ad583](https://github.com/liuyinz/mini-echo.el/commit/a7ad583ae597dad6d43b9fabdc6d741b4c10d611))
+
+### Features
+
+- add option mini-echo-minibuffer-background - ([02f29f5](https://github.com/liuyinz/mini-echo.el/commit/02f29f52ba91204b81aceaba423b80743dfd45b0))
+- add hook mini-echo-current-segments-hook - ([2775d28](https://github.com/liuyinz/mini-echo.el/commit/2775d287edac5dbef4534336a71e33bdafc6a0c0))
+- add segment keycast - ([73dfa4f](https://github.com/liuyinz/mini-echo.el/commit/73dfa4fbf4fc53c1365073289f3b012a684e0869))
+- add option mini-echo-keycast-format - ([9f22fad](https://github.com/liuyinz/mini-echo.el/commit/9f22fad7f633d148b5f96f75befc661f9a4984fc))
+- add command mini-echo-toggle - ([2247eeb](https://github.com/liuyinz/mini-echo.el/commit/2247eeb714e912f4954f48a7d255d3c093800afa))
+
+### Refactoring
+
+- rename option mini-echo-window-divider-color - ([f7770c7](https://github.com/liuyinz/mini-echo.el/commit/f7770c79b65f8168b462a8ea8af23d03ba87e102))
+- insert space in minibuf-0 only once - ([5ffb568](https://github.com/liuyinz/mini-echo.el/commit/5ffb56853b3840992a67d425e110841c818d0814))
+- use faces instead of colors - ([11ee769](https://github.com/liuyinz/mini-echo.el/commit/11ee769250b2cc9754abcf491eb525e616618eb1))
+- use cl-defstruct to define segments - ([84bd3e2](https://github.com/liuyinz/mini-echo.el/commit/84bd3e2760b8aefbab4178b3f98cba84d2fb1491))
+- macro mini-echo-define-segment - ([81b9afd](https://github.com/liuyinz/mini-echo.el/commit/81b9afddb0ad17d60244f929d43bafdf0116b13d))
+- remove single segment toggle cmd - ([3c65ae0](https://github.com/liuyinz/mini-echo.el/commit/3c65ae03bd636b5647cf951a10539b8fcb8e07fd))
+- better default value for default/short styles - ([03647dd](https://github.com/liuyinz/mini-echo.el/commit/03647dd67b2a9237bca1f14842e94083e528a093))
+
 ## [0.3.2](https://github.com/liuyinz/mini-echo.el/compare/v0.3.1..v0.3.2) - 2023-10-19
 
 ### Bug Fixes
