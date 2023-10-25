@@ -143,6 +143,7 @@ nil means to use `default-directory'.
 (cl-defstruct mini-echo-segment
   name &key fetch activate update hook advice setup)
 
+;;;###autoload
 (defmacro mini-echo-define-segment (name docstring &rest props)
   "Define a mini echo segment NAME with DOCSTRING and PROPS."
   (declare (indent defun) (doc-string 2))
