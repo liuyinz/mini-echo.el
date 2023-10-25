@@ -132,9 +132,9 @@ Format is a list of three argument:
            (cl-destructuring-bind (segment . enable)
                filter
              (when (xor (member segment selected) enable)
-               (if enable
-                   (push segment result)
-                 (delete segment result)))))))
+               (setq result (if enable
+                                (push segment result)
+                              (remove segment result))))))))
       (no-current (seq-difference valid (mini-echo-segments 'current)))
       (activated (seq-union (mini-echo-segments 'current) unselected))
       (toggle (append (mini-echo-segments 'current)
