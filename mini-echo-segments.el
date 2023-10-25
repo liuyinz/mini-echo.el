@@ -44,7 +44,6 @@
 (declare-function ffip-project-root "ffip")
 (declare-function keycast--format "keycast")
 (declare-function keycast--update "keycast")
-(declare-function mini-echo-toggle-segment "mini-echo")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -142,13 +141,13 @@ nil means to use `default-directory'.
 (defvar mini-echo-segment-alist nil)
 
 (cl-defstruct mini-echo-segment
-  name &key fetch activate toggle update hook advice setup)
+  name &key fetch activate update hook advice setup)
 
 (defun mini-echo-segment--internals (name)
   "Generate mini echo internal symbol with NAME."
   (mapcar (lambda (prop)
             (intern (concat "mini-echo-segment-" (format "%s-%s" prop name))))
-          '("-fetch" "-update" "-setup" "toggle")))
+          '("-fetch" "-update" "-setup")))
 
 (defmacro mini-echo-define-segment (name docstring &rest props)
   "Define a mini echo segment NAME with DOCSTRING and PROPS."
@@ -159,18 +158,13 @@ nil means to use `default-directory'.
             (segment (make-mini-echo-segment :name name)))
       (cl-destructuring-bind (&key fetch update hook advice mode setup)
           props
-        (cl-destructuring-bind (fetch-func update-func setup-func toggle-cmd)
+        (cl-destructuring-bind (fetch-func update-func setup-func)
             (mini-echo-segment--internals name)
           `(progn
              (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal) ,segment)
              ;; fetch
              (defun ,fetch-func () ,docstring ,fetch)
              (setf (mini-echo-segment-fetch ,segment) ',fetch-func)
-             ;; toggle
-             (defun ,toggle-cmd ()
-               (interactive)
-               (mini-echo-toggle-segment ,name))
-             (setf (mini-echo-segment-toggle ,segment) ',toggle-cmd)
              ;; update
              (when (consp ',update)
                (defun ,update-func () ,update)
@@ -196,7 +190,7 @@ nil means to use `default-directory'.
                       (mapc (lambda (x) (advice-remove (car x) ',update-func)) ,advice)))
                   (setf (mini-echo-segment-setup ,segment) ',setup-func))
              ,segment)))
-    (message "mini-echo-define-segment: %s formats error" name)))
+    (message "mini-echo-define-segment: %s properties error" name)))
 
 (mini-echo-define-segment "major-mode"
   "Return major mode info of current buffer."

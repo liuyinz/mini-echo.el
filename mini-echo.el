@@ -195,13 +195,6 @@ If optional arg DEINIT is non-nil, remove all overlays."
   "Return non-nil if current minibuffer window width less than 120."
   (< (mini-echo-minibuffer-width) 120))
 
-(defun mini-echo-toggle-segment (segment)
-  "Enable or disable SEGMENT temporary."
-  (if (member segment mini-echo-toggle-segments)
-      (setq mini-echo-toggle-segments
-            (delete segment mini-echo-toggle-segments))
-    (push segment mini-echo-toggle-segments)))
-
 (defun mini-echo-segment-valid-p (segment)
   "Return non-nil if SEGMENT is valid."
   (member segment (mapcar #'car mini-echo-segment-alist)))
