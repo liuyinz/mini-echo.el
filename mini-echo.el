@@ -45,14 +45,14 @@
 
 (defcustom mini-echo-default-segments
   '("profiler" "macro" "narrow" "selection-info" "process" "flymake"
-    "buffer-size" "buffer-position" "major-mode" "vcs" "buffer-name" "meow")
+    "buffer-size" "buffer-position" "vcs" "buffer-name" "major-mode")
   "Segments displayed in mini-echo by default."
   :type '(repeat string)
   :group 'mini-echo)
 
 (defcustom mini-echo-short-segments
-  '("profiler" "macro" "narrow" "selection-info" "process" "flymake"
-    "buffer-position" "buffer-name-short" "meow")
+  '("profiler" "macro" "narrow" "selection-info" "process"
+    "buffer-position" "buffer-name-short")
   "Segments displayed in mini-echo in short style."
   :type '(repeat string)
   :group 'mini-echo)
