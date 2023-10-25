@@ -85,25 +85,25 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 
   ```elisp
   (mini-echo-define-segment "vcs"
-  "Return vcs info of current buffer."
-  :fetch mini-echo--vcs-status
-  :hook '(find-file-hook after-save-hook after-revert-hook)
-  :advice '((vc-refresh-state . :after))
-  :update
-  (setq mini-echo--vcs-status
-        (when (and vc-mode buffer-file-name)
-          (let* ((backend (vc-backend buffer-file-name))
-                 (branch (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
-                 (limit mini-echo-vcs-max-length)
-                 (face (cl-case (vc-state buffer-file-name backend)
-                         (needs-update 'warning)
-                         ((removed conflict unregistered) 'error)
-                         (t 'success))))
-            (propertize (concat "@" (if (> (length branch) limit)
-                                        (concat (substring branch 0 (- limit 3))
-                                                "..")
-                                      branch))
-                        'face `(:inherit (,face bold)))))))
+    "Return vcs info of current buffer."
+    :fetch mini-echo--vcs-status
+    :hook '(find-file-hook after-save-hook after-revert-hook)
+    :advice '((vc-refresh-state . :after))
+    :update
+    (setq mini-echo--vcs-status
+          (when (and vc-mode buffer-file-name)
+            (let* ((backend (vc-backend buffer-file-name))
+                   (branch (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
+                   (limit mini-echo-vcs-max-length)
+                   (face (cl-case (vc-state buffer-file-name backend)
+                           (needs-update 'warning)
+                           ((removed conflict unregistered) 'error)
+                           (t 'success))))
+              (propertize (concat "@" (if (> (length branch) limit)
+                                          (concat (substring branch 0 (- limit 3))
+                                                  "..")
+                                        branch))
+                          'face `(:inherit (,face bold)))))))
 
   (mini-echo-define-segment "time"
     "Return current time info."
