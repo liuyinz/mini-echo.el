@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.1](https://github.com/liuyinz/mini-echo.el/compare/v0.4.0..v0.4.1) - 2023-10-25
+
+### Bug Fixes
+
+- autoload macro mini-echo-define-segment - ([906d2fb](https://github.com/liuyinz/mini-echo.el/commit/906d2fbc4e2aa1950fe3e9055d1de86b0a106b99))
+- command mini-echo-toggle failed problem - ([83b6443](https://github.com/liuyinz/mini-echo.el/commit/83b644320d71a1c381259a52c97b072854be5ff8))
+
+### Documentation
+
+- **(README)** improve features section - ([185c1e1](https://github.com/liuyinz/mini-echo.el/commit/185c1e1e8a618d81e6918ed28c0aa7b672ebfe9e))
+
+### Refactoring
+
+- do not add hook repeatly when init echo area - ([08899f4](https://github.com/liuyinz/mini-echo.el/commit/08899f4eae063a33990e6372a5e4aa4f40dec4a7))
+
 ## [0.4.0](https://github.com/liuyinz/mini-echo.el/compare/v0.3.2..v0.4.0) - 2023-10-25
 
 ### Bug Fixes
