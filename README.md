@@ -45,10 +45,10 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 
 ## Feature
 
-- do not use mode-line at all, same experience in terminal
-- use `window-divider-mode` in gui
-- port lots of default segments from [doom-modeline](https://github.com/seagle0128/doom-modeline)
-- configs are as simple as possible
+- light-weight, very simple structure and no many configs
+- don't use mode-line at all, same experience in terminal
+- port lots of segments from [doom-modeline](https://github.com/seagle0128/doom-modeline)
+- easy to add new segment with macro
 
 ## Usage
 
