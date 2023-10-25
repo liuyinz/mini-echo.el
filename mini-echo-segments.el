@@ -161,7 +161,8 @@ nil means to use `default-directory'.
         (cl-destructuring-bind (fetch-func update-func setup-func)
             (mini-echo-segment--internals name)
           `(progn
-             (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal) ,segment)
+             (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal)
+                   ,segment)
              ;; fetch
              (defun ,fetch-func () ,docstring ,fetch)
              (setf (mini-echo-segment-fetch ,segment) ',fetch-func)
@@ -187,7 +188,8 @@ nil means to use `default-directory'.
                       ;; to avoid interface other functionality
                       ;; (mapc (lambda (x) (funcall x -1)) ,mode)
                       (mapc (lambda (x) (remove-hook x ',update-func)) ,hook)
-                      (mapc (lambda (x) (advice-remove (car x) ',update-func)) ,advice)))
+                      (mapc (lambda (x) (advice-remove (car x) ',update-func))
+                            ,advice)))
                   (setf (mini-echo-segment-setup ,segment) ',setup-func))
              ,segment)))
     (message "mini-echo-define-segment: %s properties error" name)))
@@ -402,7 +404,8 @@ nil means to use `default-directory'.
                          ((removed conflict unregistered) 'error)
                          (t 'success))))
             (propertize (concat "@" (if (> (length branch) limit)
-                                        (concat (substring branch 0 (- limit 3)) "..")
+                                        (concat (substring branch 0 (- limit 3))
+                                                "..")
                                       branch))
                         'face `(:inherit (,face bold)))))))
 

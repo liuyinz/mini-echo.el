@@ -44,8 +44,8 @@
   :group 'mini-echo)
 
 (defcustom mini-echo-default-segments
-  '("profiler" "macro" "narrow" "selection-info" "process" "flymake" "buffer-size"
-    "buffer-position" "major-mode" "vcs" "buffer-name" "meow")
+  '("profiler" "macro" "narrow" "selection-info" "process" "flymake"
+    "buffer-size" "buffer-position" "major-mode" "vcs" "buffer-name" "meow")
   "Segments displayed in mini-echo by default."
   :type '(repeat string)
   :group 'mini-echo)
@@ -103,8 +103,74 @@ Format is a list of three argument:
 (defvar-local mini-echo--orig-mdf nil)
 (defvar-local mini-echo--remap-cookie nil)
 
-(defvar mini-echo-current-segments-hook nil
-  "Hook run whenever calculate current segments.")
+;;; segments
+
+(defun mini-echo-segment-valid-p (segment)
+  "Return non-nil if SEGMENT is valid."
+  (member segment (mapcar #'car mini-echo-segment-alist)))
+
+(defun mini-echo-segments (style)
+  "Return list of segments according to STYLE."
+  (let* ((valid (mapcar #'car mini-echo-segment-alist))
+         (default (seq-filter #'mini-echo-segment-valid-p
+                              mini-echo-default-segments))
+         (short (seq-filter #'mini-echo-segment-valid-p
+                            mini-echo-short-segments))
+         (shortp (funcall mini-echo-short-segments-predicate))
+         (selected (if shortp short default))
+         (unselected (if (not shortp) default short)))
+    (cl-case style
+      (valid valid)
+      (default default)
+      (short short)
+      (selected selected)
+      (unselected unselected)
+      (current
+       (let ((result selected))
+         (dolist (filter mini-echo-toggle-segments result)
+           (cl-destructuring-bind (segment . enable)
+               filter
+             (when (xor (member segment selected) enable)
+               (if enable
+                   (push segment result)
+                 (delete segment result)))))))
+      (no-current (seq-difference valid (mini-echo-segments 'current)))
+      (activated (seq-union (mini-echo-segments 'current) unselected))
+      (toggle (append (mini-echo-segments 'current)
+                      (mini-echo-segments 'no-current))))))
+
+(defun mini-echo-concat-segments ()
+  "Return concatenated information of selected segments."
+  (dolist (pair mini-echo-segment-alist)
+    (cl-destructuring-bind (segment . struct)
+        pair
+      (let ((orig (mini-echo-segment-activate struct))
+            (setup (mini-echo-segment-setup struct)))
+        (when (xor orig (member segment (mini-echo-segments 'activated)))
+          (setf (mini-echo-segment-activate struct) (not orig))
+          (and (functionp setup)
+               (funcall (mini-echo-segment-setup struct)))))))
+  (cl-loop for segment in (mini-echo-segments 'current)
+           when (funcall (mini-echo-segment-fetch
+                          (cdr (assoc segment mini-echo-segment-alist))))
+           collect it into result
+           finally return
+           (mapconcat 'identity (seq-remove #'string-empty-p result) " ")))
+
+(defun mini-echo--toggle-completion ()
+  "Return completion table for command mini echo toggle."
+  (lambda (string pred action)
+    (if (eq action 'metadata)
+        `(metadata (display-sort-function . ,#'identity))
+      (complete-with-action
+       action
+       (let ((current (mini-echo-segments 'current)))
+         (mapcar (lambda (s)
+                   (propertize s 'face (if (member s current) 'success 'error)))
+                 (mini-echo-segments 'toggle)))
+       string pred))))
+
+;;; ui
 
 (defun mini-echo-change-divider-color (&optional restore)
   "Change color of window divider when mini echo enable.
@@ -141,7 +207,7 @@ If optional arg SHOW is non-nil, show the mode-line instead."
             (setq mini-echo--orig-mdf mode-line-format)
             (setq mode-line-format nil)))
         (setq-default mode-line-format nil))
-    ;; FIXME new buffer under mini-echo recover has modeline face bug
+    ;; FIXME new buffer under mini-echo recover has mode line face bug
     (let ((orig-value (get 'mode-line-format 'standard-value)))
       (dolist (buf (buffer-list))
         (with-current-buffer buf
@@ -163,8 +229,8 @@ If optional arg DEINIT is non-nil, remove all overlays."
         (with-current-buffer (get-buffer-create buf)
           (when (minibufferp)
             ;; HACK echo area and minibuf buffer must not be empty if you want
-            ;; to show it in minibuffer-window persistently. minibuf-0* is empty
-            ;; by default, so insert a space instead.
+            ;; to show it in minibuffer-window persistently. minibuf-0* is
+            ;; empty by default, so insert a space instead.
             (and (= (buffer-size) 0) (insert " "))
             ;; NOTE every time activating minibuffer would reset face,
             ;; so re-fontify when entering inactive-minibuffer-mode
@@ -195,43 +261,6 @@ If optional arg DEINIT is non-nil, remove all overlays."
   "Return non-nil if current minibuffer window width less than 120."
   (< (mini-echo-minibuffer-width) 120))
 
-(defun mini-echo-segment-valid-p (segment)
-  "Return non-nil if SEGMENT is valid."
-  (member segment (mapcar #'car mini-echo-segment-alist)))
-
-(defun mini-echo-activated-segments ()
-  "Return a list of activated segments of mini echo."
-  (seq-filter #'mini-echo-segment-valid-p
-              (cl-reduce #'cl-union (list mini-echo-toggle-segments
-                                          mini-echo-short-segments
-                                          mini-echo-default-segments))))
-
-(defun mini-echo-current-segments ()
-  "Return a list of current displayed segments of mini echo."
-  (dolist (pair mini-echo-segment-alist)
-    (cl-destructuring-bind (segment . struct)
-        pair
-      (let ((orig (mini-echo-segment-activate struct))
-            (setup (mini-echo-segment-setup struct)))
-        (when (xor orig (member segment (mini-echo-activated-segments)))
-          (setf (mini-echo-segment-activate struct) (not orig))
-          (and (functionp setup)
-               (funcall (mini-echo-segment-setup struct)))))))
-  (seq-filter #'mini-echo-segment-valid-p
-              (append mini-echo-toggle-segments
-                      (if (funcall mini-echo-short-segments-predicate)
-                          mini-echo-short-segments
-                        mini-echo-default-segments))))
-
-(defun mini-echo-concat-segments ()
-  "Return concatenated information of selected segments."
-  (cl-loop for segment in (mini-echo-current-segments)
-           when (funcall (mini-echo-segment-fetch
-                          (cdr (assoc segment mini-echo-segment-alist))))
-           collect it into result
-           finally return
-           (mapconcat 'identity (seq-remove #'string-empty-p result) " ")))
-
 (defun mini-echo-build-info ()
   "Build mini-echo information."
   (condition-case nil
@@ -239,7 +268,7 @@ If optional arg DEINIT is non-nil, remove all overlays."
              (padding (+ mini-echo-right-padding (string-width combined)))
              (prop `(space :align-to (- right-fringe ,padding))))
         (concat (propertize " " 'cursor 1 'display prop) combined))
-    (format "mini-echo error happends")))
+    (format "mini-echo info building error")))
 
 (defun mini-echo-update-overlays (&optional msg)
   "Update mini echo info in overlays according to MSG.
@@ -273,6 +302,21 @@ ARGS is optional."
         (overlay-put ov 'after-string (mini-echo-build-info))))))
 
 ;;;###autoload
+(defun mini-echo-toggle (&optional reset)
+  "Enable or disable selected segment temporarily.
+If optional arg RESET is non-nil, clear all toggled segments."
+  (interactive "P")
+  (if (null reset)
+      (when-let ((segment (completing-read
+                           "Mini-echo toggle: "
+                           (mini-echo--toggle-completion) nil t)))
+        (setf (alist-get segment mini-echo-toggle-segments
+                         nil nil #'string-equal)
+              (if (member segment (mini-echo-segments 'current)) nil t)))
+    (setq mini-echo-toggle-segments nil)
+    (message "Mini-echo-toggle: reset.")))
+
+;;;###autoload
 (define-minor-mode mini-echo-mode
   "Minor mode to show buffer status in echo area."
   :group 'mini-echo
@@ -285,13 +329,15 @@ ARGS is optional."
         ;; FIXME sometimes update twice when switch from echo to minibuf
         (run-with-timer 0 mini-echo-update-interval #'mini-echo-update)
         (advice-add 'message :before #'mini-echo-update-overlays-before-message)
-        (add-hook 'window-size-change-functions #'mini-echo-update-overlays-when-resized))
+        (add-hook 'window-size-change-functions
+                  #'mini-echo-update-overlays-when-resized))
     (mini-echo-show-divider 'hide)
     (mini-echo-hide-modeline 'show)
     (mini-echo-init-echo-area 'deinit)
     (cancel-function-timers #'mini-echo-update)
     (advice-remove 'message #'mini-echo-update-overlays-before-message)
-    (remove-hook 'window-size-change-functions #'mini-echo-update-overlays-when-resized)))
+    (remove-hook 'window-size-change-functions
+                 #'mini-echo-update-overlays-when-resized)))
 
 (provide 'mini-echo)
 ;;; mini-echo.el ends here
