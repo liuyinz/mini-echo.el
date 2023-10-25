@@ -1,4 +1,4 @@
-;;; mini-echo-segments.el --- summary -*- lexical-binding: t -*-
+;;; mini-echo-segments.el --- Collection of mini echo segments -*- lexical-binding: t -*-
 
 ;; This file is not a part of GNU Emacs.
 
@@ -191,6 +191,11 @@ nil means to use `default-directory'.
                segment))))
     (message "mini-echo-define-segment: %s properties error" name)))
 
+(defun mini-echo-segment-prop (segment prop)
+  "Return PROP of SEGMENT."
+  (funcall (intern (concat "mini-echo-segment-" (substring (symbol-name prop) 1)))
+           (cdr (assoc segment mini-echo-segment-alist))))
+
 (mini-echo-define-segment "major-mode"
   "Return major mode info of current buffer."
   :fetch
@@ -210,31 +215,36 @@ nil means to use `default-directory'.
   (when-let ((size (format-mode-line "%I")))
     (propertize size 'face 'mini-echo-buffer-size)))
 
-(defvar-local mini-echo-project-root nil)
+(defvar-local mini-echo--project-root nil)
+(defun mini-echo-update-project-root ()
+  "Update and return current project root path if exists."
+  (setq mini-echo--project-root
+        (or (and (buffer-file-name)
+                 (cl-case mini-echo-project-detection
+                   (ffip (and (fboundp 'ffip-project-root)
+                              (let ((inhibit-message t))
+                                (ffip-project-root))))
+                   (projectile (and (bound-and-true-p projectile-mode)
+                                    (projectile-project-root)))
+                   (project (when-let (((fboundp 'project-current))
+                                       (project (project-current)))
+                              (expand-file-name
+                               (if (fboundp 'project-root)
+                                   (project-root project)
+                                 (car (with-no-warnings
+                                        (project-roots project)))))))
+                   (t (funcall mini-echo-project-detection))))
+            "")))
+
 (mini-echo-define-segment "project"
   "Display the project name of current buffer."
-  :hook '(find-file-hook after-revert-hook)
+  :advice '((vc-refresh-state . :after))
   :fetch
-  (when-let ((project mini-echo-project-root))
+  (when-let ((project (or mini-echo--project-root
+                          (mini-echo-update-project-root))))
     (propertize (file-name-nondirectory (directory-file-name project))
                 'face 'mini-echo-project))
-  :update
-  (setq mini-echo-project-root
-        (and (buffer-file-name)
-             (cl-case mini-echo-project-detection
-               (ffip (and (fboundp 'ffip-project-root)
-                          (let ((inhibit-message t))
-                            (ffip-project-root))))
-               (projectile (and (bound-and-true-p projectile-mode)
-                                (projectile-project-root)))
-               (project (when-let (((fboundp 'project-current))
-                                   (project (project-current)))
-                          (expand-file-name
-                           (if (fboundp 'project-root)
-                               (project-root project)
-                             (car (with-no-warnings
-                                    (project-roots project)))))))
-               (t (funcall mini-echo-project-detection))))))
+  :update (mini-echo-update-project-root))
 
 (defun mini-echo-buffer-status ()
   "Display th status of current buffer."
@@ -270,18 +280,24 @@ nil means to use `default-directory'.
 
 (mini-echo-define-segment "buffer-name"
   "Return file path of current buffer."
+  :advice '((vc-refresh-state . :after))
   :fetch
   (concat
    (if-let* ((filepath (buffer-file-name))
-             (project mini-echo-project-root)
+             (project (or mini-echo--project-root
+                          (mini-echo-update-project-root)))
+             ((not (string-empty-p project)))
              ((string-prefix-p project filepath))
              (parts (split-string (string-trim filepath project) "/")))
        (mapconcat #'identity
-                  `(,(mini-echo-segment--fetch-project)
+                  `(,(propertize (file-name-nondirectory
+                                  (directory-file-name project))
+                                 'face 'mini-echo-project)
                     ,@(mapcar (lambda (x) (substring x 0 1)) (butlast parts))
                     nil)
                   "/"))
-   (mini-echo-buffer-name-short)))
+   (mini-echo-buffer-name-short))
+  :update (mini-echo-update-project-root))
 
 (mini-echo-define-segment "buffer-name-short"
   "Return file path of current buffer."
@@ -424,8 +440,7 @@ nil means to use `default-directory'.
 ;; TODO add more segments
 ;; (mini-echo-define-segment "evil")
 
-;; (mini-echo-define-segment "interaction-log"
-;;   (when (bound-and-true-p interaction-log-mode)))
+;; (mini-echo-define-segment "interaction-log")
 
 (provide 'mini-echo-segments)
 ;;; mini-echo-segments.el ends here.
