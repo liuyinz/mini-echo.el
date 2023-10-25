@@ -143,55 +143,52 @@ nil means to use `default-directory'.
 (cl-defstruct mini-echo-segment
   name &key fetch activate update hook advice setup)
 
-(defun mini-echo-segment--internals (name)
-  "Generate mini echo internal symbol with NAME."
-  (mapcar (lambda (prop)
-            (intern (concat "mini-echo-segment-" (format "%s-%s" prop name))))
-          '("-fetch" "-update" "-setup")))
-
 (defmacro mini-echo-define-segment (name docstring &rest props)
   "Define a mini echo segment NAME with DOCSTRING and PROPS."
   (declare (indent defun) (doc-string 2))
-  (if-let* (;; plistp check
-            (len (proper-list-p props))
-            ((and (> len 0) (zerop (% len 2))))
-            (segment (make-mini-echo-segment :name name)))
+  ;; plistp check
+  (if-let* ((len (proper-list-p props))
+            ((and (> len 0) (zerop (% len 2)))))
       (cl-destructuring-bind (&key fetch update hook advice mode setup)
           props
         (cl-destructuring-bind (fetch-func update-func setup-func)
-            (mini-echo-segment--internals name)
+            (mapcar (lambda (prop)
+                      (intern (concat "mini-echo-segment-"
+                                      (format "%s-%s" prop name))))
+                    '("-fetch" "-update" "-setup"))
           `(progn
-             (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal)
-                   ,segment)
-             ;; fetch
-             (defun ,fetch-func () ,docstring ,fetch)
-             (setf (mini-echo-segment-fetch ,segment) ',fetch-func)
-             ;; update
-             (when (consp ',update)
-               (defun ,update-func () ,update)
-               (setf (mini-echo-segment-update ,segment) ',update-func)
-               (setf (mini-echo-segment-hook ,segment) ,hook)
-               (setf (mini-echo-segment-advice ,segment) ,advice))
-             ;; setup
-             (and (or ,mode ,hook ,advice ,setup)
-                  (defun ,setup-func ()
-                    (if (mini-echo-segment-activate ,segment)
-                        (progn
-                          (eval (plist-get ,setup :activate))
-                          (mapc (lambda (x) (funcall x 1)) ,mode)
-                          (mapc (lambda (x) (add-hook x ',update-func)) ,hook)
-                          (mapc (lambda (x)
-                                  (advice-add (car x) (cdr x) ',update-func))
-                                ,advice))
-                      (eval (plist-get ,setup :deactivate))
-                      ;; NOTE do not turn off modes even if deactivate segment
-                      ;; to avoid interface other functionality
-                      ;; (mapc (lambda (x) (funcall x -1)) ,mode)
-                      (mapc (lambda (x) (remove-hook x ',update-func)) ,hook)
-                      (mapc (lambda (x) (advice-remove (car x) ',update-func))
-                            ,advice)))
-                  (setf (mini-echo-segment-setup ,segment) ',setup-func))
-             ,segment)))
+             (let ((segment (make-mini-echo-segment :name ,name)))
+               (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal)
+                     segment)
+               ;; fetch
+               (defun ,fetch-func () ,docstring ,fetch)
+               (setf (mini-echo-segment-fetch segment) ',fetch-func)
+               ;; update
+               (when (consp ',update)
+                 (defun ,update-func () ,update)
+                 (setf (mini-echo-segment-update segment) ',update-func)
+                 (setf (mini-echo-segment-hook segment) ,hook)
+                 (setf (mini-echo-segment-advice segment) ,advice))
+               ;; setup
+               (and (or ,mode ,hook ,advice ,setup)
+                    (defun ,setup-func ()
+                      (if (mini-echo-segment-activate segment)
+                          (progn
+                            (eval (plist-get ,setup :activate))
+                            (mapc (lambda (x) (funcall x 1)) ,mode)
+                            (mapc (lambda (x) (add-hook x ',update-func)) ,hook)
+                            (mapc (lambda (x)
+                                    (advice-add (car x) (cdr x) ',update-func))
+                                  ,advice))
+                        (eval (plist-get ,setup :deactivate))
+                        ;; NOTE do not turn off modes even if deactivate segment
+                        ;; to avoid interface other functionality
+                        ;; (mapc (lambda (x) (funcall x -1)) ,mode)
+                        (mapc (lambda (x) (remove-hook x ',update-func)) ,hook)
+                        (mapc (lambda (x) (advice-remove (car x) ',update-func))
+                              ,advice)))
+                    (setf (mini-echo-segment-setup segment) ',setup-func))
+               segment))))
     (message "mini-echo-define-segment: %s properties error" name)))
 
 (mini-echo-define-segment "major-mode"
