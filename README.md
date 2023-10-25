@@ -17,6 +17,7 @@ A lightweight replacement of [mini-modeline](https://github.com/kiennq/emacs-min
   - [Customization](#customization)
   - [Similar Package](#similar-package)
   - [Todo](#todo)
+  - [FAQ](#faq)
 
 <!-- markdown-toc end -->
 
@@ -140,6 +141,19 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 
 ## Todo
 
-- [ ] add environment support, such as python, node.js, asdf...
 - [x] rewrite mini-echo-define-macro
 - [x] add minibuffer background to distinguish in terminal
+- [ ] add environment support, such as python, node.js, asdf...
+- [ ] add support to highlight current window
+
+## FAQ
+
+- How to distinguish current window ?
+
+  Highlight current window is still on development, you could set hl-line-mode, or use some dim other window package for now.
+
+- How to show window border in terminal?
+
+  Due to `window-divider-mode` is not available in terminal, you need to use other measures to identify window.
+  In terminal, internal-border is displayed, so only need to solve horizontal border problem. Enable packages like tabbar or topsy
+  to help highlight horizontal border instead.
