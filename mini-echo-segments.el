@@ -260,7 +260,7 @@ nil means to use `default-directory'.
    (t (cons " " nil))))
 
 (defun mini-echo-buffer-name-short ()
-  "Return current buffer name for mini echo."
+  "Return current buffer name."
   (cond
    (;; TODO need timemachine support
     (or (bound-and-true-p magit-blob-mode))
@@ -300,7 +300,7 @@ nil means to use `default-directory'.
   :update (mini-echo-update-project-root))
 
 (mini-echo-define-segment "buffer-name-short"
-  "Return file path of current buffer."
+  "Return name of current buffer."
   :fetch (mini-echo-buffer-name-short))
 
 (mini-echo-define-segment "remote-host"
@@ -318,7 +318,7 @@ nil means to use `default-directory'.
     (concat ">>" (propertize str 'face 'mini-echo-process))))
 
 (mini-echo-define-segment "time"
-  "Return current time if display-time-mode is enable."
+  "Return current time."
   :mode '(display-time-mode)
   :fetch
   (propertize display-time-string 'face 'mini-echo-time))
@@ -331,7 +331,7 @@ nil means to use `default-directory'.
     (propertize "Profiler" 'face 'mini-echo-profiler)))
 
 (mini-echo-define-segment "macro"
-  "Return macro being recorded."
+  "Indicator of macro being recorded or executed."
   :fetch
   (when (or defining-kbd-macro executing-kbd-macro)
     (let ((status (if (bound-and-true-p evil-this-macro)
@@ -340,7 +340,7 @@ nil means to use `default-directory'.
       (propertize status 'face 'mini-echo-macro))))
 
 (mini-echo-define-segment "narrow"
-  "Return narrow status of current buffer."
+  "Indicator of narrow status of current buffer."
   :fetch
   (when (or (buffer-narrowed-p)
             (bound-and-true-p dired-narrow-mode))
@@ -402,7 +402,7 @@ nil means to use `default-directory'.
 
 (defvar-local mini-echo--vcs-status nil)
 (mini-echo-define-segment "vcs"
-  "Return vcs info for mini echo mode."
+  "Return vcs info of current buffer."
   :fetch mini-echo--vcs-status
   :hook '(find-file-hook after-save-hook after-revert-hook)
   :advice '((vc-refresh-state . :after))

@@ -109,6 +109,7 @@ Format is a list of three argument:
   "Return non-nil if SEGMENT is valid."
   (member segment (mapcar #'car mini-echo-segment-alist)))
 
+;; TODO improve performace for recursion calling
 (defun mini-echo-segments (style)
   "Return list of segments according to STYLE."
   (let* ((valid (mapcar #'car mini-echo-segment-alist))
