@@ -225,27 +225,16 @@ nil means to use `default-directory'.
                  (setf (mini-echo-segment-update-hook segment) ,update-hook)
                  (setf (mini-echo-segment-update-advice segment) ,update-advice))
                ;; setup
-               (and (or ,update-hook ,update-advice ,setup)
+               (and (or ,update-hook ,update-advice (consp ',setup))
                     (defun ,setup-func ()
-                      (if (mini-echo-segment-activate segment)
-                          (progn
-                            (eval (plist-get ,setup :activate))
-                            (mapc (lambda (x) (add-hook x ',update-func)) ,update-hook)
-                            (mapc (lambda (x)
-                                    (advice-add (car x) (cdr x) ',update-func))
-                                  ,update-advice))
-                        (eval (plist-get ,setup :deactivate))
-                        (mapc (lambda (x) (remove-hook x ',update-func)) ,update-hook)
-                        (mapc (lambda (x) (advice-remove (car x) ',update-func))
-                              ,update-advice)))
+                      ,setup
+                      (mapc (lambda (x) (add-hook x ',update-func)) ,update-hook)
+                      (mapc (lambda (x)
+                              (advice-add (car x) (cdr x) ',update-func))
+                            ,update-advice))
                     (setf (mini-echo-segment-setup segment) ',setup-func))
                segment))))
     (message "mini-echo-define-segment: %s properties error" name)))
-
-(defun mini-echo-segment-prop (segment prop)
-  "Return PROP of SEGMENT."
-  (funcall (intern (concat "mini-echo-segment-" (substring (symbol-name prop) 1)))
-           (cdr (assoc segment mini-echo-segment-alist))))
 
 ;;; built-in
 
@@ -374,7 +363,7 @@ nil means to use `default-directory'.
   "Return current time."
   :fetch
   (propertize display-time-string 'face 'mini-echo-time)
-  :setup '(:activate (display-time-mode 1)))
+  :setup (display-time-mode 1))
 
 (mini-echo-define-segment "profiler"
   "Return current profiler status"
@@ -521,7 +510,7 @@ nil means to use `default-directory'.
   (keycast--format mini-echo-keycast-format)
   :update
   (keycast--update)
-  :setup '(:activate (require 'keycast)))
+  :setup (require 'keycast))
 
 ;; TODO add more segments
 

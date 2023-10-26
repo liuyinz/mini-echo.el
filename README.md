@@ -58,13 +58,39 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 (mini-echo-mode)
 ```
 
-- available custommizations as below, for more info please check source file.
+There are three ways to adjust mini-echo segments display:
+
+1. `mini-echo-default-segments`: variable, plist of segments which are default to all major-modes
 
 ```elisp
-;; set different segments of default/short style according to window width
-(setq mini-echo-default-segments '("flymake" "buffer-position" "vcs" "major-mode"))
-(setq mini-echo-short-segments '("buffer-position" "major-mode"))
+;; set default segments of long/short style
+(setq mini-echo-default-segments
+  '(:long ("major-mode" "buffer-name" "vcs" "buffer-position"
+           "buffer-size" "flymake" "process" "selection-info"
+           "narrow" "macro" "profiler")
+    :short ("buffer-name-short" "buffer-position" "process"
+            "profiler" "selection-info" "narrow" "macro")))
+```
 
+2. `mini-echo-major-mode-segments`: variable, list of segments which are only take effect in MAJOR-MODE, the format are as below:
+
+```elisp
+;; Concell of (SEGMENT . POSITION) is required to adjust the appearence.
+;; 0 means hide the segment in major mode if it's displayed by default.
+;; non-zero number means the order of segment to be put, it's counted from 1.
+(setq mini-echo-major-mode-rules
+      '((emacs-lisp-mode :long (("evil" . 1) ("buffer-size" . 4))
+                         :short (("vcs" . 0)))))
+```
+
+Example meaning:
+when `emacs-lisp-mode` is enabled, long-style shows "evil" segment in first place, shows "buffer-size" segment in fourth place (right-align). short-style hide "vcs" segment.
+
+3. `mini-echo-toggle`: command, show or hide some segment temporarily
+
+Other options are here, see more info please check the file
+
+```elisp
 ;; write your own predicate function to switch style
 (setq mini-echo-short-segments-predicate #'your-own-predicate)
 
@@ -78,57 +104,57 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 (setq mini-echo-right-padding 1)
 ```
 
-- `mini-echo-toggle` : toggle some segment temporarily
-
 ## Customization
 
-- Write a segment with `mini-echo-define-segment`, e.g.
+Write a segment with `mini-echo-define-segment`, e.g.
 
-  ```elisp
-  (mini-echo-define-segment "vcs"
-    "Return vcs info of current buffer."
-    :fetch mini-echo--vcs-status
-    :update-hook '(find-file-hook after-save-hook after-revert-hook)
-    :update-advice '((vc-refresh-state . :after))
-    :update
-    (setq mini-echo--vcs-status
-          (when (and vc-mode buffer-file-name)
-            (let* ((backend (vc-backend buffer-file-name))
-                   (branch (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
-                   (limit mini-echo-vcs-max-length)
-                   (face (cl-case (vc-state buffer-file-name backend)
-                           (needs-update 'warning)
-                           ((removed conflict unregistered) 'error)
-                           (t 'success))))
-              (propertize (concat "@" (if (> (length branch) limit)
-                                          (concat (substring branch 0 (- limit 3))
-                                                  "..")
-                                        branch))
-                          'face `(:inherit (,face bold)))))))
+keywords format:
 
-  (mini-echo-define-segment "time"
-    "Return current time info."
-    :fetch
-    (propertize display-time-string 'face 'mini-echo-time)
-    :setup '(:activate (display-time-mode 1)))
+- `:fetch`: sexp, which runs when mini-echo update by interval.
+- `:update`: sexp, which runs when `:hook` or `:advice` is triggered.
+- `:update-hook`: list of hooks which run `:update` after it called, e.g. update "vcs" status after run `find-file-hook`
+- `:update-advice`: alist of (symbol . how) which runs `:update` after it called, e.g. update "vcs" status after run `vc-refresh-state`
+- `:setup`: plist, which runs when the segment is activated or deactivated , e.g. load library `keycast` when activate `keycast` segment.
 
-  (mini-echo-define-segment "keycast"
-    "Display keycast info."
-    :update-hook '(post-command-hook)
-    :fetch
-    (keycast--format mini-echo-keycast-format)
-    :update
-    (keycast--update)
-    :setup '(:activate (require 'keycast)))
-  ```
+```elisp
+(mini-echo-define-segment "vcs"
+  "Return vcs info of current buffer."
+  :fetch mini-echo--vcs-status
+  :update-hook '(find-file-hook after-save-hook after-revert-hook)
+  :update-advice '((vc-refresh-state . :after))
+  :update
+  (setq mini-echo--vcs-status
+        (when (and vc-mode buffer-file-name)
+          (let* ((backend (vc-backend buffer-file-name))
+                 (branch (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
+                 (limit mini-echo-vcs-max-length)
+                 (face (cl-case (vc-state buffer-file-name backend)
+                         (needs-update 'warning)
+                         ((removed conflict unregistered) 'error)
+                         (t 'success))))
+            (propertize (concat "@" (if (> (length branch) limit)
+                                        (concat (substring branch 0 (- limit 3))
+                                                "..")
+                                      branch))
+                        'face `(:inherit (,face bold)))))))
 
-  - `:fetch`: sexp, which runs when mini-echo update by interval.
-  - `:update`: sexp, which runs when `:hook` or `:advice` is triggered.
-  - `:update-hook`: list of hooks which run `:update` after it called, e.g. update "vcs" status after run `find-file-hook`
-  - `:update-advice`: alist of (symbol . how) which runs `:update` after it called, e.g. update "vcs" status after run `vc-refresh-state`
-  - `:setup`: plist, which runs when the segment is activated or deactivated , e.g. load library `keycast` when activate `keycast` segment.
+(mini-echo-define-segment "time"
+  "Return current time info."
+  :fetch
+  (propertize display-time-string 'face 'mini-echo-time)
+  :setup '(:activate (display-time-mode 1)))
 
-  For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
+(mini-echo-define-segment "keycast"
+  "Display keycast info."
+  :update-hook '(post-command-hook)
+  :fetch
+  (keycast--format mini-echo-keycast-format)
+  :update
+  (keycast--update)
+  :setup '(:activate (require 'keycast)))
+```
+
+For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 
 ## Similar Package
 
@@ -142,9 +168,9 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 
 - [x] rewrite mini-echo-define-macro
 - [x] add minibuffer background to distinguish in terminal
+- [x] setup segemnts per buffer
 - [ ] add environment support, such as python, node.js, asdf...
 - [ ] add support to highlight current window
-- [ ] setup segemnts per buffer
 
 ## FAQ
 
