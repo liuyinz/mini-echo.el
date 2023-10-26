@@ -117,6 +117,11 @@ nil means to use `default-directory'.
   "Face for mini-echo segment of word count."
   :group 'mini-echo)
 
+(defface mini-echo-last-command
+  '((t (:foreground "#E27E8D" :bold t)))
+  "Face for mini-echo segment of last command."
+  :group 'mini-echo)
+
 (defface mini-echo-project
   '((t (:foreground "#5EC4FF")))
   "Face for mini-echo segment of project directory."
@@ -454,6 +459,11 @@ nil means to use `default-directory'.
   (propertize (format " %dW" (count-words (point-min) (point-max)))
               'face 'mini-echo-word-count))
 
+(mini-echo-define-segment "last-command"
+  "Return last command info."
+  :fetch
+  (propertize (symbol-name last-command) 'face 'mini-echo-last-command))
+
 (defvar-local mini-echo--vcs-status nil)
 (mini-echo-define-segment "vcs"
   "Return vcs info of current buffer."
@@ -486,15 +496,6 @@ nil means to use `default-directory'.
   (when (bound-and-true-p meow--indicator)
     (string-trim meow--indicator)))
 
-(mini-echo-define-segment "keycast"
-  "Display keycast info."
-  :update-hook '(post-command-hook)
-  :fetch
-  (keycast--format mini-echo-keycast-format)
-  :update
-  (keycast--update)
-  :setup '(:activate (require 'keycast)))
-
 (mini-echo-define-segment "evil"
   "Display evil status of current buffer."
   :fetch
@@ -512,6 +513,15 @@ nil means to use `default-directory'.
       ((evil-operator-state-p) 'mini-echo-evil-operator-state)
       ((evil-replace-state-p)  'mini-echo-evil-replace-state)
       (t 'mini-echo-evil-normal-state)))))
+
+(mini-echo-define-segment "keycast"
+  "Display keycast info."
+  :update-hook '(post-command-hook)
+  :fetch
+  (keycast--format mini-echo-keycast-format)
+  :update
+  (keycast--update)
+  :setup '(:activate (require 'keycast)))
 
 ;; TODO add more segments
 
