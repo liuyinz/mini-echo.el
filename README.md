@@ -145,6 +145,7 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 - [x] add minibuffer background to distinguish in terminal
 - [ ] add environment support, such as python, node.js, asdf...
 - [ ] add support to highlight current window
+- [ ] setup segemnts per buffer
 
 ## FAQ
 
