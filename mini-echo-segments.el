@@ -112,6 +112,11 @@ nil means to use `default-directory'.
   "Face for mini-echo segment of selection info."
   :group 'mini-echo)
 
+(defface mini-echo-word-count
+  '((t (:foreground "#EBBF83")))
+  "Face for mini-echo segment of word count."
+  :group 'mini-echo)
+
 (defface mini-echo-project
   '((t (:foreground "#5EC4FF")))
   "Face for mini-echo segment of project directory."
@@ -446,6 +451,12 @@ nil means to use `default-directory'.
                (t
                 (format "%dC" (- end beg))))
          'face 'mini-echo-selection-info)))))
+
+(mini-echo-define-segment "word-count"
+  "Return word count info of current buffer."
+  :fetch
+  (propertize (format " %dW" (count-words (point-min) (point-max)))
+              'face 'mini-echo-word-count))
 
 (defvar-local mini-echo--vcs-status nil)
 (mini-echo-define-segment "vcs"
