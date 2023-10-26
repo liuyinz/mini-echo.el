@@ -44,6 +44,14 @@
 (declare-function ffip-project-root "ffip")
 (declare-function keycast--format "keycast")
 (declare-function keycast--update "keycast")
+(declare-function evil-emacs-state-p "ext:evil-states" t t)
+(declare-function evil-insert-state-p "ext:evil-states" t t)
+(declare-function evil-motion-state-p "ext:evil-states" t t)
+(declare-function evil-normal-state-p "ext:evil-states" t t)
+(declare-function evil-operator-state-p "ext:evil-states" t t)
+(declare-function evil-replace-state-p "ext:evil-states" t t)
+(declare-function evil-visual-state-p "ext:evil-states" t t)
+(declare-function evil-state-property "ext:evil-common")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -136,6 +144,41 @@ nil means to use `default-directory'.
 (defface mini-echo-time
   '((t (:foreground "#EBBF83")))
   "Face for mini-echo segment of time."
+  :group 'mini-echo)
+
+(defface mini-echo-evil-normal-state
+  '((t (:foreground "#5EC4FF")))
+  "Face for mini-echo segment of evil normal state."
+  :group 'mini-echo)
+
+(defface mini-echo-evil-insert-state
+  '((t (:foreground "#8BD49C")))
+  "Face for mini-echo segment of evil insert state."
+  :group 'mini-echo)
+
+(defface mini-echo-evil-visual-state
+  '((t (:foreground "#EBBF83")))
+  "Face for mini-echo segment of evil visual state."
+  :group 'mini-echo)
+
+(defface mini-echo-evil-emacs-state
+  '((t (:foreground "violet")))
+  "Face for mini-echo segment of evil Emacs state."
+  :group 'mini-echo)
+
+(defface mini-echo-evil-motion-state
+  '((t (:foreground "#a0b3c5")))
+  "Face for mini-echo segment of evil motion state."
+  :group 'mini-echo)
+
+(defface mini-echo-evil-operator-state
+  '((t (:foreground "gold")))
+  "Face for mini-echo segment of evil operator state."
+  :group 'mini-echo)
+
+(defface mini-echo-evil-replace-state
+  '((t (:foreground "#E27E8D")))
+  "Face for mini-echo segment of evil replace state."
   :group 'mini-echo)
 
 (defvar mini-echo-segment-alist nil)
@@ -442,10 +485,25 @@ nil means to use `default-directory'.
   (keycast--update)
   :setup '(:activate (require 'keycast)))
 
-;; TODO add more segments
-;; (mini-echo-define-segment "evil")
+(mini-echo-define-segment "evil"
+  "Display evil status of current buffer."
+  :fetch
+  (when (bound-and-true-p evil-local-mode)
+    (propertize
+     (let ((tag (evil-state-property evil-state :tag t)))
+       (if (stringp tag) tag (funcall tag)))
+     'face
+     (cond
+      ((evil-normal-state-p)   'mini-echo-evil-normal-state)
+      ((evil-emacs-state-p)    'mini-echo-evil-emacs-state)
+      ((evil-insert-state-p)   'mini-echo-evil-insert-state)
+      ((evil-motion-state-p)   'mini-echo-evil-motion-state)
+      ((evil-visual-state-p)   'mini-echo-evil-visual-state)
+      ((evil-operator-state-p) 'mini-echo-evil-operator-state)
+      ((evil-replace-state-p)  'mini-echo-evil-replace-state)
+      (t 'mini-echo-evil-normal-state)))))
 
-;; (mini-echo-define-segment "interaction-log")
+;; TODO add more segments
 
 (provide 'mini-echo-segments)
 ;;; mini-echo-segments.el ends here.
