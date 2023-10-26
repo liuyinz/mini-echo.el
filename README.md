@@ -126,7 +126,7 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
   - `:update`: sexp, which runs when `:hook` or `:advice` is triggered.
   - `:hook`: list of hooks which run `:update` after it called, e.g. update "vcs" status after run `find-file-hook`
   - `:advice`: alist of (symbol . how) which runs `:update` after it called, e.g. update "vcs" status after run `vc-refresh-state`
-  - `:mode`: list of minor modes which should be enabled before running `:fetch`, e.g. turn on `display-time-mode` before fetch "time" info
+  - `:mode`: list of global minor modes which should be enabled in advance, e.g. turn on `display-time-mode` before fetch "time" info
   - `:setup`: sexp, which runs when the segment is activated for first time, e.g. load library `keycast` when fetch `keycast` info for first time.
 
   For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
