@@ -33,6 +33,7 @@
 (defvar evil-visual-end)
 (defvar evil-this-macro)
 (defvar flymake--state)
+(defvar flymake-suppress-zero-counters)
 (defvar magit-blob-mode)
 (defvar display-time-string)
 
@@ -409,10 +410,10 @@ nil means to use `default-directory'.
                (t  (propertize "-" 'face 'success)))
               (mapconcat
                (lambda (s)
-                 (let ((counter (cadr (flymake--mode-line-counter s t))))
-                   (propertize (or (plist-get counter :propertize) "0")
-                               'face (or (plist-get counter 'face)
-                                         'compilation-info))))
+                 (let* ((flymake-suppress-zero-counters nil)
+                        (counter (cadr (flymake--mode-line-counter s))))
+                   (propertize (plist-get counter :propertize)
+                               'face (plist-get counter 'face))))
                '(:error :warning :note) "/")))))
 
 (defsubst mini-echo-column (pos)
