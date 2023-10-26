@@ -58,7 +58,7 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 (mini-echo-mode)
 ```
 
-- `options` as below, for more options please check source file.
+- available custommizations as below, for more info please check source file.
 
 ```elisp
 ;; set different segments of default/short style according to window width
@@ -78,7 +78,7 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 (setq mini-echo-right-padding 1)
 ```
 
-- `mini-echo-toggle` : to toggle some segment temporarily
+- `mini-echo-toggle` : toggle some segment temporarily
 
 ## Customization
 
@@ -151,6 +151,15 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 - How to distinguish current window ?
 
   Highlight current window is still on development, you could set hl-line-mode, or use some dim other window package for now.
+  e.g.
+
+  ```elisp
+  ;; or (global-hl-line-mode)
+  (hl-line-mode)
+  ;; Only highliht current buffer in current window
+  (setq hl-line-sticky-flag nil)
+  (setq global-hl-line-sticky-flag nil)
+  ```
 
 - How to show window border in terminal?
 
