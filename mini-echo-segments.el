@@ -190,7 +190,7 @@ nil means to use `default-directory'.
 (defvar mini-echo-segment-alist nil)
 
 (cl-defstruct mini-echo-segment
-  name &key fetch activate update hook advice setup)
+  name &key fetch activate setup update update-hook update-advice)
 
 ;;;###autoload
 (defmacro mini-echo-define-segment (name docstring &rest props)
@@ -199,7 +199,7 @@ nil means to use `default-directory'.
   ;; plistp check
   (if-let* ((len (proper-list-p props))
             ((and (> len 0) (zerop (% len 2)))))
-      (cl-destructuring-bind (&key fetch update hook advice mode setup)
+      (cl-destructuring-bind (&key fetch setup update update-hook update-advice)
           props
         (cl-destructuring-bind (fetch-func update-func setup-func)
             (mapcar (lambda (prop)
@@ -217,26 +217,22 @@ nil means to use `default-directory'.
                (when (consp ',update)
                  (defun ,update-func () ,update)
                  (setf (mini-echo-segment-update segment) ',update-func)
-                 (setf (mini-echo-segment-hook segment) ,hook)
-                 (setf (mini-echo-segment-advice segment) ,advice))
+                 (setf (mini-echo-segment-update-hook segment) ,update-hook)
+                 (setf (mini-echo-segment-update-advice segment) ,update-advice))
                ;; setup
-               (and (or ,mode ,hook ,advice ,setup)
+               (and (or ,update-hook ,update-advice ,setup)
                     (defun ,setup-func ()
                       (if (mini-echo-segment-activate segment)
                           (progn
                             (eval (plist-get ,setup :activate))
-                            (mapc (lambda (x) (funcall x 1)) ,mode)
-                            (mapc (lambda (x) (add-hook x ',update-func)) ,hook)
+                            (mapc (lambda (x) (add-hook x ',update-func)) ,update-hook)
                             (mapc (lambda (x)
                                     (advice-add (car x) (cdr x) ',update-func))
-                                  ,advice))
+                                  ,update-advice))
                         (eval (plist-get ,setup :deactivate))
-                        ;; NOTE do not turn off modes even if deactivate segment
-                        ;; to avoid interface other functionality
-                        ;; (mapc (lambda (x) (funcall x -1)) ,mode)
-                        (mapc (lambda (x) (remove-hook x ',update-func)) ,hook)
+                        (mapc (lambda (x) (remove-hook x ',update-func)) ,update-hook)
                         (mapc (lambda (x) (advice-remove (car x) ',update-func))
-                              ,advice)))
+                              ,update-advice)))
                     (setf (mini-echo-segment-setup segment) ',setup-func))
                segment))))
     (message "mini-echo-define-segment: %s properties error" name)))
@@ -290,7 +286,7 @@ nil means to use `default-directory'.
 
 (mini-echo-define-segment "project"
   "Display the project name of current buffer."
-  :advice '((vc-refresh-state . :after))
+  :update-advice '((vc-refresh-state . :after))
   :fetch
   (when-let ((project (or mini-echo--project-root
                           (mini-echo-update-project-root))))
@@ -332,7 +328,7 @@ nil means to use `default-directory'.
 
 (mini-echo-define-segment "buffer-name"
   "Return file path of current buffer."
-  :advice '((vc-refresh-state . :after))
+  :update-advice '((vc-refresh-state . :after))
   :fetch
   (concat
    (if-let* ((filepath (buffer-file-name))
@@ -371,9 +367,9 @@ nil means to use `default-directory'.
 
 (mini-echo-define-segment "time"
   "Return current time."
-  :mode '(display-time-mode)
   :fetch
-  (propertize display-time-string 'face 'mini-echo-time))
+  (propertize display-time-string 'face 'mini-echo-time)
+  :setup '(:activate (display-time-mode 1)))
 
 (mini-echo-define-segment "profiler"
   "Return current profiler status"
@@ -462,8 +458,8 @@ nil means to use `default-directory'.
 (mini-echo-define-segment "vcs"
   "Return vcs info of current buffer."
   :fetch mini-echo--vcs-status
-  :hook '(find-file-hook after-save-hook after-revert-hook)
-  :advice '((vc-refresh-state . :after))
+  :update-hook '(find-file-hook after-save-hook after-revert-hook)
+  :update-advice '((vc-refresh-state . :after))
   :update
   (setq mini-echo--vcs-status
         (when (and vc-mode buffer-file-name)
@@ -490,7 +486,7 @@ nil means to use `default-directory'.
 
 (mini-echo-define-segment "keycast"
   "Display keycast info."
-  :hook '(post-command-hook)
+  :update-hook '(post-command-hook)
   :fetch
   (keycast--format mini-echo-keycast-format)
   :update

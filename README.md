@@ -88,8 +88,8 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
   (mini-echo-define-segment "vcs"
     "Return vcs info of current buffer."
     :fetch mini-echo--vcs-status
-    :hook '(find-file-hook after-save-hook after-revert-hook)
-    :advice '((vc-refresh-state . :after))
+    :update-hook '(find-file-hook after-save-hook after-revert-hook)
+    :update-advice '((vc-refresh-state . :after))
     :update
     (setq mini-echo--vcs-status
           (when (and vc-mode buffer-file-name)
@@ -108,13 +108,13 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 
   (mini-echo-define-segment "time"
     "Return current time info."
-    :mode '(display-time-mode)
     :fetch
-    (propertize display-time-string 'face 'mini-echo-time))
+    (propertize display-time-string 'face 'mini-echo-time)
+    :setup '(:activate (display-time-mode 1)))
 
   (mini-echo-define-segment "keycast"
     "Display keycast info."
-    :hook '(post-command-hook)
+    :update-hook '(post-command-hook)
     :fetch
     (keycast--format mini-echo-keycast-format)
     :update
@@ -124,10 +124,9 @@ Install with `M-x package-install` `RET` `binky` within Emacs.
 
   - `:fetch`: sexp, which runs when mini-echo update by interval.
   - `:update`: sexp, which runs when `:hook` or `:advice` is triggered.
-  - `:hook`: list of hooks which run `:update` after it called, e.g. update "vcs" status after run `find-file-hook`
-  - `:advice`: alist of (symbol . how) which runs `:update` after it called, e.g. update "vcs" status after run `vc-refresh-state`
-  - `:mode`: list of global minor modes which should be enabled in advance, e.g. turn on `display-time-mode` before fetch "time" info
-  - `:setup`: sexp, which runs when the segment is activated for first time, e.g. load library `keycast` when fetch `keycast` info for first time.
+  - `:update-hook`: list of hooks which run `:update` after it called, e.g. update "vcs" status after run `find-file-hook`
+  - `:update-advice`: alist of (symbol . how) which runs `:update` after it called, e.g. update "vcs" status after run `vc-refresh-state`
+  - `:setup`: plist, which runs when the segment is activated or deactivated , e.g. load library `keycast` when activate `keycast` segment.
 
   For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 
