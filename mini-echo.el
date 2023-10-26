@@ -103,20 +103,25 @@ Format is a list of three argument:
 (defvar-local mini-echo--orig-mdf nil)
 (defvar-local mini-echo--remap-cookie nil)
 
+(defvar mini-echo--valid-segments nil)
+(defvar mini-echo--default-segments nil)
+(defvar mini-echo--short-segments nil)
+
 ;;; segments
 
-(defun mini-echo-segment-valid-p (segment)
-  "Return non-nil if SEGMENT is valid."
-  (member segment (mapcar #'car mini-echo-segment-alist)))
-
-;; TODO improve performace for recursion calling
 (defun mini-echo-segments (style)
   "Return list of segments according to STYLE."
-  (let* ((valid (mapcar #'car mini-echo-segment-alist))
-         (default (seq-filter #'mini-echo-segment-valid-p
-                              mini-echo-default-segments))
-         (short (seq-filter #'mini-echo-segment-valid-p
-                            mini-echo-short-segments))
+  (let* ((valid (or mini-echo--valid-segments
+                    (setq mini-echo--valid-segments
+                          (mapcar #'car mini-echo-segment-alist))))
+         (default (or mini-echo--default-segments
+                      (setq mini-echo--default-segments
+                            (seq-filter (lambda (x) (member x valid))
+                                        mini-echo-default-segments))))
+         (short (or mini-echo--short-segments
+                    (setq mini-echo--short-segments
+                          (seq-filter (lambda (x) (member x valid))
+                                      mini-echo-short-segments))))
          (shortp (funcall mini-echo-short-segments-predicate))
          (selected (if shortp short default))
          (unselected (if (not shortp) default short)))
@@ -126,6 +131,7 @@ Format is a list of three argument:
       (short short)
       (selected selected)
       (unselected unselected)
+      ;; TODO optimize recursive calling
       (current
        (let ((result selected))
          (dolist (filter mini-echo-toggle-segments result)
