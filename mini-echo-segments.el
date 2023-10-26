@@ -464,7 +464,9 @@ nil means to use `default-directory'.
   (setq mini-echo--vcs-status
         (when (and vc-mode buffer-file-name)
           (let* ((backend (vc-backend buffer-file-name))
-                 (branch (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
+                 (branch (substring-no-properties
+                          vc-mode
+                          (+ (if (eq backend 'Hg) 2 3) 2)))
                  (limit mini-echo-vcs-max-length)
                  (face (cl-case (vc-state buffer-file-name backend)
                          (needs-update 'warning)
