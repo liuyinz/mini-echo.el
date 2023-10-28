@@ -189,9 +189,12 @@ Format is a list of three argument:
                                mini-echo--toggled-segments))
     (no-current (seq-difference (mini-echo-get-segments 'valid)
                                 (mini-echo-get-segments 'current)))
-    ;; TODO put toggled segment in advance
-    (toggle (append (mini-echo-get-segments 'current)
-                    (mini-echo-get-segments 'no-current)))))
+    (toggle (cl-remove-duplicates
+             (append (mapcar #'car mini-echo--toggled-segments)
+                     (mini-echo-get-segments 'current)
+                     (mini-echo-get-segments 'no-current))
+             :test #'equal
+             :from-end t))))
 
 (defun mini-echo-concat-segments ()
   "Return concatenated information of selected segments."
