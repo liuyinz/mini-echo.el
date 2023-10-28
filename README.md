@@ -72,13 +72,13 @@ There are three ways to adjust mini-echo segments display:
             "profiler" "selection-info" "narrow" "macro")))
 ```
 
-2. `mini-echo-major-mode-segments`: variable, list of segments which are only take effect in MAJOR-MODE, the format are as below:
+2. `mini-echo-major-mode-segments`: variable, list of segments rules which are only take effect in MAJOR-MODE, the format are as below:
 
 ```elisp
 ;; Concell of (SEGMENT . POSITION) is required to adjust the appearence.
 ;; 0 means hide the segment in major mode if it's displayed by default.
 ;; non-zero number means the order of segment to be put, it's counted from 1.
-(setq mini-echo-major-mode-rules
+(setq mini-echo-major-mode-segments
       '((emacs-lisp-mode :long (("evil" . 1) ("buffer-size" . 4))
                          :short (("vcs" . 0)))))
 ```
