@@ -94,6 +94,9 @@ Other options are here, see more info please check the file
 ;; write your own predicate function to switch style
 (setq mini-echo-short-segments-predicate #'your-own-predicate)
 
+;; set separator to concat information
+(setq mini-echo-separator " ")
+
 ;; adjust window-divider-mode appearence
 (setq mini-echo-window-divider-args '(t 1 1))
 
