@@ -68,12 +68,13 @@ The format is like:
   :package-version '(mini-echo . "0.5.1")
   :group 'mini-echo)
 
-(defcustom mini-echo-short-segments-predicate
+(defcustom mini-echo-short-style-predicate
   #'mini-echo-minibuffer-width-lessp
-  "Predicate to use short style segments."
+  "Predicate to select short style segments."
   :type '(choice
           (const :tag "" mini-echo-minibuffer-width-lessp)
           function)
+  :package-version '(mini-echo . "0.5.1")
   :group 'mini-echo)
 
 (defcustom mini-echo-separator " "
@@ -183,7 +184,7 @@ Format is a list of three argument:
     (major-short (plist-get (alist-get major-mode mini-echo--rules) :short))
     (selected (plist-get (or (alist-get major-mode mini-echo--rules)
                              mini-echo--default-segments)
-                         (if (funcall mini-echo-short-segments-predicate)
+                         (if (funcall mini-echo-short-style-predicate)
                              :short :long)))
     (current
      (let ((result (mini-echo-get-segments 'selected))

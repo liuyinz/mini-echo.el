@@ -92,7 +92,7 @@ Other options are here, see more info please check the file
 
 ```elisp
 ;; write your own predicate function to switch style
-(setq mini-echo-short-segments-predicate #'your-own-predicate)
+(setq mini-echo-short-style-predicate #'your-own-predicate)
 
 ;; set separator to concat information
 (setq mini-echo-separator " ")
