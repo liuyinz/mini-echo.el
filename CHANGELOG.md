@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.1](https://github.com/liuyinz/mini-echo.el/compare/v0.5.0..v0.5.1) - 2023-10-28
+
+### Bug Fixes
+
+- wrong order of recovery if segment is toggled enabled again - ([049d989](https://github.com/liuyinz/mini-echo.el/commit/049d98965db74e9bd8e0c295bdffab2995259ff9))
+- check mini-echo-major-mode-segments valid before usage - ([a18bbed](https://github.com/liuyinz/mini-echo.el/commit/a18bbed0fe3c75a38627663b20a1b78f922077bf))
+
+### Documentation
+
+- **(README)** fix typos - ([e1c8bcf](https://github.com/liuyinz/mini-echo.el/commit/e1c8bcf0fb3924c9fe12fadbb9c245fdeee1a311))
+
+### Refactoring
+
+- rename mini-echo-major-mode-segments to mini-echo-rules - ([f06b44c](https://github.com/liuyinz/mini-echo.el/commit/f06b44cb48d1565ec9be32af7fddbefeeb4dd1b2))
+
 ## [0.5.0](https://github.com/liuyinz/mini-echo.el/compare/v0.4.1..v0.5.0) - 2023-10-28
 
 ### Bug Fixes
