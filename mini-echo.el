@@ -65,6 +65,7 @@ The format is like:
                                    :options '(:long :short)
                                    :value-type (alist :key-type string
                                                       :value-type integer)))
+  :package-version '(mini-echo . "0.5.0")
   :group 'mini-echo)
 
 (defcustom mini-echo-short-segments-predicate
@@ -78,6 +79,7 @@ The format is like:
 (defcustom mini-echo-separator " "
   "String separator for mini echo segments info."
   :type 'string
+  :package-version '(mini-echo . "0.5.0")
   :group 'mini-echo)
 
 (defcustom mini-echo-right-padding 0
