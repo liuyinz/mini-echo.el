@@ -55,8 +55,8 @@
                 :value-type (repeat strings))
   :group 'mini-echo)
 
-(defcustom mini-echo-major-mode-segments nil
-  "List of segments rules which are only take effect in MAJOR-MODE.
+(defcustom mini-echo-rules nil
+  "List of rules which are only take effect in some major mode.
 The format is like:
  (MAJOR-MODE :long ((SEGMENT . POSITION) ...))
              :short ((SEGMENT . POSITION) ...))."
@@ -65,7 +65,7 @@ The format is like:
                                    :options '(:long :short)
                                    :value-type (alist :key-type string
                                                       :value-type integer)))
-  :package-version '(mini-echo . "0.5.0")
+  :package-version '(mini-echo . "0.5.1")
   :group 'mini-echo)
 
 (defcustom mini-echo-short-segments-predicate
@@ -121,8 +121,8 @@ Format is a list of three argument:
 
 (defvar mini-echo--valid-segments nil)
 (defvar mini-echo--default-segments nil)
-(defvar mini-echo--major-mode-segments nil)
 (defvar mini-echo--toggled-segments nil)
+(defvar mini-echo--rules nil)
 
 ;;; segments
 
@@ -159,8 +159,8 @@ Format is a list of three argument:
     (setq mini-echo--default-segments
           (list :long (seq-filter 'mini-echo-segment-valid-p long)
                 :short (seq-filter 'mini-echo-segment-valid-p short))))
-  (setq mini-echo--major-mode-segments
-        (cl-loop for rule in mini-echo-major-mode-segments
+  (setq mini-echo--rules
+        (cl-loop for rule in mini-echo-rules
                  collect
                  (cl-destructuring-bind (mode &key long short)
                      rule
@@ -179,11 +179,9 @@ Format is a list of three argument:
     (valid mini-echo--valid-segments)
     (default-long (plist-get mini-echo--default-segments :long))
     (default-short (plist-get mini-echo--default-segments :short))
-    (major-long (plist-get (alist-get major-mode mini-echo--major-mode-segments)
-                           :long))
-    (major-short (plist-get (alist-get major-mode mini-echo--major-mode-segments)
-                            :short))
-    (selected (plist-get (or (alist-get major-mode mini-echo--major-mode-segments)
+    (major-long (plist-get (alist-get major-mode mini-echo--rules) :long))
+    (major-short (plist-get (alist-get major-mode mini-echo--rules) :short))
+    (selected (plist-get (or (alist-get major-mode mini-echo--rules)
                              mini-echo--default-segments)
                          (if (funcall mini-echo-short-segments-predicate)
                              :short :long)))
@@ -299,7 +297,6 @@ If optional arg DEINIT is non-nil, remove all overlays."
             ;; HACK echo area and minibuf buffer must not be empty if you want
             ;; to show it in minibuffer-window persistently. minibuf-0* is
             ;; empty by default, so insert a space instead.
-            ;; BUG overlays disappear when hang on a minute
             (and (minibufferp) (= (buffer-size) 0) (insert " "))
             (push (make-overlay (point-min) (point-max) nil nil t)
                   mini-echo-overlays)
