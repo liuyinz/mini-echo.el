@@ -166,34 +166,26 @@ Format is a list of three argument:
 
 (defun mini-echo-get-segments (style)
   "Return list of segments according to STYLE."
-  (let* ((valid mini-echo--valid-segments)
-         (default-long (plist-get mini-echo--default-segments :long))
-         (default-short (plist-get mini-echo--default-segments :short))
-         (shortp (funcall mini-echo-short-segments-predicate))
-         (major-long
-          (plist-get (or (alist-get major-mode mini-echo--major-mode-segments)
-                         mini-echo--default-segments)
-                     :long))
-         (major-short
-          (plist-get (or (alist-get major-mode mini-echo--major-mode-segments)
-                         mini-echo--default-segments)
-                     :short))
-         (selected (if shortp major-short major-long))
-         (unselected (if (not shortp) major-long major-short)))
-    (cl-case style
-      (valid valid)
-      (default-long default-long)
-      (default-short default-short)
-      (selected selected)
-      (unselected unselected)
-      ;; TODO optimize recursive calling
-      (current
-       (mini-echo-merge-segments selected mini-echo--toggled-segments))
-      (no-current (seq-difference valid (mini-echo-get-segments 'current)))
-      (activated (seq-union (mini-echo-get-segments 'current) unselected))
-      ;; TODO put toggled segment in advance
-      (toggle (append (mini-echo-get-segments 'current)
-                      (mini-echo-get-segments 'no-current))))))
+  (cl-case style
+    (valid mini-echo--valid-segments)
+    (default-long (plist-get mini-echo--default-segments :long))
+    (default-short (plist-get mini-echo--default-segments :short))
+    (major-long (plist-get (alist-get major-mode mini-echo--major-mode-segments)
+                           :long))
+    (major-short (plist-get (alist-get major-mode mini-echo--major-mode-segments)
+                            :short))
+    (selected (plist-get (or (alist-get major-mode mini-echo--major-mode-segments)
+                             mini-echo--default-segments)
+                         (if (funcall mini-echo-short-segments-predicate)
+                             :short :long)))
+    (current
+     (mini-echo-merge-segments (mini-echo-get-segments 'selected)
+                               mini-echo--toggled-segments))
+    (no-current (seq-difference (mini-echo-get-segments 'valid)
+                                (mini-echo-get-segments 'current)))
+    ;; TODO put toggled segment in advance
+    (toggle (append (mini-echo-get-segments 'current)
+                    (mini-echo-get-segments 'no-current)))))
 
 (defun mini-echo-concat-segments ()
   "Return concatenated information of selected segments."
