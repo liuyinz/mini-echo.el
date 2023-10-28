@@ -50,7 +50,9 @@
     :short ("buffer-name-short" "buffer-position" "process"
             "profiler" "selection-info" "narrow" "macro"))
   "Plist of segments which are default to all major modes."
-  :type '(repeat string)
+  :type '(plist :key-type symbol
+                :options '(:long :short)
+                :value-type (repeat strings))
   :group 'mini-echo)
 
 (defcustom mini-echo-major-mode-segments nil
@@ -58,7 +60,11 @@
 The format is like:
  (MAJOR-MODE :long ((SEGMENT . POSITION) ...))
              :short ((SEGMENT . POSITION) ...))."
-  :type '(repeat string)
+  :type '(alist :key-type symbol
+                :value-type (plist :key-type symbol
+                                   :options '(:long :short)
+                                   :value-type (alist :key-type string
+                                                      :value-type integer)))
   :group 'mini-echo)
 
 (defcustom mini-echo-short-segments-predicate
