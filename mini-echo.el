@@ -137,7 +137,7 @@ Format is a list of three argument:
   (let* ((orig-uniq (seq-remove (lambda (x)
                                   (member x (mapcar #'car extra)))
                                 orig))
-         (extra-active (seq-remove (lambda (x) (<= (cdr x) 0)) extra))
+         (extra-active (seq-remove (lambda (x) (= (cdr x) 0)) extra))
          (index 1)
          result)
     (while (consp extra-active)
@@ -187,8 +187,16 @@ Format is a list of three argument:
                          (if (funcall mini-echo-short-segments-predicate)
                              :short :long)))
     (current
-     (mini-echo-merge-segments (mini-echo-get-segments 'selected)
-                               mini-echo--toggled-segments))
+     (let ((result (mini-echo-get-segments 'selected))
+           extra)
+       (dolist (filter mini-echo--toggled-segments)
+         (cl-destructuring-bind (segment . enable)
+             filter
+           (if (null enable)
+               (setq result (remove segment result))
+             (unless (member segment result)
+               (push segment extra)))))
+       (append result extra)))
     (no-current (seq-difference (mini-echo-get-segments 'valid)
                                 (mini-echo-get-segments 'current)))
     (toggle (cl-remove-duplicates
@@ -370,19 +378,12 @@ If optional arg RESET is non-nil, clear all toggled segments."
           (when-let ((segment (completing-read
                                "Mini-echo toggle: "
                                (mini-echo--toggle-completion) nil t)))
-            (let ((orig (alist-get segment mini-echo--toggled-segments
-                                   nil nil #'equal))
-                  (current (mini-echo-get-segments 'current)))
-              (setf (alist-get segment mini-echo--toggled-segments
-                               nil nil #'equal)
-                    (if-let ((index (cl-position segment current :test #'equal)))
-                        (- (1+ index))
-                      (if (and (integerp orig) (< orig 0))
-                          (- orig)
-                        (length current))))))
+            (setf (alist-get segment mini-echo--toggled-segments
+                             nil nil #'equal)
+                  (if (member segment (mini-echo-get-segments 'current)) nil t)))
         (setq mini-echo--toggled-segments nil)
-        (message "Mini-echo-toggle: reset.")))
-  (user-error "Please enable mini-echo-mode first."))
+        (message "Mini-echo-toggle: reset."))
+    (user-error "Please enable mini-echo-mode first")))
 
 ;;;###autoload
 (define-minor-mode mini-echo-mode
