@@ -117,7 +117,7 @@ keywords format:
 - `:update`: sexp, which runs when `:hook` or `:advice` is triggered.
 - `:update-hook`: list of hooks which run `:update` after it called, e.g. update "vcs" status after run `find-file-hook`
 - `:update-advice`: alist of (symbol . how) which runs `:update` after it called, e.g. update "vcs" status after run `vc-refresh-state`
-- `:setup`: plist, which runs when the segment is activated or deactivated , e.g. load library `keycast` when activate `keycast` segment.
+- `:setup`: sexp, which runs when the segment is first activated , e.g. load library `keycast` when activate `keycast` segment.
 
 ```elisp
 (mini-echo-define-segment "vcs"
@@ -145,7 +145,7 @@ keywords format:
   "Return current time info."
   :fetch
   (propertize display-time-string 'face 'mini-echo-time)
-  :setup '(:activate (display-time-mode 1)))
+  :setup (display-time-mode 1))
 
 (mini-echo-define-segment "keycast"
   "Display keycast info."
@@ -154,7 +154,7 @@ keywords format:
   (keycast--format mini-echo-keycast-format)
   :update
   (keycast--update)
-  :setup '(:activate (require 'keycast)))
+  :setup (require 'keycast))
 ```
 
 For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
@@ -171,7 +171,7 @@ For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 
 - [x] rewrite mini-echo-define-macro
 - [x] add minibuffer background to distinguish in terminal
-- [x] setup segemnts per buffer
+- [x] setup segments per buffer
 - [ ] add environment support, such as python, node.js, asdf...
 - [ ] add support to highlight current window
 
