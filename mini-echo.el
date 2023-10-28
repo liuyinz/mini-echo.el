@@ -263,7 +263,8 @@ If optional arg SHOW is non-nil, show the mode-line instead."
             (setq mini-echo--orig-mdf mode-line-format)
             (setq mode-line-format nil)))
         (setq-default mode-line-format nil))
-    ;; FIXME new buffer under mini-echo recover has mode line face bug
+    ;; FIXME new buffer created under mini-echo-mode has mode line face
+    ;; bug after disable mini-echo-mode
     (let ((orig-value (get 'mode-line-format 'standard-value)))
       (dolist (buf (buffer-list))
         (with-current-buffer buf
@@ -362,22 +363,24 @@ ARGS is optional."
   "Enable or disable selected segment temporarily.
 If optional arg RESET is non-nil, clear all toggled segments."
   (interactive "P")
-  (if (null reset)
-      (when-let ((segment (completing-read
-                           "Mini-echo toggle: "
-                           (mini-echo--toggle-completion) nil t)))
-        (let ((orig (alist-get segment mini-echo--toggled-segments
-                               nil nil #'equal))
-              (current (mini-echo-get-segments 'current)))
-          (setf (alist-get segment mini-echo--toggled-segments
-                           nil nil #'equal)
-                (if-let ((index (cl-position segment current :test #'equal)))
-                    (- (1+ index))
-                  (if (and (integerp orig) (< orig 0))
-                      (- orig)
-                    (length current))))))
-    (setq mini-echo--toggled-segments nil)
-    (message "Mini-echo-toggle: reset.")))
+  (if (bound-and-true-p mini-echo-mode)
+      (if (null reset)
+          (when-let ((segment (completing-read
+                               "Mini-echo toggle: "
+                               (mini-echo--toggle-completion) nil t)))
+            (let ((orig (alist-get segment mini-echo--toggled-segments
+                                   nil nil #'equal))
+                  (current (mini-echo-get-segments 'current)))
+              (setf (alist-get segment mini-echo--toggled-segments
+                               nil nil #'equal)
+                    (if-let ((index (cl-position segment current :test #'equal)))
+                        (- (1+ index))
+                      (if (and (integerp orig) (< orig 0))
+                          (- orig)
+                        (length current))))))
+        (setq mini-echo--toggled-segments nil)
+        (message "Mini-echo-toggle: reset.")))
+  (user-error "Please enable mini-echo-mode first."))
 
 ;;;###autoload
 (define-minor-mode mini-echo-mode

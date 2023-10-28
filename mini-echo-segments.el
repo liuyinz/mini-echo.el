@@ -304,7 +304,7 @@ nil means to use `default-directory'.
 (defun mini-echo-buffer-name-short ()
   "Return current buffer name."
   (cond
-   (;; TODO need timemachine support
+   (;; TODO support timemachine file
     (or (bound-and-true-p magit-blob-mode))
     (save-match-data
       (let ((str (buffer-name)))
