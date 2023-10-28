@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.5.0](https://github.com/liuyinz/mini-echo.el/compare/v0.4.1..v0.5.0) - 2023-10-28
+
+### Bug Fixes
+
+- **(mini-echo-toggle)** put toggled segments in the beginning - ([9dd46e7](https://github.com/liuyinz/mini-echo.el/commit/9dd46e78e492ab40a0b0acf35c6c4d8aa7de1f70))
+- **(mini-echo-toggle)** only available when mini-echo-mode is enabled - ([bbb4893](https://github.com/liuyinz/mini-echo.el/commit/bbb48939ceef47eeacdbb2e58dde6fd91335de5c))
+- wrong arguments error in flymake segment - ([c68e930](https://github.com/liuyinz/mini-echo.el/commit/c68e930410a1d202ce8c2022a43989ffe9b0b372))
+- remove properties of vcs segment to avoid mess - ([42d90e9](https://github.com/liuyinz/mini-echo.el/commit/42d90e9d59ec26f8d6b4bbde176fd3e32d002136))
+- wrong type in defcustom - ([6050e8c](https://github.com/liuyinz/mini-echo.el/commit/6050e8cfbe28737232237707d86f900ecb0cd5c6))
+
+### Documentation
+
+- **(README)** update todo list and add FAQ section - ([29a1770](https://github.com/liuyinz/mini-echo.el/commit/29a17705d6293b5a2190817cf8b4847892debfbe))
+- **(README)** update FAQ section - ([f6ce3e2](https://github.com/liuyinz/mini-echo.el/commit/f6ce3e23071a44ce4d1d14f3be4965a05f305d05))
+- **(README)** update todo list - ([a8b30a9](https://github.com/liuyinz/mini-echo.el/commit/a8b30a91986be60e718963e2c78cae3c3a3c3b76))
+- **(README)** update Usage - ([fbf72d7](https://github.com/liuyinz/mini-echo.el/commit/fbf72d7ac8d6a8638cf687434284a2e2affb4363))
+- **(README)** update Customization info to newest - ([b56b6ec](https://github.com/liuyinz/mini-echo.el/commit/b56b6eced47fc5dce48772efebc77114cadd87e4))
+- improve description of macro - ([8de162e](https://github.com/liuyinz/mini-echo.el/commit/8de162ebf9c7e003798845deb879a1a261d24390))
+
+### Features
+
+- add segment evil - ([56a9c45](https://github.com/liuyinz/mini-echo.el/commit/56a9c459b1254e148951cc94335c33054725abf4))
+- add segment word-count - ([48c62bd](https://github.com/liuyinz/mini-echo.el/commit/48c62bdc4c0edc452536e223f8444ea914473fef))
+- add segment last-command - ([02ba873](https://github.com/liuyinz/mini-echo.el/commit/02ba873f827db073391410fd7e8cf058b1c6d833))
+
+### Performance
+
+- only check valid segments when building info first time - ([facbbca](https://github.com/liuyinz/mini-echo.el/commit/facbbca4afe3e135a68cf28d9db9128332b9ded1))
+
+### Refactoring
+
+- rewrite macro keywords names - ([7ea50ef](https://github.com/liuyinz/mini-echo.el/commit/7ea50ef4f10dc7af73560b832a6e3304b675a8c2))
+- [**breaking**] lots of improvements - ([894d471](https://github.com/liuyinz/mini-echo.el/commit/894d47189dc8f783896c66d2acc1c8d6ed5545c2))
+- internal function mini-echo-get-segments - ([b1bee0f](https://github.com/liuyinz/mini-echo.el/commit/b1bee0f11f9997e6fd7b6504755668faa2dc23c7))
+
 ## [0.4.1](https://github.com/liuyinz/mini-echo.el/compare/v0.4.0..v0.4.1) - 2023-10-25
 
 ### Bug Fixes
