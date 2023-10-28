@@ -126,20 +126,22 @@ Format is a list of three argument:
 
 ;;; segments
 
-;; (defun mini-echo-segment-prop (segment prop)
-;;   "Return PROP of SEGMENT."
-;;   (funcall (intern (concat "mini-echo-segment-"
-;;                            (substring (symbol-name prop) 1)))
-;;            (cdr (assoc segment mini-echo-segment-alist))))
+(defun mini-echo-segment-valid-p (segment)
+  "Return non-nil if SEGMENT is valid."
+  (member segment mini-echo--valid-segments))
 
 (defun mini-echo-merge-segments (orig extra)
   "Merge EXTRA segments into ORIG list."
-  (let* ((orig-uniq (seq-remove (lambda (x)
+  (let* ((extra (seq-filter (lambda (x)
+                              (mini-echo-segment-valid-p (car x)))
+                            extra))
+         (orig-uniq (seq-remove (lambda (x)
                                   (member x (mapcar #'car extra)))
                                 orig))
          (extra-active (seq-remove (lambda (x) (= (cdr x) 0)) extra))
          (index 1)
          result)
+    ;; TODO use length sum as boundary
     (while (consp extra-active)
       (if-let ((match (rassoc index extra-active)))
           (progn
@@ -152,12 +154,11 @@ Format is a list of three argument:
 (defun mini-echo-ensure-segments ()
   "Ensure all predefined segments variable ready for mini echo."
   (setq mini-echo--valid-segments (mapcar #'car mini-echo-segment-alist))
-  (cl-letf ((validp (lambda (x) (member x mini-echo--valid-segments))))
-    (cl-destructuring-bind (&key long short)
-        mini-echo-default-segments
-      (setq mini-echo--default-segments
-            (list :long (seq-filter validp long)
-                  :short (seq-filter validp short)))))
+  (cl-destructuring-bind (&key long short)
+      mini-echo-default-segments
+    (setq mini-echo--default-segments
+          (list :long (seq-filter 'mini-echo-segment-valid-p long)
+                :short (seq-filter 'mini-echo-segment-valid-p short))))
   (setq mini-echo--major-mode-segments
         (cl-loop for rule in mini-echo-major-mode-segments
                  collect
