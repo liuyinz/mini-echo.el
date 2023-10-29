@@ -53,6 +53,13 @@
 (declare-function evil-replace-state-p "ext:evil-states" t t)
 (declare-function evil-visual-state-p "ext:evil-states" t t)
 (declare-function evil-state-property "ext:evil-common")
+(declare-function lsp--workspace-print "ext:lsp-mode")
+(declare-function lsp-describe-session "ext:lsp-mode")
+(declare-function lsp-workspace-folders-open "ext:lsp-mode")
+(declare-function lsp-workspace-restart "ext:lsp-mode")
+(declare-function lsp-workspace-shutdown "ext:lsp-mode")
+(declare-function lsp-workspaces "ext:lsp-mode")
+(declare-function lv-message "ext:lv")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -511,6 +518,22 @@ nil means to use `default-directory'.
   :update
   (keycast--update)
   :setup (require 'keycast))
+
+(defvar-local mini-echo--lsp-mode nil)
+(mini-echo-define-segment "lsp-mode"
+  "Return LSP-mode server state."
+  :update-hook '(lsp-before-initialize-hook
+                 lsp-after-initialize-hook
+                 lsp-after-uninitialized-functions
+                 lsp-before-open-hook
+                 lsp-after-open-hook)
+  :fetch
+  (when (bound-and-true-p lsp-mode)
+    mini-echo--lsp-mode)
+  :update
+  (setq mini-echo--lsp-mode
+        (let* ((workspaces (lsp-workspaces)))
+          (propertize "LSP" 'face (if workspaces 'success 'warning)))))
 
 ;; TODO add more segments
 
