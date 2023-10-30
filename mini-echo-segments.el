@@ -37,6 +37,7 @@
 (defvar magit-blob-mode)
 (defvar display-time-string)
 (defvar lsp-bridge-mode-lighter)
+(defvar eglot-menu-string)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -547,6 +548,12 @@ nil means to use `default-directory'.
   (when (bound-and-true-p lsp-bridge-mode)
     (propertize (string-trim lsp-bridge-mode-lighter)
                 'face 'mini-echo-lsp)))
+
+(mini-echo-define-segment "eglot"
+  "Return eglot server state"
+  :fetch
+  (when (bound-and-true-p eglot--managed-mode)
+    (propertize eglot-menu-string 'face 'eglot-mode-line)))
 
 ;; TODO add more segments
 
