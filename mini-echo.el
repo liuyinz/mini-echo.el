@@ -158,8 +158,8 @@ Format is a list of three argument:
   (cl-destructuring-bind (&key long short)
       mini-echo-default-segments
     (setq mini-echo--default-segments
-          (list :long (seq-filter 'mini-echo-segment-valid-p long)
-                :short (seq-filter 'mini-echo-segment-valid-p short))))
+          (list :long (seq-filter #'mini-echo-segment-valid-p long)
+                :short (seq-filter #'mini-echo-segment-valid-p short))))
   (setq mini-echo--rules
         (cl-loop for rule in mini-echo-rules
                  collect
@@ -220,7 +220,7 @@ Format is a list of three argument:
           (setf (mini-echo-segment-activate struct) t)
           (and (functionp setup) (funcall setup)))
         (and-let* ((info (funcall fetch))) (push info result))))
-    (mapconcat 'identity (seq-remove #'string-empty-p result)
+    (mapconcat #'identity (seq-remove #'string-empty-p result)
                mini-echo-separator)))
 
 (defun mini-echo--toggle-completion ()
