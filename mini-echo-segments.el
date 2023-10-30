@@ -36,6 +36,7 @@
 (defvar flymake-suppress-zero-counters)
 (defvar magit-blob-mode)
 (defvar display-time-string)
+(defvar lsp-bridge-mode-lighter)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -197,6 +198,11 @@ nil means to use `default-directory'.
 (defface mini-echo-evil-replace-state
   '((t (:foreground "#E27E8D")))
   "Face for mini-echo segment of evil replace state."
+  :group 'mini-echo)
+
+(defface mini-echo-lsp
+  '((t (:inherit 'success)))
+  "Face for mini-echo segment of lsp."
   :group 'mini-echo)
 
 (defvar mini-echo-segment-alist nil)
@@ -533,7 +539,14 @@ nil means to use `default-directory'.
   :update
   (setq mini-echo--lsp-mode
         (let* ((workspaces (lsp-workspaces)))
-          (propertize "LSP" 'face (if workspaces 'success 'warning)))))
+          (propertize "LSP" 'face (if workspaces 'mini-echo-lsp 'warning)))))
+
+(mini-echo-define-segment "lsp-bridge"
+  "Return lsp-bridge server state"
+  :fetch
+  (when (bound-and-true-p lsp-bridge-mode)
+    (propertize (string-trim lsp-bridge-mode-lighter)
+                'face 'mini-echo-lsp)))
 
 ;; TODO add more segments
 
