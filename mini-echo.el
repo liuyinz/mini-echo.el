@@ -4,7 +4,7 @@
 
 ;; Author: liuyinz <liuyinz95@gmail.com>
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
-;; Version: 0.5.1
+;; Version: 0.5.2
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: frames
 ;; Homepage: https://github.com/liuyinz/mini-echo.el
@@ -110,6 +110,7 @@ There are lots of buffers which are created temporarily for purpose
 of rendering e.g. buffers of markdown mode created for natively fontification.
 exclude these buffers from mini echo."
   :type '(repeat regexp)
+  :package-version '(mini-echo . "0.5.2")
   :group 'mini-echo)
 
 (defface mini-echo-window-divider

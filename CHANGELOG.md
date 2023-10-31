@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.2](https://github.com/liuyinz/mini-echo.el/compare/v0.5.1..v0.5.2) - 2023-10-31
+
+### Bug Fixes
+
+- exclude temporarily created buffers to avoid flashing - ([48f2db8](https://github.com/liuyinz/mini-echo.el/commit/48f2db8f02342146623d07c0caefa732971f7a2b))
+
+### Features
+
+- add segment lsp-mode - ([bbbbde4](https://github.com/liuyinz/mini-echo.el/commit/bbbbde4c8f1e14a1917e6bdc25cadd858c724937))
+- add segment lsp-bridge - ([860e806](https://github.com/liuyinz/mini-echo.el/commit/860e806d7a7bba8e70e685d51a79b74c409dde2a))
+- add segment eglot - ([1a46223](https://github.com/liuyinz/mini-echo.el/commit/1a4622322bf3832bdb721d2c707dff1ff1906712))
+
+### Refactoring
+
+- rename mini-echo-short-segments-predicate to mini-echo-short-style-predicate - ([9822684](https://github.com/liuyinz/mini-echo.el/commit/9822684ad93e5c306d01fd0c3645082a8b64fd12))
+
 ## [0.5.1](https://github.com/liuyinz/mini-echo.el/compare/v0.5.0..v0.5.1) - 2023-10-28
 
 ### Bug Fixes
