@@ -103,16 +103,6 @@ Format is a list of three argument:
   :type '(symbol number number)
   :group 'mini-echo)
 
-(defcustom mini-echo-exclude-regexps
-  '("\\` markdown-code-fontification:.*\\'")
-  "List of regexps for buffer name excluded from `mini-echo-update'.
-There are lots of buffers which are created temporarily for purpose
-of rendering e.g. buffers of markdown mode created for natively fontification.
-exclude these buffers from mini echo."
-  :type '(repeat regexp)
-  :package-version '(mini-echo . "0.5.2")
-  :group 'mini-echo)
-
 (defface mini-echo-window-divider
   '((t (:foreground "#5d6a76")))
   "Face used to highlight the window divider.")
@@ -341,17 +331,14 @@ If optional arg DEINIT is non-nil, remove all overlays."
 (defun mini-echo-build-info ()
   "Build mini-echo information."
   (condition-case nil
-      (if (and mini-echo-exclude-regexps
-               (string-match-p
-                (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
-                           mini-echo-exclude-regexps "\\|")
-                (buffer-name)))
-          mini-echo--info-last-build
-        (let* ((combined (mini-echo-concat-segments))
-               (padding (+ mini-echo-right-padding (string-width combined)))
-               (prop `(space :align-to (- right-fringe ,padding))))
-          (setq mini-echo--info-last-build
-                (concat (propertize " " 'cursor 1 'display prop) combined))))
+      (if-let* ((win (get-buffer-window))
+                ((window-live-p win)))
+          (let* ((combined (mini-echo-concat-segments))
+                 (padding (+ mini-echo-right-padding (string-width combined)))
+                 (prop `(space :align-to (- right-fringe ,padding))))
+            (setq mini-echo--info-last-build
+                  (concat (propertize " " 'cursor 1 'display prop) combined)))
+        mini-echo--info-last-build)
     (format "mini-echo info building error")))
 
 (defun mini-echo-update-overlays (&optional msg)
