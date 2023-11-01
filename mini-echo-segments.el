@@ -38,6 +38,7 @@
 (defvar display-time-string)
 (defvar lsp-bridge-mode-lighter)
 (defvar eglot-menu-string)
+(defvar mini-echo-ellipsis)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -77,7 +78,9 @@
 
 (defcustom mini-echo-vcs-max-length 10
   "Max length limit of vcs segment string."
-  :type 'number
+  :type '(choice (number
+                  (const :tag "no limit for vcs" nil)))
+  :package-version '(mini-echo . "0.5.2")
   :group 'mini-echo)
 
 (defcustom mini-echo-project-detection 'project
@@ -479,15 +482,17 @@ nil means to use `default-directory'.
                  (branch (substring-no-properties
                           vc-mode
                           (+ (if (eq backend 'Hg) 2 3) 2)))
-                 (limit mini-echo-vcs-max-length)
                  (face (cl-case (vc-state buffer-file-name backend)
                          (needs-update 'warning)
                          ((removed conflict unregistered) 'error)
                          (t 'success))))
-            (propertize (concat "@" (if (> (length branch) limit)
-                                        (concat (substring branch 0 (- limit 3))
-                                                "..")
-                                      branch))
+            (propertize (concat "@"
+                                (if-let* ((limit mini-echo-vcs-max-length)
+                                          (len (length mini-echo-ellipsis))
+                                          ((> (length branch) limit)))
+                                    (concat (substring branch 0 (- limit len))
+                                            mini-echo-ellipsis)
+                                  branch))
                         'face `(:inherit (,face bold)))))))
 
 ;;; third-party

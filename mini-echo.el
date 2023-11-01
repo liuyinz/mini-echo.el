@@ -83,6 +83,12 @@ The format is like:
   :package-version '(mini-echo . "0.5.0")
   :group 'mini-echo)
 
+(defcustom mini-echo-ellipsis ".."
+  "String used to abbreviate text in segments info."
+  :type 'string
+  :package-version '(mini-echo . "0.5.2")
+  :group 'mini-echo)
+
 (defcustom mini-echo-right-padding 0
   "Padding to append after mini echo info.
 Set this to avoid truncation."
