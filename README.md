@@ -1,7 +1,9 @@
 # mini-echo.el
 
-Echo buffer status in minibuffer window instead of mode-line.
-A lightweight replacement of [mini-modeline](https://github.com/kiennq/emacs-mini-modeline)
+[![License GPL 3](https://img.shields.io/badge/license-GPL_3-green.svg?style=flat)](LICENSE)
+[![MELPA](https://melpa.org/packages/mini-echo-badge.svg)](https://melpa.org/#/mini-echo)
+
+Echo buffer status in echo area, get rid of mode-line !
 
 <!-- markdown-toc start -->
 
@@ -39,10 +41,8 @@ Clone and add to `load-path`, require the package.
 
 - Melpa
 
-**Warning: This package isn't available in melpa yet.**
-
-~~This package is available on [MELPA].~~
-Install with `M-x package-install` `RET` `binky` within Emacs.
+This package is available on [MELPA].
+Install with `M-x package-install` `RET` `mini-echo` within Emacs.
 
 ## Feature
 
@@ -72,7 +72,7 @@ There are three ways to adjust mini-echo segments display:
             "profiler" "selection-info" "narrow" "macro")))
 ```
 
-2. `mini-echo-rules`: variable, list of rules which are only take effect in some major mode, the format is as below:
+2. `mini-echo-rules`: variable, list of rules which are only take effect in specific major mode, the format is as below:
 
 ```elisp
 ;; Concell of (SEGMENT . POSITION) is required to adjust the appearence.
@@ -83,7 +83,7 @@ There are three ways to adjust mini-echo segments display:
                          :short (("vcs" . 0)))))
 ```
 
-Example meaning:
+Explanation:
 when `emacs-lisp-mode` is enabled, long-style shows "evil" segment in first place, shows "buffer-size" segment in fourth place (right-align). short-style hide "vcs" segment.
 
 3. `mini-echo-toggle`: command, show or hide some segment temporarily
@@ -114,10 +114,10 @@ Write a segment with `mini-echo-define-segment`, e.g.
 keywords format:
 
 - `:fetch`: sexp, which runs when mini-echo update by interval.
-- `:update`: sexp, which runs when `:hook` or `:advice` is triggered.
+- `:setup`: sexp, which runs when the segment is first activated , e.g. load library `keycast` when activate `keycast` segment.
+- `:update`: sexp, which runs when `:update-hook` or `:update-advice` is triggered.
 - `:update-hook`: list of hooks which run `:update` after it called, e.g. update "vcs" status after run `find-file-hook`
 - `:update-advice`: alist of (symbol . how) which runs `:update` after it called, e.g. update "vcs" status after run `vc-refresh-state`
-- `:setup`: sexp, which runs when the segment is first activated , e.g. load library `keycast` when activate `keycast` segment.
 
 ```elisp
 (mini-echo-define-segment "vcs"
@@ -143,18 +143,15 @@ keywords format:
 
 (mini-echo-define-segment "time"
   "Return current time info."
-  :fetch
-  (propertize display-time-string 'face 'mini-echo-time)
-  :setup (display-time-mode 1))
+  :setup (display-time-mode 1)
+  :fetch (propertize display-time-string 'face 'mini-echo-time))
 
 (mini-echo-define-segment "keycast"
   "Display keycast info."
-  :update-hook '(post-command-hook)
-  :fetch
-  (keycast--format mini-echo-keycast-format)
-  :update
-  (keycast--update)
-  :setup (require 'keycast))
+  :fetch (keycast--format mini-echo-keycast-format)
+  :setup (require 'keycast)
+  :update (keycast--update)
+  :update-hook '(post-command-hook))
 ```
 
 For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
