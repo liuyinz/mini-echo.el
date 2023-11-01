@@ -375,9 +375,8 @@ nil means to use `default-directory'.
 
 (mini-echo-define-segment "time"
   "Return current time."
-  :fetch
-  (propertize display-time-string 'face 'mini-echo-time)
-  :setup (display-time-mode 1))
+  :setup (display-time-mode 1)
+  :fetch (propertize display-time-string 'face 'mini-echo-time))
 
 (mini-echo-define-segment "profiler"
   "Return current profiler status"
@@ -520,11 +519,9 @@ nil means to use `default-directory'.
 (mini-echo-define-segment "keycast"
   "Display keycast info."
   :update-hook '(post-command-hook)
-  :fetch
-  (keycast--format mini-echo-keycast-format)
-  :update
-  (keycast--update)
-  :setup (require 'keycast))
+  :setup (require 'keycast)
+  :fetch (keycast--format mini-echo-keycast-format)
+  :update (keycast--update))
 
 (defvar-local mini-echo--lsp-mode nil)
 (mini-echo-define-segment "lsp-mode"
