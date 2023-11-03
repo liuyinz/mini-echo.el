@@ -56,13 +56,7 @@
 (declare-function evil-replace-state-p "ext:evil-states" t t)
 (declare-function evil-visual-state-p "ext:evil-states" t t)
 (declare-function evil-state-property "ext:evil-common")
-(declare-function lsp--workspace-print "ext:lsp-mode")
-(declare-function lsp-describe-session "ext:lsp-mode")
-(declare-function lsp-workspace-folders-open "ext:lsp-mode")
-(declare-function lsp-workspace-restart "ext:lsp-mode")
-(declare-function lsp-workspace-shutdown "ext:lsp-mode")
 (declare-function lsp-workspaces "ext:lsp-mode")
-(declare-function lv-message "ext:lv")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
