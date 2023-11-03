@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.3](https://github.com/liuyinz/mini-echo.el/compare/v0.5.2..v0.5.3) - 2023-11-03
+
+### Documentation
+
+- **(README)** update melpa status - ([0407d37](https://github.com/liuyinz/mini-echo.el/commit/0407d37c5f00095073a241b68108fadd2f41b21d))
+
+### Features
+
+- add option mini-echo-ellipsis - ([3cc5596](https://github.com/liuyinz/mini-echo.el/commit/3cc55960f4d835490cf35f9d2cbf80fbb0626225))
+
+### Refactoring
+
+- building new info after testing buffer-window is live - ([56871a5](https://github.com/liuyinz/mini-echo.el/commit/56871a564140b493d678627399942821d045a71d))
+
 ## [0.5.2](https://github.com/liuyinz/mini-echo.el/compare/v0.5.1..v0.5.2) - 2023-10-31
 
 ### Bug Fixes
