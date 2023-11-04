@@ -366,6 +366,7 @@ nil means to use `default-directory'.
 (mini-echo-define-segment "process"
   "Return current process info."
   :fetch
+  ;; FIXME exlude shell-mode persistent infos
   (when-let ((str (format-mode-line mode-line-process))
              ((not (string-empty-p str))))
     (concat ">>" (propertize str 'face 'mini-echo-process))))
