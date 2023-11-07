@@ -556,14 +556,11 @@ nil means to use `default-directory'.
 (mini-echo-define-segment "envrc"
   "Return envrc status of current buffer."
   :fetch
-  (when (bound-and-true-p envrc-mode)
-    (concat "envrc["
-            (propertize (symbol-name envrc--status) 'face
-                        (cl-case envrc--status
-                          (on 'envrc-mode-line-on-face)
-                          (error 'envrc-mode-line-error-face)
-                          (none 'envrc-mode-line-none-face)))
-            "]")))
+  (when (and (bound-and-true-p envrc-mode)
+             (not (eq envrc--status 'none)))
+    (propertize "$ENV" 'face (if (eq envrc--status 'on)
+                                  'envrc-mode-line-on-face
+                                'envrc-mode-line-error-face))))
 
 ;; TODO add more segments
 
