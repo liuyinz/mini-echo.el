@@ -39,6 +39,7 @@
 (defvar lsp-bridge-mode-lighter)
 (defvar eglot-menu-string)
 (defvar mini-echo-ellipsis)
+(defvar envrc--status)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -551,6 +552,18 @@ nil means to use `default-directory'.
   :fetch
   (when (bound-and-true-p eglot--managed-mode)
     (propertize eglot-menu-string 'face 'eglot-mode-line)))
+
+(mini-echo-define-segment "envrc"
+  "Return envrc status of current buffer."
+  :fetch
+  (when (bound-and-true-p envrc-mode)
+    (concat "envrc["
+            (propertize (symbol-name envrc--status) 'face
+                        (cl-case envrc--status
+                          (on 'envrc-mode-line-on-face)
+                          (error 'envrc-mode-line-error-face)
+                          (none 'envrc-mode-line-none-face)))
+            "]")))
 
 ;; TODO add more segments
 
