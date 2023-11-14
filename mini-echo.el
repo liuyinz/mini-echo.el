@@ -355,10 +355,11 @@ If MSG is nil, then use `current-message' instead."
               (info (mini-echo-build-info)))
     (dolist (ov mini-echo-overlays)
       (overlay-put ov 'after-string
-                   (if (> (- (mini-echo-minibuffer-width)
-                             (string-width info)
-                             (string-width msg))
-                          0)
+                   (if (or (equal (buffer-name (overlay-buffer ov)) " *Minibuf-0*")
+                           (> (- (mini-echo-minibuffer-width)
+                                 (string-width info)
+                                 (string-width msg))
+                              0))
                        info "")))))
 
 (defun mini-echo-update-overlays-before-message (&rest args)
