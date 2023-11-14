@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.4](https://github.com/liuyinz/mini-echo.el/compare/v0.5.3..v0.5.4) - 2023-11-14
+
+### Bug Fixes
+
+- do not report error if declare-function missing file - ([dfea407](https://github.com/liuyinz/mini-echo.el/commit/dfea407a5d8a395a359b36899c30e2b5ae547227))
+- use ellipsis if needed when buffer name is created by atomic-chrome - ([9d89e35](https://github.com/liuyinz/mini-echo.el/commit/9d89e352b73ff2222d62b43b8944206582723fef))
+- update minibuf overlays show info always - ([5c6c655](https://github.com/liuyinz/mini-echo.el/commit/5c6c6554dd567e2b7b2b9f55d5f7c1d4fc048733))
+
+### Features
+
+- add segment envrc - ([333275e](https://github.com/liuyinz/mini-echo.el/commit/333275eb06385e2b133d34c4d395d173cbecd669))
+
+### Refactoring
+
+- do not show status when there is no .envrc file in dir - ([efb9a8f](https://github.com/liuyinz/mini-echo.el/commit/efb9a8f18788e7ceef4bdf49e42d91fb7520b21b))
+
 ## [0.5.3](https://github.com/liuyinz/mini-echo.el/compare/v0.5.2..v0.5.3) - 2023-11-03
 
 ### Documentation
