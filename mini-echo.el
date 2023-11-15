@@ -291,36 +291,40 @@ If optional arg SHOW is non-nil, show the mode-line instead."
   (when (called-interactively-p 'any)
     (redraw-display)))
 
-(defun mini-echo-fontify-minibuffer-window ()
+(defun mini-echo-fontify-window ()
   "Fontify whole window with user defined face attributes."
   (face-remap-add-relative 'default 'mini-echo-minibuffer-window))
+
+(defun mini-echo-ensure-minibuf ()
+  "Insert a space if buffer *minibuf-0* is empty.
+When minibuf is not empty, overlays would be kept persistently."
+  (with-current-buffer (get-buffer-create " *Minibuf-0*")
+    (when (= (buffer-size) 0)
+      (insert " "))))
 
 (defun mini-echo-init-echo-area (&optional deinit)
   "Initialize echo area and minibuffer in mini echo.
 If optional arg DEINIT is non-nil, remove all overlays."
   (if (null deinit)
       (progn
+        (mini-echo-ensure-minibuf)
         (dolist (buf mini-echo-managed-buffers)
           (with-current-buffer (get-buffer-create buf)
-            ;; HACK echo area and minibuf buffer must not be empty if you want
-            ;; to show it in minibuffer-window persistently. minibuf-0* is
-            ;; empty by default, so insert a space instead.
-            (and (minibufferp) (= (buffer-size) 0) (insert " "))
             (push (make-overlay (point-min) (point-max) nil nil t)
                   mini-echo-overlays)
             (setq-local mini-echo--remap-cookie
-                        (mini-echo-fontify-minibuffer-window))))
+                        (mini-echo-fontify-window))))
         ;; NOTE every time activating minibuffer would reset face,
         ;; so re-fontify when entering inactive-minibuffer-mode
         (add-hook 'minibuffer-inactive-mode-hook
-                  #'mini-echo-fontify-minibuffer-window))
+                  #'mini-echo-fontify-window))
     (dolist (buf mini-echo-managed-buffers)
       (with-current-buffer (get-buffer-create buf)
         (when (minibufferp) (delete-minibuffer-contents))
         (face-remap-remove-relative mini-echo--remap-cookie)
         (setq-local mini-echo--remap-cookie nil)))
     (remove-hook 'minibuffer-inactive-mode-hook
-                 #'mini-echo-fontify-minibuffer-window)
+                 #'mini-echo-fontify-window)
     (mapc #'delete-overlay mini-echo-overlays)
     (setq mini-echo-overlays nil)))
 
@@ -350,6 +354,7 @@ If optional arg DEINIT is non-nil, remove all overlays."
 (defun mini-echo-update-overlays (&optional msg)
   "Update mini echo info in overlays according to MSG.
 If MSG is nil, then use `current-message' instead."
+  (mini-echo-ensure-minibuf)
   (when-let* (((not (active-minibuffer-window)))
               (msg (or msg (current-message) ""))
               (info (mini-echo-build-info)))
