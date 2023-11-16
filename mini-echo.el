@@ -109,10 +109,6 @@ Format is a list of three argument:
   :type '(symbol number number)
   :group 'mini-echo)
 
-(defface mini-echo-window-divider
-  '((t (:foreground "#5d6a76")))
-  "Face used to highlight the window divider.")
-
 (defface mini-echo-minibuffer-window
   '((t (:background "#181f25")))
   "Face used to highlight the minibuffer window.")
@@ -245,18 +241,6 @@ Format is a list of three argument:
 
 ;;; ui
 
-(defun mini-echo-change-divider-color (&optional restore)
-  "Change color of window divider when mini echo enable.
-If optional arg RESTORE is non-nil, restore origin values."
-  (dolist (face '(internal-border window-divider))
-    (or restore (push (cons face (face-foreground face))
-                      mini-echo--orig-colors))
-    (set-face-attribute face nil
-                        :foreground
-                        (if restore (alist-get face mini-echo--orig-colors)
-                          (face-foreground 'mini-echo-window-divider)))
-    (and restore (setq mini-echo--orig-colors nil))))
-
 (defun mini-echo-show-divider (&optional hide)
   "Show window divider when enable mini echo.
 If optional arg HIDE is non-nil, disable the mode instead."
@@ -265,10 +249,8 @@ If optional arg HIDE is non-nil, disable the mode instead."
                               window-divider-default-right-width
                               window-divider-default-bottom-width)
           mini-echo-window-divider-args
-        (mini-echo-change-divider-color)
         (window-divider-mode 1))
-    (window-divider-mode -1)
-    (mini-echo-change-divider-color 'restore)))
+    (window-divider-mode -1)))
 
 (defun mini-echo-hide-modeline (&optional show)
   "Hide mode-line in mini echo.

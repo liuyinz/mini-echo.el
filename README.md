@@ -188,7 +188,5 @@ For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
   ```
 
 - How to show window border in terminal?
-
-  Due to `window-divider-mode` is not available in terminal, you need to use other measures to identify window.
-  In terminal, internal-border is displayed, so only need to solve horizontal border problem. Enable packages like tabbar or topsy
-  to help highlight horizontal border instead.
+  In GUI, customize face `window-divider` to show window border, due to `window-divider-mode` is not available in terminal, you need to use other measures to identify windows.
+  In terminal, `internal-border` is displayed, so only need to solve horizontal border problem. Enable packages like tabbar or topsy to help highlight horizontal border instead.
