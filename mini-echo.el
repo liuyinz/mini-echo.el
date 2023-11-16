@@ -110,7 +110,7 @@ Format is a list of three argument:
   :group 'mini-echo)
 
 (defface mini-echo-minibuffer-window
-  '((t (:background "#181f25")))
+  '((t :inherit default))
   "Face used to highlight the minibuffer window.")
 
 (defconst mini-echo-managed-buffers
@@ -273,7 +273,7 @@ If optional arg SHOW is non-nil, show the mode-line instead."
   (when (called-interactively-p 'any)
     (redraw-display)))
 
-(defun mini-echo-fontify-window ()
+(defun mini-echo-fontify-minibuffer-window ()
   "Fontify whole window with user defined face attributes."
   (face-remap-add-relative 'default 'mini-echo-minibuffer-window))
 
@@ -295,18 +295,18 @@ If optional arg DEINIT is non-nil, remove all overlays."
             (push (make-overlay (point-min) (point-max) nil nil t)
                   mini-echo-overlays)
             (setq-local mini-echo--remap-cookie
-                        (mini-echo-fontify-window))))
+                        (mini-echo-fontify-minibuffer-window))))
         ;; NOTE every time activating minibuffer would reset face,
         ;; so re-fontify when entering inactive-minibuffer-mode
         (add-hook 'minibuffer-inactive-mode-hook
-                  #'mini-echo-fontify-window))
+                  #'mini-echo-fontify-minibuffer-window))
     (dolist (buf mini-echo-managed-buffers)
       (with-current-buffer (get-buffer-create buf)
         (when (minibufferp) (delete-minibuffer-contents))
         (face-remap-remove-relative mini-echo--remap-cookie)
         (setq-local mini-echo--remap-cookie nil)))
     (remove-hook 'minibuffer-inactive-mode-hook
-                 #'mini-echo-fontify-window)
+                 #'mini-echo-fontify-minibuffer-window)
     (mapc #'delete-overlay mini-echo-overlays)
     (setq mini-echo-overlays nil)))
 
