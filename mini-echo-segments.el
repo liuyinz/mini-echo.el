@@ -36,6 +36,8 @@
 (defvar flymake-suppress-zero-counters)
 (defvar magit-blob-mode)
 (defvar display-time-string)
+(defvar battery-mode-line-format)
+(defvar battery-status-function)
 (defvar lsp-bridge-mode-lighter)
 (defvar eglot-menu-string)
 (defvar mini-echo-ellipsis)
@@ -58,6 +60,7 @@
 (declare-function evil-visual-state-p "ext:evil-states" t t)
 (declare-function evil-state-property "ext:evil-common")
 (declare-function lsp-workspaces "ext:lsp-mode")
+(declare-function battery-format "battery")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -162,6 +165,11 @@ nil means to use `default-directory'.
 (defface mini-echo-time
   '((t (:foreground "#EBBF83")))
   "Face for mini-echo segment of time."
+  :group 'mini-echo)
+
+(defface mini-echo-battery
+  '((t (:inherit 'default)))
+  "Face for mini-echo segment of battery status."
   :group 'mini-echo)
 
 (defface mini-echo-evil-normal-state
@@ -383,6 +391,12 @@ nil means to use `default-directory'.
   :setup (display-time-mode 1)
   :fetch (propertize display-time-string 'face 'mini-echo-time))
 
+(mini-echo-define-segment "battery"
+  "Return the battery status.
+Display format is inherited from `battery-mode-line-format'."
+  :setup (display-battery-mode 1)
+  :fetch (propertize (battery-format battery-mode-line-format
+                                     (funcall battery-status-function)) 'face 'mini-echo-battery))
 (mini-echo-define-segment "profiler"
   "Return current profiler status"
   :fetch
