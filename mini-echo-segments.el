@@ -395,8 +395,12 @@ nil means to use `default-directory'.
   "Return the battery status.
 Display format is inherited from `battery-mode-line-format'."
   :setup (display-battery-mode 1)
-  :fetch (propertize (battery-format battery-mode-line-format
-                                     (funcall battery-status-function)) 'face 'mini-echo-battery))
+  :fetch
+  (propertize (string-trim
+               (battery-format battery-mode-line-format
+                               (funcall battery-status-function))
+               'face 'mini-echo-battery)))
+
 (mini-echo-define-segment "profiler"
   "Return current profiler status"
   :fetch
