@@ -171,6 +171,7 @@ For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 - [x] setup segments per buffer
 - [ ] add environment support, such as python, node.js, asdf...
 - [ ] add support to highlight current window
+- [ ] add support for nerd-icons
 
 ## FAQ
 
