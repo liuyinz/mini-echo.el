@@ -195,10 +195,10 @@ Format is a list of three argument:
        (dolist (filter mini-echo--toggled-segments)
          (cl-destructuring-bind (segment . enable)
              filter
-           (if (null enable)
-               (setq result (remove segment result))
-             (unless (member segment result)
-               (push segment extra)))))
+           (if enable
+               (unless (member segment result)
+                 (push segment extra))
+             (setq result (remove segment result)))))
        (append result extra)))
     (no-current (seq-difference (mini-echo-get-segments 'valid)
                                 (mini-echo-get-segments 'current)))
@@ -244,32 +244,31 @@ Format is a list of three argument:
 (defun mini-echo-show-divider (&optional hide)
   "Show window divider when enable mini echo.
 If optional arg HIDE is non-nil, disable the mode instead."
-  (if (null hide)
-      (cl-destructuring-bind (window-divider-default-places
-                              window-divider-default-right-width
-                              window-divider-default-bottom-width)
-          mini-echo-window-divider-args
-        (window-divider-mode 1))
-    (window-divider-mode -1)))
+  (if hide
+      (window-divider-mode -1)
+    (cl-destructuring-bind (window-divider-default-places
+                            window-divider-default-right-width
+                            window-divider-default-bottom-width)
+        mini-echo-window-divider-args
+      (window-divider-mode 1))))
 
 (defun mini-echo-hide-modeline (&optional show)
   "Hide mode-line in mini echo.
 If optional arg SHOW is non-nil, show the mode-line instead."
-  (if (null show)
-      (progn
+  (if show
+      ;; FIXME new buffer created under mini-echo-mode has mode line face
+      ;; bug after disable mini-echo-mode
+      (let ((orig-value (get 'mode-line-format 'standard-value)))
         (dolist (buf (buffer-list))
           (with-current-buffer buf
-            (setq mini-echo--orig-mdf mode-line-format)
-            (setq mode-line-format nil)))
-        (setq-default mode-line-format nil))
-    ;; FIXME new buffer created under mini-echo-mode has mode line face
-    ;; bug after disable mini-echo-mode
-    (let ((orig-value (get 'mode-line-format 'standard-value)))
-      (dolist (buf (buffer-list))
-        (with-current-buffer buf
-          (setq mode-line-format (or mini-echo--orig-mdf orig-value))
-          (setq mini-echo--orig-mdf nil)))
-      (setq-default mode-line-format orig-value)))
+            (setq mode-line-format (or mini-echo--orig-mdf orig-value))
+            (setq mini-echo--orig-mdf nil)))
+        (setq-default mode-line-format orig-value))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (setq mini-echo--orig-mdf mode-line-format)
+        (setq mode-line-format nil)))
+    (setq-default mode-line-format nil))
   (when (called-interactively-p 'any)
     (redraw-display)))
 
@@ -287,28 +286,29 @@ When minibuf is not empty, overlays would be kept persistently."
 (defun mini-echo-init-echo-area (&optional deinit)
   "Initialize echo area and minibuffer in mini echo.
 If optional arg DEINIT is non-nil, remove all overlays."
-  (if (null deinit)
+  ;; delete old overlays by default
+  (mapc #'delete-overlay mini-echo-overlays)
+  (setq mini-echo-overlays nil)
+  (if deinit
       (progn
-        (mini-echo-ensure-minibuf)
         (dolist (buf mini-echo-managed-buffers)
           (with-current-buffer (get-buffer-create buf)
-            (push (make-overlay (point-min) (point-max) nil nil t)
-                  mini-echo-overlays)
-            (setq-local mini-echo--remap-cookie
-                        (mini-echo-fontify-minibuffer-window))))
-        ;; NOTE every time activating minibuffer would reset face,
-        ;; so re-fontify when entering inactive-minibuffer-mode
-        (add-hook 'minibuffer-inactive-mode-hook
-                  #'mini-echo-fontify-minibuffer-window))
+            (when (minibufferp) (delete-minibuffer-contents))
+            (face-remap-remove-relative mini-echo--remap-cookie)
+            (setq-local mini-echo--remap-cookie nil)))
+        (remove-hook 'minibuffer-inactive-mode-hook
+                     #'mini-echo-fontify-minibuffer-window))
+    (mini-echo-ensure-minibuf)
     (dolist (buf mini-echo-managed-buffers)
       (with-current-buffer (get-buffer-create buf)
-        (when (minibufferp) (delete-minibuffer-contents))
-        (face-remap-remove-relative mini-echo--remap-cookie)
-        (setq-local mini-echo--remap-cookie nil)))
-    (remove-hook 'minibuffer-inactive-mode-hook
-                 #'mini-echo-fontify-minibuffer-window)
-    (mapc #'delete-overlay mini-echo-overlays)
-    (setq mini-echo-overlays nil)))
+        (push (make-overlay (point-min) (point-max) nil nil t)
+              mini-echo-overlays)
+        (setq-local mini-echo--remap-cookie
+                    (mini-echo-fontify-minibuffer-window))))
+    ;; NOTE every time activating minibuffer would reset face,
+    ;; so re-fontify when entering inactive-minibuffer-mode
+    (add-hook 'minibuffer-inactive-mode-hook
+              #'mini-echo-fontify-minibuffer-window)))
 
 (defun mini-echo-minibuffer-width ()
   "Return width of minibuffer window in current non-child frame."
@@ -372,15 +372,16 @@ ARGS is optional."
 If optional arg RESET is non-nil, clear all toggled segments."
   (interactive "P")
   (if (bound-and-true-p mini-echo-mode)
-      (if (null reset)
-          (when-let ((segment (completing-read
-                               "Mini-echo toggle: "
-                               (mini-echo--toggle-completion) nil t)))
-            (setf (alist-get segment mini-echo--toggled-segments
-                             nil nil #'equal)
-                  (if (member segment (mini-echo-get-segments 'current)) nil t)))
-        (setq mini-echo--toggled-segments nil)
-        (message "Mini-echo-toggle: reset."))
+      (if reset
+          (progn
+            (setq mini-echo--toggled-segments nil)
+            (message "Mini-echo-toggle: reset."))
+        (when-let ((segment (completing-read
+                             "Mini-echo toggle: "
+                             (mini-echo--toggle-completion) nil t)))
+          (setf (alist-get segment mini-echo--toggled-segments
+                           nil nil #'equal)
+                (if (member segment (mini-echo-get-segments 'current)) nil t))))
     (user-error "Please enable mini-echo-mode first")))
 
 ;;;###autoload
