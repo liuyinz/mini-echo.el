@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.6.0](https://github.com/liuyinz/mini-echo.el/compare/v0.5.4..v0.6.0) - 2023-11-18
+
+### Bug Fixes
+
+- continue to show info even if minibuf is erased accidently - ([5dfd160](https://github.com/liuyinz/mini-echo.el/commit/5dfd1608d384be3176c4f06fef908933e2fd4a02))
+- use default face for minibuffer-window by default - ([2793a21](https://github.com/liuyinz/mini-echo.el/commit/2793a21472375ed01ec97922ceb0fa6df7a40b33))
+- remove trailing space of battery segment info - ([cf6c697](https://github.com/liuyinz/mini-echo.el/commit/cf6c6979c63b20692b1c0f34d6c2593b24d85a8b))
+- avoid duplicated infos when load and switch new theme - ([5c43d10](https://github.com/liuyinz/mini-echo.el/commit/5c43d10138cb7911138a42d054dae0fc11bc7146))
+- error in segment battery - ([d0c3021](https://github.com/liuyinz/mini-echo.el/commit/d0c3021cc7d0c3f1e8d4878f61c11c20bcc6af64))
+
+### Documentation
+
+- **(TODO)** add nerd-icons support in todo list - ([628df0c](https://github.com/liuyinz/mini-echo.el/commit/628df0c106d58fd55a3200646906ddfd690ca264))
+
+### Features
+
+- add segment battery - ([93ea4de](https://github.com/liuyinz/mini-echo.el/commit/93ea4de41f29864c8ef34f90c8b0492516ea8155))
+
+### Refactoring
+
+- deprecate face mini-echo-window-divider - ([dc51970](https://github.com/liuyinz/mini-echo.el/commit/dc51970a928ad4b0512f4cdfb5e483ccf6154e7f))
+- remove useless function - ([9491020](https://github.com/liuyinz/mini-echo.el/commit/9491020bb7e3818ca8c94052c3590dafd53db7d5))
+
 ## [0.5.4](https://github.com/liuyinz/mini-echo.el/compare/v0.5.3..v0.5.4) - 2023-11-14
 
 ### Bug Fixes
