@@ -276,13 +276,6 @@ If optional arg SHOW is non-nil, show the mode-line instead."
   "Fontify whole window with user defined face attributes."
   (face-remap-add-relative 'default 'mini-echo-minibuffer-window))
 
-(defun mini-echo-ensure-minibuf ()
-  "Insert a space if buffer *minibuf-0* is empty.
-When minibuf is not empty, overlays would be kept persistently."
-  (with-current-buffer (get-buffer-create " *Minibuf-0*")
-    (when (= (buffer-size) 0)
-      (insert " "))))
-
 (defun mini-echo-init-echo-area (&optional deinit)
   "Initialize echo area and minibuffer in mini echo.
 If optional arg DEINIT is non-nil, remove all overlays."
@@ -298,9 +291,9 @@ If optional arg DEINIT is non-nil, remove all overlays."
             (setq-local mini-echo--remap-cookie nil)))
         (remove-hook 'minibuffer-inactive-mode-hook
                      #'mini-echo-fontify-minibuffer-window))
-    (mini-echo-ensure-minibuf)
     (dolist (buf mini-echo-managed-buffers)
       (with-current-buffer (get-buffer-create buf)
+        (and (minibufferp) (= (buffer-size) 0) (insert " "))
         (push (make-overlay (point-min) (point-max) nil nil t)
               mini-echo-overlays)
         (setq-local mini-echo--remap-cookie
@@ -336,7 +329,6 @@ If optional arg DEINIT is non-nil, remove all overlays."
 (defun mini-echo-update-overlays (&optional msg)
   "Update mini echo info in overlays according to MSG.
 If MSG is nil, then use `current-message' instead."
-  (mini-echo-ensure-minibuf)
   (when-let* (((not (active-minibuffer-window)))
               (msg (or msg (current-message) ""))
               (info (mini-echo-build-info)))
