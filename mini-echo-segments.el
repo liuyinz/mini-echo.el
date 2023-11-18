@@ -398,8 +398,8 @@ Display format is inherited from `battery-mode-line-format'."
   :fetch
   (propertize (string-trim
                (battery-format battery-mode-line-format
-                               (funcall battery-status-function))
-               'face 'mini-echo-battery)))
+                               (funcall battery-status-function)))
+              'face 'mini-echo-battery))
 
 (mini-echo-define-segment "profiler"
   "Return current profiler status"
