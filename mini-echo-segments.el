@@ -42,6 +42,8 @@
 (defvar eglot-menu-string)
 (defvar mini-echo-ellipsis)
 (defvar envrc--status)
+(defvar flycheck-last-status-change)
+(defvar flycheck-current-errors)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -61,6 +63,7 @@
 (declare-function evil-state-property "ext:evil-common")
 (declare-function lsp-workspaces "ext:lsp-mode")
 (declare-function battery-format "battery")
+(declare-function flycheck-count-errors "ext:flycheck")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -516,6 +519,23 @@ Display format is inherited from `battery-mode-line-format'."
                         'face `(:inherit (,face bold)))))))
 
 ;;; third-party
+
+(mini-echo-define-segment "flycheck"
+  "Return flycheck diagnostics of current buffer."
+  :fetch
+  (when (bound-and-true-p flycheck-mode)
+    (concat
+     (cl-case flycheck-last-status-change
+       ((not-checked no-checker suspicious) (propertize "?" 'face 'error))
+       ((errord interrupted) (propertize "!" 'face 'error))
+       (running (propertize "*" 'face 'warning))
+       (finished (propertize "-" 'face 'success)))
+     (apply #'format "%s/%s/%s"
+            (seq-mapn (lambda (x y) (propertize x 'face y))
+                      (let-alist (flycheck-count-errors flycheck-current-errors)
+                        (mapcar (lambda (s) (number-to-string (or s 0)))
+                                (list .error .warning .info)))
+                      (list 'error 'warning 'success))))))
 
 (mini-echo-define-segment "meow"
   "Return the meow status of current buffer."
