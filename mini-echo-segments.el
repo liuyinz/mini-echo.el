@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'let-alist))
 (require 'cl-lib)
 (require 'subr-x)
 
