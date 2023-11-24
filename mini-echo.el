@@ -55,7 +55,10 @@
                 :value-type (repeat strings))
   :group 'mini-echo)
 
-(defcustom mini-echo-rules nil
+(defcustom mini-echo-rules
+  '((xwidget-webkit-mode
+     :long  (("buffer-size" . 0) ("buffer-position" . 0))
+     :short (("buffer-size" . 0) ("buffer-position" . 0))))
   "List of rules which are only take effect in some major mode.
 The format is like:
  (MAJOR-MODE :long ((SEGMENT . POSITION) ...))
