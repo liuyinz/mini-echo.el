@@ -56,19 +56,20 @@
   :group 'mini-echo)
 
 (defcustom mini-echo-rules
-  '((xwidget-webkit-mode
-     :long  (("buffer-size" . 0) ("buffer-position" . 0))
-     :short (("buffer-size" . 0) ("buffer-position" . 0))))
+  '((xwidget-webkit-mode :both (("buffer-size" . 0) ("buffer-position" . 0))))
   "List of rules which are only take effect in some major mode.
 The format is like:
- (MAJOR-MODE :long ((SEGMENT . POSITION) ...))
-             :short ((SEGMENT . POSITION) ...))."
+ (MAJOR-MODE :both  ((SEGMENT . POSITION) ...))
+             :long  ((SEGMENT . POSITION) ...))
+             :short ((SEGMENT . POSITION) ...)).
+:both would setup for both long and short style, :long and :short have higher
+priority over :both."
   :type '(alist :key-type symbol
                 :value-type (plist :key-type symbol
-                                   :options '(:long :short)
+                                   :options '(:both :long :short)
                                    :value-type (alist :key-type string
                                                       :value-type integer)))
-  :package-version '(mini-echo . "0.5.1")
+  :package-version '(mini-echo . "0.6.1")
   :group 'mini-echo)
 
 (defcustom mini-echo-short-style-predicate
@@ -169,16 +170,20 @@ Format is a list of three argument:
   (setq mini-echo--rules
         (cl-loop for rule in mini-echo-rules
                  collect
-                 (cl-destructuring-bind (mode &key long short)
+                 (cl-destructuring-bind (mode &key both long short)
                      rule
-                   (list mode :long
-                              (mini-echo-merge-segments
-                               (plist-get mini-echo--default-segments :long)
-                               long)
-                              :short
-                              (mini-echo-merge-segments
-                               (plist-get mini-echo--default-segments :short)
-                               short))))))
+                   (list mode :long (mini-echo-merge-segments
+                                     (plist-get mini-echo--default-segments
+                                                :long)
+                                     (cl-remove-duplicates
+                                      (append both long)
+                                      :key #'car :test #'equal))
+                              :short (mini-echo-merge-segments
+                                      (plist-get mini-echo--default-segments
+                                                 :short)
+                                      (cl-remove-duplicates
+                                       (append both short)
+                                       :key #'car :test #'equal)))))))
 
 (defun mini-echo-get-segments (style)
   "Return list of segments according to STYLE."

@@ -79,12 +79,14 @@ There are three ways to adjust mini-echo segments display:
 ;; 0 means hide the segment in major mode if it's displayed by default.
 ;; non-zero number means the order of segment to be put, it's counted from 1.
 (setq mini-echo-rules
-      '((emacs-lisp-mode :long (("evil" . 1) ("buffer-size" . 4))
+      '((emacs-lisp-mode :both (("buffer-position" . 3))
+                         :long (("evil" . 1) ("buffer-size" . 4))
                          :short (("vcs" . 0)))))
 ```
 
 Explanation:
-when `emacs-lisp-mode` is enabled, long-style shows "evil" segment in first place, shows "buffer-size" segment in fourth place (right-align). short-style hide "vcs" segment.
+when `emacs-lisp-mode` is enabled, long-style shows "evil" segment in first place, shows "buffer-size" segment in fourth place (right-align). short-style hide "vcs" segment. And
+both long/short style show "buffer-position" in third place.
 
 3. `mini-echo-toggle`: command, show or hide some segment temporarily
 
