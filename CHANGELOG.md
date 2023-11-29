@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.1](https://github.com/liuyinz/mini-echo.el/compare/v0.6.0..v0.6.1) - 2023-11-29
+
+### Bug Fixes
+
+- silent compiler warnings - ([6d16c28](https://github.com/liuyinz/mini-echo.el/commit/6d16c2808b325af30bc36b345cfd93fd7a1f14bb))
+
+### Features
+
+- add segment flycheck - ([0ff844d](https://github.com/liuyinz/mini-echo.el/commit/0ff844d43761166af6c6671599f777197b1852bc))
+- setup rules for xwidget-webkit-mode by default - ([1b25b17](https://github.com/liuyinz/mini-echo.el/commit/1b25b17b4151c24fdd5e2650446aca7c20cfca0a))
+
+### Refactoring
+
+- change default value of mini-echo-rules - ([2cae921](https://github.com/liuyinz/mini-echo.el/commit/2cae921c978caff11e7be47fdd9245341bfa720c))
+
 ## [0.6.0](https://github.com/liuyinz/mini-echo.el/compare/v0.5.4..v0.6.0) - 2023-11-18
 
 ### Bug Fixes
