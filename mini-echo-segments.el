@@ -46,6 +46,7 @@
 (defvar envrc--status)
 (defvar flycheck-last-status-change)
 (defvar flycheck-current-errors)
+(defvar repeat-in-progress)
 
 (declare-function flymake--mode-line-counter "flymake")
 (declare-function flymake-running-backends "flymake")
@@ -160,6 +161,11 @@ nil means to use `default-directory'.
 (defface mini-echo-narrow
   '((t (:foreground "#8BD49C" :bold t)))
   "Face for mini-echo segment of narrow status."
+  :group 'mini-echo)
+
+(defface mini-echo-repeat
+  '((t (:foreground "#8BD49C" :bold t)))
+  "Face for mini-echo segment of `repeat-mode' status."
   :group 'mini-echo)
 
 (defface mini-echo-profiler
@@ -428,6 +434,16 @@ Display format is inherited from `battery-mode-line-format'."
   (when (or (buffer-narrowed-p)
             (bound-and-true-p dired-narrow-mode))
     (propertize "NARROW" 'face 'mini-echo-narrow)))
+
+(defvar mini-echo--repeat nil)
+(mini-echo-define-segment "repeat"
+  "Indicator of whether repeating transient map is active."
+  :update-advice '((repeat-post-hook . :after))
+  :fetch
+  (when mini-echo--repeat
+    (propertize "REPEAT" 'face 'mini-echo-repeat))
+  :update
+  (setq mini-echo--repeat (and repeat-mode repeat-in-progress)))
 
 (mini-echo-define-segment "flymake"
   "Return flymake diagnostics of current buffer."

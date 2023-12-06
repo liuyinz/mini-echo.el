@@ -46,9 +46,9 @@
 (defcustom mini-echo-default-segments
   '(:long ("major-mode" "buffer-name" "vcs" "buffer-position"
            "buffer-size" "flymake" "process" "selection-info"
-           "narrow" "macro" "profiler")
+           "narrow" "macro" "profiler" "repeat")
     :short ("buffer-name-short" "buffer-position" "process"
-            "profiler" "selection-info" "narrow" "macro"))
+            "profiler" "selection-info" "narrow" "macro" "repeat"))
   "Plist of segments which are default to all major modes."
   :type '(plist :key-type symbol
                 :options '(:long :short)
