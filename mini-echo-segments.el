@@ -282,6 +282,11 @@ nil means to use `default-directory'.
     (propertize (string-replace "Bottom" "Bot" pos)
                 'face 'mini-echo-buffer-position)))
 
+(mini-echo-define-segment "buffer-point"
+  "Return the cursor position of point integer of current buffer."
+  :fetch
+  (propertize (format "%d" (point)) 'face 'mini-echo-buffer-position))
+
 (mini-echo-define-segment "buffer-size"
   "Return the size of current buffer."
   :fetch
