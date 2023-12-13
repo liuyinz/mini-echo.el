@@ -644,9 +644,9 @@ Display format is inherited from `battery-mode-line-format'."
   :fetch
   (when (and (bound-and-true-p envrc-mode)
              (not (eq envrc--status 'none)))
-    (propertize "$$" 'face (if (eq envrc--status 'on)
-                               'envrc-mode-line-on-face
-                             'envrc-mode-line-error-face))))
+    (propertize "ENV" 'face (if (eq envrc--status 'on)
+                                'envrc-mode-line-on-face
+                              'envrc-mode-line-error-face))))
 
 ;; TODO add more segments
 
