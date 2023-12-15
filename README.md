@@ -171,6 +171,7 @@ For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 - [x] rewrite mini-echo-define-macro
 - [x] add minibuffer background to distinguish in terminal
 - [x] setup segments per buffer
+- [ ] provide rules for derived modes
 - [ ] add environment support, such as python, node.js, asdf...
 - [ ] add support to highlight current window
 - [ ] add support for nerd-icons
