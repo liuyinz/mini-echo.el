@@ -56,8 +56,12 @@
   :group 'mini-echo)
 
 (defcustom mini-echo-rules
-  '((xwidget-webkit-mode :both (("buffer-size" . 0) ("buffer-position" . 0))))
-  "List of rules which are only take effect in some major mode.
+  '((special-mode :both (("buffer-size" . 0)))
+    (dired-mode :both (("buffer-size" . 0)))
+    (xwidget-webkit-mode :both (("buffer-size" . 0) ("buffer-position" . 0))))
+  "List of rules applied according to major modes in mini echo.
+if current major mode or one of its parent mode has been configured, then change
+the mini echo segments appearence.
 The format is like:
  (MAJOR-MODE :both  ((SEGMENT . POSITION) ...))
              :long  ((SEGMENT . POSITION) ...))
@@ -189,11 +193,9 @@ Format is a list of three argument:
   "Return list of segments according to STYLE."
   (cl-case style
     (valid mini-echo--valid-segments)
-    (default-long (plist-get mini-echo--default-segments :long))
-    (default-short (plist-get mini-echo--default-segments :short))
-    (major-long (plist-get (alist-get major-mode mini-echo--rules) :long))
-    (major-short (plist-get (alist-get major-mode mini-echo--rules) :short))
-    (selected (plist-get (or (alist-get major-mode mini-echo--rules)
+    (selected (plist-get (or (car (seq-keep
+                                   (lambda (x) (alist-get x mini-echo--rules))
+                                   (derived-mode-all-parents major-mode)))
                              mini-echo--default-segments)
                          (if (funcall mini-echo-short-style-predicate)
                              :short :long)))
