@@ -4,7 +4,7 @@
 
 ;; Author: liuyinz <liuyinz95@gmail.com>
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
-;; Version: 0.6.0
+;; Version: 0.6.2
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: frames
 ;; Homepage: https://github.com/liuyinz/mini-echo.el
@@ -73,7 +73,7 @@ priority over :both."
                                    :options '(:both :long :short)
                                    :value-type (alist :key-type string
                                                       :value-type integer)))
-  :package-version '(mini-echo . "0.6.1")
+  :package-version '(mini-echo . "0.6.2")
   :group 'mini-echo)
 
 (defcustom mini-echo-short-style-predicate

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.2](https://github.com/liuyinz/mini-echo.el/compare/v0.6.1..v0.6.2) - 2023-12-20
+
+### Documentation
+
+- **(todo)** update todo list - ([2e32cfd](https://github.com/liuyinz/mini-echo.el/commit/2e32cfdf1d25efcfbc1506e9fb230fb8cbd45f72))
+
+### Features
+
+- add segment repeat - ([228cd1c](https://github.com/liuyinz/mini-echo.el/commit/228cd1ca3433412347509ec2c6c065c5edfc2954))
+- add segment buffer-point - ([3c60309](https://github.com/liuyinz/mini-echo.el/commit/3c6030944ca32c9d9144660e4e497c4f26520851))
+- add segment char-info - ([b039eef](https://github.com/liuyinz/mini-echo.el/commit/b039eef2fa61005bc251d7e5ee3026760c83f9ef))
+- support rules for derived major modes - ([1c55a4d](https://github.com/liuyinz/mini-echo.el/commit/1c55a4d8627e1c9a66afd64e28d3daa24d5aeafa))
+
+### Refactoring
+
+- change envrc status str - ([3e0d2a4](https://github.com/liuyinz/mini-echo.el/commit/3e0d2a4b45bad543ad91264e9b136bb4ba760fac))
+
 ## [0.6.1](https://github.com/liuyinz/mini-echo.el/compare/v0.6.0..v0.6.1) - 2023-11-29
 
 ### Bug Fixes
