@@ -31,7 +31,7 @@ Echo buffer status in echo area, get rid of mode-line !
 
 ### dependencies
 
-- Emacs, version >= 28.1
+- Emacs, version >= 29.1
 
 ### package
 
