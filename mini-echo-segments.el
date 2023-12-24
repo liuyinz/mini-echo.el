@@ -80,7 +80,7 @@
                  (const :tag "Change both color and sign" both))
   :group 'mini-echo)
 
-(defcustom mini-echo-vcs-max-length 10
+(defcustom mini-echo-vcs-max-length 15
   "Max length limit of vcs segment string."
   :type '(choice (number
                   (const :tag "no limit for vcs" nil)))
@@ -534,6 +534,7 @@ Display format is inherited from `battery-mode-line-format'."
   :fetch
   (propertize (symbol-name last-command) 'face 'mini-echo-last-command))
 
+;; NOTE set var `vc-display-status' and faces `vc-**-state' to change appearence
 (defvar-local mini-echo--vcs-status nil)
 (mini-echo-define-segment "vcs"
   "Return vcs info of current buffer."
@@ -542,23 +543,18 @@ Display format is inherited from `battery-mode-line-format'."
   :update-advice '((vc-refresh-state . :after))
   :update
   (setq mini-echo--vcs-status
-        (when (and vc-mode buffer-file-name)
-          (let* ((backend (vc-backend buffer-file-name))
-                 (branch (substring-no-properties
-                          vc-mode
-                          (+ (if (eq backend 'Hg) 2 3) 2)))
-                 (face (cl-case (vc-state buffer-file-name backend)
-                         (needs-update 'warning)
-                         ((removed conflict unregistered) 'error)
-                         (t 'success))))
-            (propertize (concat "@"
-                                (if-let* ((limit mini-echo-vcs-max-length)
-                                          (len (length mini-echo-ellipsis))
-                                          ((> (length branch) limit)))
-                                    (concat (substring branch 0 (- limit len))
-                                            mini-echo-ellipsis)
-                                  branch))
-                        'face `(:inherit (,face bold)))))))
+        (when vc-mode
+          (let* ((file buffer-file-name)
+                 (backend (vc-backend file))
+                 (face (cadr (vc-mode-line-state (vc-state file backend))))
+                 (str (string-trim (substring-no-properties vc-mode))))
+            (propertize (if-let* ((limit mini-echo-vcs-max-length)
+                                  (len (length mini-echo-ellipsis))
+                                  ((> (length str) limit)))
+                            (concat (substring str 0 (- limit len))
+                                    mini-echo-ellipsis)
+                          str)
+                        'face face)))))
 
 ;;; third-party
 
