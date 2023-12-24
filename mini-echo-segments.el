@@ -547,10 +547,8 @@ Display format is inherited from `battery-mode-line-format'."
                  (branch (substring-no-properties
                           vc-mode
                           (+ (if (eq backend 'Hg) 2 3) 2)))
-                 (face (cl-case (vc-state buffer-file-name backend)
-                         (needs-update 'warning)
-                         ((removed conflict unregistered) 'error)
-                         (t 'success))))
+                 (face (nth 1 (vc-mode-line-state
+			       (vc-state buffer-file-name backend)))))
             (propertize (concat "@"
                                 (if-let* ((limit mini-echo-vcs-max-length)
                                           (len (length mini-echo-ellipsis))
@@ -558,7 +556,7 @@ Display format is inherited from `battery-mode-line-format'."
                                     (concat (substring branch 0 (- limit len))
                                             mini-echo-ellipsis)
                                   branch))
-                        'face `(:inherit (,face bold)))))))
+                        'face face)))))
 
 ;;; third-party
 
