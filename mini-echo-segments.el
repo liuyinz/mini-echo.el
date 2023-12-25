@@ -534,9 +534,10 @@ Display format is inherited from `battery-mode-line-format'."
   :fetch
   (propertize (symbol-name last-command) 'face 'mini-echo-last-command))
 
-;; NOTE set var `vc-display-status' and faces `vc-**-state' to change appearence
 (mini-echo-define-segment "vcs"
-  "Return vcs info of current buffer."
+  "Return vcs info of current buffer.
+Segment appearence depends on var `vc-display-status' and faces like
+`vc-state-base' and related `vc-**-state'."
   :fetch
   (when vc-mode
     (let* ((file buffer-file-name)
