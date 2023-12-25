@@ -535,26 +535,21 @@ Display format is inherited from `battery-mode-line-format'."
   (propertize (symbol-name last-command) 'face 'mini-echo-last-command))
 
 ;; NOTE set var `vc-display-status' and faces `vc-**-state' to change appearence
-(defvar-local mini-echo--vcs-status nil)
 (mini-echo-define-segment "vcs"
   "Return vcs info of current buffer."
-  :fetch mini-echo--vcs-status
-  :update-hook '(find-file-hook after-save-hook after-revert-hook)
-  :update-advice '((vc-refresh-state . :after))
-  :update
-  (setq mini-echo--vcs-status
-        (when vc-mode
-          (let* ((file buffer-file-name)
-                 (backend (vc-backend file))
-                 (face (cadr (vc-mode-line-state (vc-state file backend))))
-                 (str (string-trim (substring-no-properties vc-mode))))
-            (propertize (if-let* ((limit mini-echo-vcs-max-length)
-                                  (len (length mini-echo-ellipsis))
-                                  ((> (length str) limit)))
-                            (concat (substring str 0 (- limit len))
-                                    mini-echo-ellipsis)
-                          str)
-                        'face face)))))
+  :fetch
+  (when vc-mode
+    (let* ((file buffer-file-name)
+           (backend (vc-backend file))
+           (face (cadr (vc-mode-line-state (vc-state file backend))))
+           (str (string-trim (substring-no-properties vc-mode))))
+      (propertize (if-let* ((limit mini-echo-vcs-max-length)
+                            (len (length mini-echo-ellipsis))
+                            ((> (length str) limit)))
+                      (concat (substring str 0 (- limit len))
+                              mini-echo-ellipsis)
+                    str)
+                  'face face))))
 
 ;;; third-party
 
