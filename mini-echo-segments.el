@@ -34,24 +34,21 @@
 (defvar evil-visual-beginning)
 (defvar evil-visual-end)
 (defvar evil-this-macro)
-(defvar flymake--state)
 (defvar flymake-suppress-zero-counters)
+(defvar flymake-mode-line-exception)
 (defvar magit-blob-mode)
 (defvar display-time-string)
-(defvar battery-mode-line-format)
-(defvar battery-status-function)
 (defvar lsp-bridge-mode-lighter)
-(defvar eglot-menu-string)
+(defvar eglot--mode-line-format)
 (defvar mini-echo-ellipsis)
 (defvar envrc--status)
 (defvar flycheck-last-status-change)
 (defvar flycheck-current-errors)
 (defvar repeat-in-progress)
+(defvar battery-mode-line-string)
+(defvar envrc-lighter)
+(defvar keycast-mode-line-format)
 
-(declare-function flymake--mode-line-counter "flymake")
-(declare-function flymake-running-backends "flymake")
-(declare-function flymake-disabled-backends "flymake")
-(declare-function flymake-reporting-backends "flymake")
 (declare-function projectile-project-root "ext:projectile")
 (declare-function ffip-project-root "ext:ffip")
 (declare-function keycast--format "ext:keycast")
@@ -65,7 +62,6 @@
 (declare-function evil-visual-state-p "ext:evil-states" t t)
 (declare-function evil-state-property "ext:evil-common")
 (declare-function lsp-workspaces "ext:lsp-mode")
-(declare-function battery-format "battery")
 (declare-function flycheck-count-errors "ext:flycheck")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
@@ -95,11 +91,6 @@ nil means to use `default-directory'.
                  (const :tag "Projectile" projectile)
                  (const :tag "Built-in Project" project)
                  function)
-  :group 'mini-echo)
-
-(defcustom mini-echo-keycast-format "%10s%k%c%r"
-  "The format spec used by keycast segment in mini echo."
-  :type 'string
   :group 'mini-echo)
 
 ;; faces
@@ -176,16 +167,6 @@ nil means to use `default-directory'.
 (defface mini-echo-profiler
   '((t (:foreground "#8BD49C" :bold t)))
   "Face for mini-echo segment of profiler status."
-  :group 'mini-echo)
-
-(defface mini-echo-time
-  '((t (:foreground "#EBBF83")))
-  "Face for mini-echo segment of time."
-  :group 'mini-echo)
-
-(defface mini-echo-battery
-  '((t (:inherit 'default)))
-  "Face for mini-echo segment of battery status."
   :group 'mini-echo)
 
 (defface mini-echo-evil-normal-state
@@ -272,20 +253,47 @@ nil means to use `default-directory'.
                segment))))
     (message "mini-echo-define-segment: %s properties error" name)))
 
+(defun mini-echo-segment--extract (construct &optional force)
+  "Return a string with face text property only based on mode line CONSTRUCT.
+If optional arg FORCE is non-nil, call `format-mode-line' always."
+  (when-let ((str (or (and (stringp construct) (null force) construct)
+                      (copy-sequence (format-mode-line construct)))))
+    ;; NOTE remove all text properties except face
+    (remove-list-of-text-properties 0 (length str)
+                                    '(help-echo mouse-face keymap local-map
+                                                flymake--diagnostic-type)
+                                    str)
+    (string-trim str)))
+
+(defun mini-echo-segment--print (string &optional face max-length)
+  "Return a STRING after trimmed with FACE property if it has.
+If optional arg MAX-LENGTH is non-nil, return truncated string."
+  (let* ((str (string-trim string)))
+    (when (and max-length (> (length str) max-length))
+      (if-let* ((suffix mini-echo-ellipsis)
+                (len (length suffix)))
+          (progn
+            (when-let ((suffix-face (get-text-property (- (length str) 1) 'face str)))
+              (put-text-property 0 len 'face suffix-face suffix))
+            (setq str (concat (substring str 0 (- max-length len)) suffix)))
+        (setq str (substring str 0 max-length))))
+    (if face (propertize str 'face face) str)))
+
 ;;; built-in
 
 (mini-echo-define-segment "major-mode"
   "Return major mode info of current buffer."
   :fetch
-  (when-let ((mode (format-mode-line mode-name)))
-    (propertize mode 'face 'mini-echo-major-mode)))
+  (when (bound-and-true-p mode-name)
+    (mini-echo-segment--extract mode-name)))
 
 (mini-echo-define-segment "buffer-position"
   "Return the cursor position of current buffer."
   :fetch
-  (when-let ((pos (format-mode-line mini-echo-position-format)))
-    (propertize (string-replace "Bottom" "Bot" pos)
-                'face 'mini-echo-buffer-position)))
+  (when (bound-and-true-p mini-echo-position-format)
+    (let ((pos (mini-echo-segment--extract mini-echo-position-format 'force)))
+      (mini-echo-segment--print (string-replace "Bottom" "Bot" pos)
+                                'mini-echo-buffer-position))))
 
 (mini-echo-define-segment "char-info"
   "Return the char information of point in current buffer."
@@ -302,15 +310,15 @@ nil means to use `default-directory'.
                              (string (if (not multibyte-p)
                                          (decode-char 'eight-bit char)
                                        char)))))
-    (propertize (format "\"%s\",%s,(%d,#o%o,#x%x)"
-                        char-description charset char char char)
-                'face 'mini-echo-char-info)))
+    (mini-echo-segment--print (format "\"%s\",%s,(%d,#o%o,#x%x)"
+                                      char-description charset char char char)
+                              'mini-echo-char-info)))
 
 (mini-echo-define-segment "buffer-size"
   "Return the size of current buffer."
   :fetch
-  (when-let ((size (format-mode-line "%I")))
-    (propertize size 'face 'mini-echo-buffer-size)))
+  (mini-echo-segment--print (mini-echo-segment--extract "%I" 'force)
+                            'mini-echo-buffer-size))
 
 (defvar-local mini-echo--project-root nil)
 (defun mini-echo-update-project-root ()
@@ -339,8 +347,8 @@ nil means to use `default-directory'.
   :fetch
   (when-let ((project (or mini-echo--project-root
                           (mini-echo-update-project-root))))
-    (propertize (file-name-nondirectory (directory-file-name project))
-                'face 'mini-echo-project))
+    (mini-echo-segment--print (file-name-nondirectory (directory-file-name project))
+                              'mini-echo-project))
   :update (mini-echo-update-project-root))
 
 (defun mini-echo-buffer-status ()
@@ -368,11 +376,7 @@ nil means to use `default-directory'.
                   (propertize (concat "@" (substring (match-string 2 str) 0 7))
                               'face 'mini-echo-blob-revision))))))
    ((bound-and-true-p atomic-chrome-edit-mode)
-    (let ((str (buffer-name))
-          (len (length mini-echo-ellipsis)))
-      (if (> (length str) 25)
-          (concat (substring str 0 (- 25 len)) mini-echo-ellipsis)
-        str)))
+    (mini-echo-segment--print (buffer-name) nil 25))
    (t (let ((name (buffer-name)))
         (cl-destructuring-bind (sign . face)
             (mini-echo-buffer-status)
@@ -411,53 +415,52 @@ nil means to use `default-directory'.
   :fetch
   (when default-directory
     (when-let ((host (file-remote-p default-directory 'host)))
-      (propertize (concat "@" host) 'face 'mini-echo-remote-host))))
+      (mini-echo-segment--print (concat "@" host) 'mini-echo-remote-host))))
 
 (mini-echo-define-segment "process"
   "Return current process info."
   :fetch
   ;; FIXME exlude shell-mode persistent infos
-  (when-let ((str (format-mode-line mode-line-process))
+  (when-let (((bound-and-true-p mode-line-process))
+             (str (mini-echo-segment--extract mode-line-process 'force))
              ((not (string-empty-p str))))
-    (concat ">>" (propertize str 'face 'mini-echo-process))))
+    (concat ">>" (mini-echo-segment--print str 'mini-echo-process 20))))
 
 (mini-echo-define-segment "time"
   "Return current time."
   :setup (display-time-mode 1)
-  :fetch (propertize display-time-string 'face 'mini-echo-time))
+  :fetch (mini-echo-segment--extract display-time-string))
 
 (mini-echo-define-segment "battery"
   "Return the battery status.
 Display format is inherited from `battery-mode-line-format'."
   :setup (display-battery-mode 1)
   :fetch
-  (propertize (string-trim
-               (battery-format battery-mode-line-format
-                               (funcall battery-status-function)))
-              'face 'mini-echo-battery))
+  (when (bound-and-true-p battery-mode-line-string)
+    (mini-echo-segment--extract battery-mode-line-string)))
 
 (mini-echo-define-segment "profiler"
   "Return current profiler status"
   :fetch
   (when (or (profiler-cpu-running-p)
             (profiler-memory-running-p))
-    (propertize "Profiler" 'face 'mini-echo-profiler)))
+    (mini-echo-segment--print "Profiler" 'mini-echo-profiler)))
 
 (mini-echo-define-segment "macro"
   "Indicator of macro being recorded or executed."
   :fetch
   (when (or defining-kbd-macro executing-kbd-macro)
-    (let ((status (if (bound-and-true-p evil-this-macro)
-                      (format "@%s" (char-to-string evil-this-macro))
-                    "MACRO")))
-      (propertize status 'face 'mini-echo-macro))))
+    (let ((str (if (bound-and-true-p evil-this-macro)
+                   (format "@%s" (char-to-string evil-this-macro))
+                 "MACRO")))
+      (mini-echo-segment--print str 'mini-echo-macro))))
 
 (mini-echo-define-segment "narrow"
   "Indicator of narrow status of current buffer."
   :fetch
   (when (or (buffer-narrowed-p)
             (bound-and-true-p dired-narrow-mode))
-    (propertize "NARROW" 'face 'mini-echo-narrow)))
+    (mini-echo-segment--print "NARROW" 'mini-echo-narrow)))
 
 (defvar mini-echo--repeat nil)
 (mini-echo-define-segment "repeat"
@@ -465,7 +468,7 @@ Display format is inherited from `battery-mode-line-format'."
   :update-advice '((repeat-post-hook . :after))
   :fetch
   (when mini-echo--repeat
-    (propertize "REPEAT" 'face 'mini-echo-repeat))
+    (mini-echo-segment--print "REPEAT" 'mini-echo-repeat))
   :update
   (setq mini-echo--repeat (and repeat-mode repeat-in-progress)))
 
@@ -473,24 +476,18 @@ Display format is inherited from `battery-mode-line-format'."
   "Return flymake diagnostics of current buffer."
   :fetch
   (when (bound-and-true-p flymake-mode)
-    (let* ((no-known (zerop (hash-table-count flymake--state)))
-           (running (flymake-running-backends))
-           (disabled (flymake-disabled-backends))
-           (reported (flymake-reporting-backends))
-           (all-disabled (and disabled (null running)))
-           (some-waiting (cl-set-difference running reported)))
-      (concat (cond
-               (no-known (propertize "?" 'face 'error))
-               (some-waiting (propertize "*" 'face 'warning))
-               (all-disabled (propertize "!" 'face 'error))
-               (t  (propertize "-" 'face 'success)))
-              (mapconcat
-               (lambda (s)
-                 (let* ((flymake-suppress-zero-counters nil)
-                        (counter (cadr (flymake--mode-line-counter s))))
-                   (propertize (plist-get counter :propertize)
-                               'face (plist-get counter 'face))))
-               '(:error :warning :note) "/")))))
+    (concat
+     (when-let* ((ind (mini-echo-segment--extract flymake-mode-line-exception))
+                 ((not (string-empty-p ind))))
+       (string-replace "Wait"
+                       (propertize "*" 'face 'compilation-mode-line-run)
+                       (substring ind 1)))
+     (let ((flymake-suppress-zero-counters nil))
+       (mapconcat #'mini-echo-segment--extract
+                  '(flymake-mode-line-error-counter
+                    flymake-mode-line-warning-counter
+                    flymake-mode-line-note-counter)
+                  "/")))))
 
 (defsubst mini-echo-column (pos)
   "Get the column of the position `POS'."
@@ -506,51 +503,43 @@ Display format is inherited from `battery-mode-line-format'."
         (if (and (bound-and-true-p evil-local-mode) (eq evil-state 'visual))
             (cons evil-visual-beginning evil-visual-end)
           (cons (region-beginning) (region-end)))
-      (let ((lines (count-lines beg (min end (point-max)))))
-        (propertize
-         (cond ((or (bound-and-true-p rectangle-mark-mode)
-                    (and (bound-and-true-p evil-visual-selection)
-                         (eq 'block evil-visual-selection)))
-                (let ((cols (abs (- (mini-echo-column end)
-                                    (mini-echo-column beg)))))
-                  (format "%dx%dB" lines cols)))
-               ((and (bound-and-true-p evil-visual-selection)
-                     (eq evil-visual-selection 'line))
-                (format "%dL" lines))
-               ((> lines 1)
-                (format "%dC,%dL" (- end beg) lines))
-               (t
-                (format "%dC" (- end beg))))
-         'face 'mini-echo-selection-info)))))
+      (let* ((lines (count-lines beg (min end (point-max))))
+             (str (cond ((or (bound-and-true-p rectangle-mark-mode)
+                             (and (bound-and-true-p evil-visual-selection)
+                                  (eq 'block evil-visual-selection)))
+                         (let ((cols (abs (- (mini-echo-column end)
+                                             (mini-echo-column beg)))))
+                           (format "%dx%dB" lines cols)))
+                        ((and (bound-and-true-p evil-visual-selection)
+                              (eq evil-visual-selection 'line))
+                         (format "%dL" lines))
+                        ((> lines 1)
+                         (format "%dC,%dL" (- end beg) lines))
+                        (t
+                         (format "%dC" (- end beg))))))
+        (mini-echo-segment--print str 'mini-echo-selection-info)))))
 
 (mini-echo-define-segment "word-count"
   "Return word count info of current buffer."
   :fetch
-  (propertize (format " %dW" (count-words (point-min) (point-max)))
-              'face 'mini-echo-word-count))
+  (mini-echo-segment--print (format " %dW" (count-words (point-min) (point-max)))
+                            'mini-echo-word-count))
 
 (mini-echo-define-segment "last-command"
   "Return last command info."
   :fetch
-  (propertize (symbol-name last-command) 'face 'mini-echo-last-command))
+  (when (bound-and-true-p last-command)
+    (mini-echo-segment--print (symbol-name last-command)
+                              'mini-echo-last-command)))
 
 (mini-echo-define-segment "vcs"
   "Return vcs info of current buffer.
 Segment appearence depends on var `vc-display-status' and faces like
 `vc-state-base' and related `vc-**-state'."
   :fetch
-  (when vc-mode
-    (let* ((file buffer-file-name)
-           (backend (vc-backend file))
-           (face (cadr (vc-mode-line-state (vc-state file backend))))
-           (str (string-trim (substring-no-properties vc-mode))))
-      (propertize (if-let* ((limit mini-echo-vcs-max-length)
-                            (len (length mini-echo-ellipsis))
-                            ((> (length str) limit)))
-                      (concat (substring str 0 (- limit len))
-                              mini-echo-ellipsis)
-                    str)
-                  'face face))))
+  (when (bound-and-true-p vc-mode)
+    (mini-echo-segment--print (mini-echo-segment--extract vc-mode)
+                              nil mini-echo-vcs-max-length)))
 
 ;;; third-party
 
@@ -559,11 +548,12 @@ Segment appearence depends on var `vc-display-status' and faces like
   :fetch
   (when (bound-and-true-p flycheck-mode)
     (concat
-     (cl-case flycheck-last-status-change
-       ((not-checked no-checker suspicious) (propertize "?" 'face 'error))
-       ((errord interrupted) (propertize "!" 'face 'error))
-       (running (propertize "*" 'face 'warning))
-       (finished (propertize "-" 'face 'success)))
+     (when-let ((ind (cl-case flycheck-last-status-change
+                       ((not-checked no-checker suspicious) "?")
+                       ((errord interrupted) "!")
+                       (running "*")
+                       (finished nil))))
+       (propertize ind 'face 'compilation-mode-line-run))
      (apply #'format "%s/%s/%s"
             (seq-mapn (lambda (x y) (propertize x 'face y))
                       (let-alist (flycheck-count-errors flycheck-current-errors)
@@ -575,16 +565,15 @@ Segment appearence depends on var `vc-display-status' and faces like
   "Return the meow status of current buffer."
   :fetch
   (when (bound-and-true-p meow--indicator)
-    (string-trim meow--indicator)))
+    (mini-echo-segment--extract meow--indicator)))
 
 (mini-echo-define-segment "evil"
   "Display evil status of current buffer."
   :fetch
   (when (bound-and-true-p evil-local-mode)
-    (propertize
+    (mini-echo-segment--print
      (let ((tag (evil-state-property evil-state :tag t)))
        (if (stringp tag) tag (funcall tag)))
-     'face
      (cond
       ((evil-normal-state-p)   'mini-echo-evil-normal-state)
       ((evil-emacs-state-p)    'mini-echo-evil-emacs-state)
@@ -599,7 +588,9 @@ Segment appearence depends on var `vc-display-status' and faces like
   "Display keycast info."
   :update-hook '(post-command-hook)
   :setup (require 'keycast)
-  :fetch (keycast--format mini-echo-keycast-format)
+  :fetch
+  (when-let ((str (keycast--format keycast-mode-line-format)))
+    str)
   :update (keycast--update))
 
 (defvar-local mini-echo--lsp-mode nil)
@@ -616,29 +607,26 @@ Segment appearence depends on var `vc-display-status' and faces like
   :update
   (setq mini-echo--lsp-mode
         (let* ((workspaces (lsp-workspaces)))
-          (propertize "LSP" 'face (if workspaces 'mini-echo-lsp 'warning)))))
+          (mini-echo-segment--print "LSP" (if workspaces 'mini-echo-lsp 'warning)))))
 
 (mini-echo-define-segment "lsp-bridge"
   "Return lsp-bridge server state"
   :fetch
   (when (bound-and-true-p lsp-bridge-mode)
-    (propertize (string-trim lsp-bridge-mode-lighter)
-                'face 'mini-echo-lsp)))
+    (mini-echo-segment--print lsp-bridge-mode-lighter 'mini-echo-lsp)))
 
 (mini-echo-define-segment "eglot"
   "Return eglot server state"
   :fetch
   (when (bound-and-true-p eglot--managed-mode)
-    (propertize eglot-menu-string 'face 'eglot-mode-line)))
+    (mini-echo-segment--extract eglot--mode-line-format)))
 
 (mini-echo-define-segment "envrc"
   "Return envrc status of current buffer."
   :fetch
   (when (and (bound-and-true-p envrc-mode)
              (not (eq envrc--status 'none)))
-    (propertize "ENV" 'face (if (eq envrc--status 'on)
-                                'envrc-mode-line-on-face
-                              'envrc-mode-line-error-face))))
+    (mini-echo-segment--extract envrc-lighter)))
 
 ;; TODO add more segments
 
