@@ -72,7 +72,8 @@ There are three ways to adjust mini-echo segments display:
             "profiler" "selection-info" "narrow" "macro")))
 ```
 
-2. `mini-echo-rules`: variable, list of rules which are only take effect in specific major mode, the format is as below:
+2. `mini-echo-rules`: variable, list of rules applied for major modes.
+if your emacs version >= 30, then you can write a rule for parent mode which will take effect in all children modes. Otherwise, write rules for every specific major mode instead. 
 
 ```elisp
 ;; Concell of (SEGMENT . POSITION) is required to adjust the appearence.
@@ -171,7 +172,6 @@ For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 - [x] rewrite mini-echo-define-macro
 - [x] add minibuffer background to distinguish in terminal
 - [x] setup segments per buffer
-- [ ] provide rules for derived modes, in branch support-derived
 - [ ] add environment support, such as python, node.js, asdf...
 - [ ] add support to highlight current window
 - [ ] add support for nerd-icons

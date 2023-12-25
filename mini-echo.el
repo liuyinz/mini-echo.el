@@ -56,20 +56,24 @@
   :group 'mini-echo)
 
 (defcustom mini-echo-rules
-  '((xwidget-webkit-mode :both (("buffer-size" . 0) ("buffer-position" . 0))))
+  '((special-mode :both (("buffer-size" . 0)))
+    (dired-mode :both (("buffer-size" . 0)))
+    (xwidget-webkit-mode :both (("buffer-size" . 0) ("buffer-position" . 0))))
   "List of rules which are only take effect in some major mode.
 The format is like:
  (MAJOR-MODE :both  ((SEGMENT . POSITION) ...))
              :long  ((SEGMENT . POSITION) ...))
              :short ((SEGMENT . POSITION) ...)).
 :both would setup for both long and short style, :long and :short have higher
-priority over :both."
+priority over :both.
+If Emacs version >= 30, write rule for a parent mode will take effect in every
+children modes. Otherwise, write rule for every specific major mode instead."
   :type '(alist :key-type symbol
                 :value-type (plist :key-type symbol
                                    :options '(:both :long :short)
                                    :value-type (alist :key-type string
                                                       :value-type integer)))
-  :package-version '(mini-echo . "0.6.2")
+  :package-version '(mini-echo . "0.6.3")
   :group 'mini-echo)
 
 (defcustom mini-echo-short-style-predicate
@@ -189,14 +193,16 @@ Format is a list of three argument:
   "Return list of segments according to STYLE."
   (cl-case style
     (valid mini-echo--valid-segments)
-    (default-long (plist-get mini-echo--default-segments :long))
-    (default-short (plist-get mini-echo--default-segments :short))
-    (major-long (plist-get (alist-get major-mode mini-echo--rules) :long))
-    (major-short (plist-get (alist-get major-mode mini-echo--rules) :short))
-    (selected (plist-get (or (alist-get major-mode mini-echo--rules)
-                             mini-echo--default-segments)
-                         (if (funcall mini-echo-short-style-predicate)
-                             :short :long)))
+    (selected (plist-get
+               ;; parent mode rules take effect in children modes if possible
+               (or (and (fboundp #'derived-mode-all-parents)
+                        (car (seq-keep
+                              (lambda (x) (alist-get x mini-echo--rules))
+                              (derived-mode-all-parents major-mode))))
+                   (alist-get major-mode mini-echo--rules)
+                   mini-echo--default-segments)
+               (if (funcall mini-echo-short-style-predicate)
+                   :short :long)))
     (current
      (let ((result (mini-echo-get-segments 'selected))
            extra)
