@@ -17,6 +17,8 @@ Echo buffer status in echo area, get rid of mode-line !
   - [Feature](#feature)
   - [Usage](#usage)
   - [Customization](#customization)
+    - [Keywords](#keywords)
+    - [Utils](#utils)
   - [Similar Package](#similar-package)
   - [Todo](#todo)
   - [FAQ](#faq)
@@ -114,48 +116,52 @@ Other options are here, see more info please check the file
 
 Write a segment with `mini-echo-define-segment`, e.g.
 
-keywords format:
+```elisp
+
+(mini-echo-define-segment "vcs"
+  "Return vcs info of current buffer.
+Segment appearence depends on var `vc-display-status' and faces like
+`vc-state-base' and related `vc-**-state'."
+  :fetch
+  (when (bound-and-true-p vc-mode)
+    (mini-echo-segment--print (mini-echo-segment--extract vc-mode)
+                              nil mini-echo-vcs-max-length)))
+
+(mini-echo-define-segment "time"
+  "Return current time."
+  :setup (display-time-mode 1)
+  :fetch (mini-echo-segment--extract display-time-string))
+
+(defvar mini-echo--repeat nil)
+(mini-echo-define-segment "repeat"
+  "Indicator of whether repeating transient map is active."
+  :update-advice '((repeat-post-hook . :after))
+  :fetch
+  (when mini-echo--repeat
+    (mini-echo-segment--print "REPEAT" 'mini-echo-repeat))
+  :update
+  (setq mini-echo--repeat (and repeat-mode repeat-in-progress)))
+
+(mini-echo-define-segment "keycast"
+  "Display keycast info."
+  :update-hook '(post-command-hook)
+  :setup (require 'keycast)
+  :fetch (keycast--format keycast-mode-line-format)
+  :update (keycast--update))
+```
+
+### Keywords
 
 - `:fetch`: sexp, which runs when mini-echo update by interval.
 - `:setup`: sexp, which runs when the segment is first activated , e.g. load library `keycast` when activate `keycast` segment.
 - `:update`: sexp, which runs when `:update-hook` or `:update-advice` is triggered.
-- `:update-hook`: list of hooks which run `:update` after it called, e.g. update "vcs" status after run `find-file-hook`
-- `:update-advice`: alist of (symbol . how) which runs `:update` after it called, e.g. update "vcs" status after run `vc-refresh-state`
+- `:update-hook`: list of hooks which run `:update` after it called, e.g. update "keycast" status after hook `post-command-hook`.
+- `:update-advice`: alist of (symbol . how) which runs `:update` after it called, e.g. update "repeat" status after run function `(repeat-post-hook)`.
 
-```elisp
-(mini-echo-define-segment "vcs"
-  "Return vcs info of current buffer."
-  :fetch mini-echo--vcs-status
-  :update-hook '(find-file-hook after-save-hook after-revert-hook)
-  :update-advice '((vc-refresh-state . :after))
-  :update
-  (setq mini-echo--vcs-status
-        (when (and vc-mode buffer-file-name)
-          (let* ((backend (vc-backend buffer-file-name))
-                 (branch (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
-                 (limit mini-echo-vcs-max-length)
-                 (face (cl-case (vc-state buffer-file-name backend)
-                         (needs-update 'warning)
-                         ((removed conflict unregistered) 'error)
-                         (t 'success))))
-            (propertize (concat "@" (if (> (length branch) limit)
-                                        (concat (substring branch 0 (- limit 3))
-                                                "..")
-                                      branch))
-                        'face `(:inherit (,face bold)))))))
+### Utils
 
-(mini-echo-define-segment "time"
-  "Return current time info."
-  :setup (display-time-mode 1)
-  :fetch (propertize display-time-string 'face 'mini-echo-time))
-
-(mini-echo-define-segment "keycast"
-  "Display keycast info."
-  :fetch (keycast--format mini-echo-keycast-format)
-  :setup (require 'keycast)
-  :update (keycast--update)
-  :update-hook '(post-command-hook))
-```
+- `mini-echo-segment--extract`: extract segment info from mode-line construct.
+- `mini-echo-segment--print`: trim, truncate string with ellipsis if needed.
 
 For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 
