@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.7.0](https://github.com/liuyinz/mini-echo.el/compare/v0.6.2..v0.7.0) - 2023-12-26
+
+### Bug Fixes
+
+- remove segment display property too - ([b3d79a3](https://github.com/liuyinz/mini-echo.el/commit/b3d79a34fe75df13941d6729f5a6b6b785593f58))
+
+### Documentation
+
+- update todo list - ([9a9e673](https://github.com/liuyinz/mini-echo.el/commit/9a9e673a624e9c1c1586dca2ec3d1bb5002ce088))
+
+### Features
+
+- support parent mode rules if emacs version >= 30 - ([b9ce71d](https://github.com/liuyinz/mini-echo.el/commit/b9ce71dfbf7b7fde165cd33e067f2bb4ca46309d))
+
+### Miscellaneous Chores
+
+- **(dependency)** update emacs dependency to >= 29.1 - ([0559dd5](https://github.com/liuyinz/mini-echo.el/commit/0559dd59b8e122d15225a8763bdfcdc173129570))
+
+### Refactoring
+
+- segment "vcs" to adapted to vc-mode - ([226f5c0](https://github.com/liuyinz/mini-echo.el/commit/226f5c0cf493205114f230a1483fdeee57d03a06))
+- fetch vcs info from vc-mode directly - ([39dacb4](https://github.com/liuyinz/mini-echo.el/commit/39dacb4734eb51c6cc6fb5573627190f86d0d49b))
+- make segment reuse mode-line-format as much as possible - ([ec59632](https://github.com/liuyinz/mini-echo.el/commit/ec5963242f4ac57b3d6844d34a7304b0dfee90f9))
+
 ## [0.6.2](https://github.com/liuyinz/mini-echo.el/compare/v0.6.1..v0.6.2) - 2023-12-20
 
 ### Documentation
@@ -11,7 +35,7 @@
 - add segment repeat - ([228cd1c](https://github.com/liuyinz/mini-echo.el/commit/228cd1ca3433412347509ec2c6c065c5edfc2954))
 - add segment buffer-point - ([3c60309](https://github.com/liuyinz/mini-echo.el/commit/3c6030944ca32c9d9144660e4e497c4f26520851))
 - add segment char-info - ([b039eef](https://github.com/liuyinz/mini-echo.el/commit/b039eef2fa61005bc251d7e5ee3026760c83f9ef))
-- support rules for derived major modes - ([1c55a4d](https://github.com/liuyinz/mini-echo.el/commit/1c55a4d8627e1c9a66afd64e28d3daa24d5aeafa))
+- support rules for derived major modes - ([edd6848](https://github.com/liuyinz/mini-echo.el/commit/edd68480f08eae7d517c9f540ec505fb3d6d5c38))
 
 ### Refactoring
 
