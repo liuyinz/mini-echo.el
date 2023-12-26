@@ -261,7 +261,7 @@ If optional arg FORCE is non-nil, call `format-mode-line' always."
     ;; NOTE remove all text properties except face
     (remove-list-of-text-properties 0 (length str)
                                     '(help-echo mouse-face keymap local-map
-                                                flymake--diagnostic-type)
+                                                flymake--diagnostic-type display)
                                     str)
     (string-trim str)))
 
