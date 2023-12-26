@@ -67,7 +67,7 @@ The format is like:
 :both would setup for both long and short style, :long and :short have higher
 priority over :both.
 If Emacs version >= 30, write rule for a parent mode will take effect in every
-children modes. Otherwise, write rule for every specific major mode instead."
+children modes.  Otherwise, write rule for every specific major mode instead."
   :type '(alist :key-type symbol
                 :value-type (plist :key-type symbol
                                    :options '(:both :long :short)

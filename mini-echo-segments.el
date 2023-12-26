@@ -211,6 +211,8 @@ nil means to use `default-directory'.
 
 (defvar mini-echo-segment-alist nil)
 
+;;; Utils
+
 (cl-defstruct mini-echo-segment
   name &key fetch activate setup update update-hook update-advice)
 
@@ -254,8 +256,9 @@ nil means to use `default-directory'.
     (message "mini-echo-define-segment: %s properties error" name)))
 
 (defun mini-echo-segment--extract (construct &optional force)
-  "Return a string with face text property only based on mode line CONSTRUCT.
-If optional arg FORCE is non-nil, call `format-mode-line' always."
+  "Return a string with only property of face based on CONSTRUCT.
+CONSTRUCT is mode line data structure ,when CONSTRUCT is not a string or
+optional arg FORCE is non-nil, call `format-mode-line' always."
   (when-let ((str (or (and (stringp construct) (null force) construct)
                       (copy-sequence (format-mode-line construct)))))
     ;; NOTE remove all text properties except face
@@ -267,7 +270,8 @@ If optional arg FORCE is non-nil, call `format-mode-line' always."
 
 (defun mini-echo-segment--print (string &optional face max-length)
   "Return a STRING after trimmed with FACE property if it has.
-If optional arg MAX-LENGTH is non-nil, return truncated string."
+If optional arg MAX-LENGTH is a number, return truncated string or combined
+with ellipsis."
   (let* ((str (string-trim string)))
     (when (and max-length (> (length str) max-length))
       (if-let* ((suffix mini-echo-ellipsis)
@@ -279,13 +283,15 @@ If optional arg MAX-LENGTH is non-nil, return truncated string."
         (setq str (substring str 0 max-length))))
     (if face (propertize str 'face face) str)))
 
-;;; built-in
+;;; Built-in segments
 
 (mini-echo-define-segment "major-mode"
   "Return major mode info of current buffer."
   :fetch
   (when (bound-and-true-p mode-name)
-    (mini-echo-segment--extract mode-name)))
+    (mini-echo-segment--print
+     (substring-no-properties (mini-echo-segment--extract mode-name))
+     'mini-echo-major-mode)))
 
 (mini-echo-define-segment "buffer-position"
   "Return the cursor position of current buffer."
@@ -541,7 +547,7 @@ Segment appearence depends on var `vc-display-status' and faces like
     (mini-echo-segment--print (mini-echo-segment--extract vc-mode)
                               nil mini-echo-vcs-max-length)))
 
-;;; third-party
+;;; Third-party segments
 
 (mini-echo-define-segment "flycheck"
   "Return flycheck diagnostics of current buffer."
@@ -588,9 +594,7 @@ Segment appearence depends on var `vc-display-status' and faces like
   "Display keycast info."
   :update-hook '(post-command-hook)
   :setup (require 'keycast)
-  :fetch
-  (when-let ((str (keycast--format keycast-mode-line-format)))
-    str)
+  :fetch (keycast--format keycast-mode-line-format)
   :update (keycast--update))
 
 (defvar-local mini-echo--lsp-mode nil)
