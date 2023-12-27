@@ -220,9 +220,7 @@ nil means to use `default-directory'.
 (defmacro mini-echo-define-segment (name docstring &rest props)
   "Define a mini echo segment NAME with DOCSTRING and PROPS."
   (declare (indent defun) (doc-string 2))
-  ;; plistp check
-  (if-let* ((len (proper-list-p props))
-            ((and (> len 0) (zerop (% len 2)))))
+  (if (plistp props)
       (cl-destructuring-bind (&key fetch setup update update-hook update-advice)
           props
         (cl-destructuring-bind (fetch-func update-func setup-func)
@@ -255,7 +253,7 @@ nil means to use `default-directory'.
                             ,update-advice))
                     (setf (mini-echo-segment-setup segment) ',setup-func))
                segment))))
-    (message "mini-echo-define-segment: %s properties error" name)))
+    (message "mini-echo-define-segment: %s properties error!" name)))
 
 (defun mini-echo-segment--extract (construct &optional force)
   "Return a string with only property of face based on CONSTRUCT.
