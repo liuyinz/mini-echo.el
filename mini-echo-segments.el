@@ -94,6 +94,41 @@ nil means to use `default-directory'.
   :group 'mini-echo)
 
 ;; faces
+(defface mini-echo-green
+  '((t (:foreground "#8BD49C")))
+  "Face for mini-echo segment with green color."
+  :group 'mini-echo)
+
+(defface mini-echo-yellow
+  '((t (:foreground "#EBBF83")))
+  "Face for mini-echo segment with yellow color."
+  :group 'mini-echo)
+
+(defface mini-echo-blue
+  '((t (:foreground "#5EC4FF")))
+  "Face for mini-echo segment with blue color."
+  :group 'mini-echo)
+
+(defface mini-echo-red
+  '((t (:foreground "#E27E8D")))
+  "Face for mini-echo segment with red color."
+  :group 'mini-echo)
+
+(defface mini-echo-violet
+  '((t (:foreground "violet")))
+  "Face for mini-echo segment with violet color."
+  :group 'mini-echo)
+
+(defface mini-echo-cyan
+  '((t (:foreground "cyan")))
+  "Face for mini-echo segment with cyan color."
+  :group 'mini-echo)
+
+(defface mini-echo-gray
+  '((t (:foreground "#a0b3c5")))
+  "Face for mini-echo segment with gray color."
+  :group 'mini-echo)
+
 (defface mini-echo-major-mode
   '((t (:inherit bold)))
   "Face for mini-echo segment of major mode."
@@ -105,107 +140,117 @@ nil means to use `default-directory'.
   :group 'mini-echo)
 
 (defface mini-echo-buffer-position
-  '((t (:foreground "violet")))
+  '((t (:inherit mini-echo-violet)))
   "Face for mini-echo segment of buffer position."
   :group 'mini-echo)
 
 (defface mini-echo-char-info
-  '((t (:foreground "violet")))
+  '((t (:inherit mini-echo-violet)))
   "Face for mini-echo segment of char info."
   :group 'mini-echo)
 
 (defface mini-echo-remote-host
-  '((t (:foreground "#E27E8D")))
+  '((t (:inherit mini-echo-red)))
   "Face for mini-echo segment of remote host."
   :group 'mini-echo)
 
-(defface mini-echo-selection-info
-  '((t (:foreground "#EBBF83" :bold t)))
-  "Face for mini-echo segment of selection info."
-  :group 'mini-echo)
-
 (defface mini-echo-word-count
-  '((t (:foreground "#EBBF83")))
+  '((t (:inherit mini-echo-yellow)))
   "Face for mini-echo segment of word count."
   :group 'mini-echo)
 
 (defface mini-echo-last-command
-  '((t (:foreground "#E27E8D" :bold t)))
+  '((t (:inherit (mini-echo-blue bold))))
   "Face for mini-echo segment of last command."
   :group 'mini-echo)
 
 (defface mini-echo-project
-  '((t (:foreground "#5EC4FF")))
+  '((t (:inherit mini-echo-blue)))
   "Face for mini-echo segment of project directory."
   :group 'mini-echo)
 
 (defface mini-echo-blob-revision
-  '((t (:foreground "#E27E8D")))
+  '((t (:inherit mini-echo-red)))
   "Face for mini-echo segment of blob revision."
   :group 'mini-echo)
 
+(defface mini-echo-status-local
+  '((t (:inherit (mini-echo-yellow bold))))
+  "Face for mini-echo segment to show status in local buffer."
+  :group 'mini-echo)
+
+(defface mini-echo-status-global
+  '((t (:inherit (mini-echo-cyan bold))))
+  "Face for mini-echo segment to show status in global."
+  :group 'mini-echo)
+
+(defface mini-echo-selection-info
+  '((t (:inherit mini-echo-status-local)))
+  "Face for mini-echo segment of selection info."
+  :group 'mini-echo)
+
+(defface mini-echo-narrow
+  '((t (:inherit mini-echo-status-local)))
+  "Face for mini-echo segment of narrow status."
+  :group 'mini-echo)
+
 (defface mini-echo-macro
-  '((t (:foreground "#8BD49C" :bold t)))
+  '((t (:inherit mini-echo-status-global)))
   "Face for mini-echo segment of macro status."
   :group 'mini-echo)
 
 (defface mini-echo-process
-  '((t (:foreground "#8BD49C" :bold t)))
+  '((t (:inherit mini-echo-status-global)))
   "Face for mini-echo segment of process."
   :group 'mini-echo)
 
-(defface mini-echo-narrow
-  '((t (:foreground "#8BD49C" :bold t)))
-  "Face for mini-echo segment of narrow status."
-  :group 'mini-echo)
-
 (defface mini-echo-repeat
-  '((t (:foreground "#8BD49C" :bold t)))
+  '((t (:inherit mini-echo-status-global)))
   "Face for mini-echo segment of `repeat-mode' status."
   :group 'mini-echo)
 
 (defface mini-echo-profiler
-  '((t (:foreground "#8BD49C" :bold t)))
+  '((t (:inherit mini-echo-status-global)))
   "Face for mini-echo segment of profiler status."
   :group 'mini-echo)
 
 (defface mini-echo-evil-normal-state
-  '((t (:foreground "#5EC4FF")))
+  '((t (:inherit mini-echo-blue)))
   "Face for mini-echo segment of evil normal state."
   :group 'mini-echo)
 
 (defface mini-echo-evil-insert-state
-  '((t (:foreground "#8BD49C")))
+  '((t (:inherit mini-echo-green)))
   "Face for mini-echo segment of evil insert state."
   :group 'mini-echo)
 
 (defface mini-echo-evil-visual-state
-  '((t (:foreground "#EBBF83")))
+  '((t (:inherit mini-echo-yellow)))
   "Face for mini-echo segment of evil visual state."
   :group 'mini-echo)
 
 (defface mini-echo-evil-emacs-state
-  '((t (:foreground "violet")))
+  '((t (:inherit mini-echo-violet)))
   "Face for mini-echo segment of evil Emacs state."
   :group 'mini-echo)
 
 (defface mini-echo-evil-motion-state
-  '((t (:foreground "#a0b3c5")))
+  '((t (:inherit mini-echo-gray)))
   "Face for mini-echo segment of evil motion state."
   :group 'mini-echo)
 
 (defface mini-echo-evil-operator-state
-  '((t (:foreground "gold")))
+  '((t (:inherit mini-echo-cyan)))
   "Face for mini-echo segment of evil operator state."
   :group 'mini-echo)
 
 (defface mini-echo-evil-replace-state
-  '((t (:foreground "#E27E8D")))
+  '((t (:inherit mini-echo-red)))
   "Face for mini-echo segment of evil replace state."
   :group 'mini-echo)
 
 (defface mini-echo-lsp
-  '((t (:inherit 'success)))
+  '((t (:inherit mini-echo-green)))
   "Face for mini-echo segment of lsp."
   :group 'mini-echo)
 
