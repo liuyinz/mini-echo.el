@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.7.1](https://github.com/liuyinz/mini-echo.el/compare/v0.7.0..v0.7.1) - 2023-12-27
+
+### Bug Fixes
+
+- only call segment related update-func when mini-echo-mode is enabled - ([b7e4c00](https://github.com/liuyinz/mini-echo.el/commit/b7e4c00160831778fe271137335449f64058bd0a))
+- lack of information when some segments setup hooks or advices when first activated - ([b1bcb38](https://github.com/liuyinz/mini-echo.el/commit/b1bcb386a83c7f473620d0eef8d1739c36da8f3a))
+
+### Documentation
+
+- **(README)** update Customization part - ([7604aa2](https://github.com/liuyinz/mini-echo.el/commit/7604aa28a150d6e39b31cf529631e5adc0893f6d))
+
+### Refactoring
+
+- use plistp to check segment definition instead - ([7cf4d0a](https://github.com/liuyinz/mini-echo.el/commit/7cf4d0a59c4ec661683052bb000b2db11df06fa4))
+
 ## [0.7.0](https://github.com/liuyinz/mini-echo.el/compare/v0.6.2..v0.7.0) - 2023-12-26
 
 ### Bug Fixes

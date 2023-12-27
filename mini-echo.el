@@ -4,7 +4,7 @@
 
 ;; Author: liuyinz <liuyinz95@gmail.com>
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
-;; Version: 0.7.0
+;; Version: 0.7.1
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: frames
 ;; Homepage: https://github.com/liuyinz/mini-echo.el
