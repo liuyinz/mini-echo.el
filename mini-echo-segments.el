@@ -29,6 +29,7 @@
 (require 'cl-lib)
 (require 'subr-x)
 
+(defvar mini-echo-ellipsis)
 (defvar meow--indicator)
 (defvar evil-state)
 (defvar evil-visual-beginning)
@@ -40,7 +41,6 @@
 (defvar display-time-string)
 (defvar lsp-bridge-mode-lighter)
 (defvar eglot--mode-line-format)
-(defvar mini-echo-ellipsis)
 (defvar envrc--status)
 (defvar flycheck-last-status-change)
 (defvar flycheck-current-errors)
@@ -239,7 +239,9 @@ nil means to use `default-directory'.
                (setf (mini-echo-segment-fetch segment) ',fetch-func)
                ;; update
                (when (consp ',update)
-                 (defun ,update-func () ,update)
+                 (defun ,update-func ()
+                   (when (bound-and-true-p mini-echo-mode)
+                     ,update))
                  (setf (mini-echo-segment-update segment) ',update-func)
                  (setf (mini-echo-segment-update-hook segment) ,update-hook)
                  (setf (mini-echo-segment-update-advice segment) ,update-advice))
