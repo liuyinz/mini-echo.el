@@ -63,6 +63,7 @@
 (declare-function evil-state-property "ext:evil-common")
 (declare-function lsp-workspaces "ext:lsp-mode")
 (declare-function flycheck-count-errors "ext:flycheck")
+(declare-function elfeed-search--count-unread "ext:elfeed")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -252,6 +253,11 @@ nil means to use `default-directory'.
 (defface mini-echo-lsp
   '((t (:inherit mini-echo-green)))
   "Face for mini-echo segment of lsp."
+  :group 'mini-echo)
+
+(defface mini-echo-elfeed
+  '((t (:inherit elfeed-search-unread-count-face)))
+  "Face for mini-echo segment of elfeed feeds."
   :group 'mini-echo)
 
 (defvar mini-echo-segment-alist nil)
@@ -676,6 +682,16 @@ Segment appearence depends on var `vc-display-status' and faces like
   (when (and (bound-and-true-p envrc-mode)
              (not (eq envrc--status 'none)))
     (mini-echo-segment--extract envrc-lighter)))
+
+(mini-echo-define-segment "elfeed"
+  "Return unread feeds count via filter from elfeed."
+  :fetch
+  (propertize
+   (let ((bufn "*elfeed-search*"))
+     (if (get-buffer bufn)
+         (string-trim-right
+          (with-current-buffer bufn (elfeed-search--count-unread))
+          "/.*") "")) 'face 'mini-echo-elfeed))
 
 ;; TODO add more segments
 
