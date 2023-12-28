@@ -63,6 +63,7 @@
 (declare-function evil-state-property "ext:evil-common")
 (declare-function lsp-workspaces "ext:lsp-mode")
 (declare-function flycheck-count-errors "ext:flycheck")
+(declare-function elfeed-search--count-unread "ext:elfeed")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
   "Format used to display lin, number and percentage in mini echo."
@@ -676,6 +677,18 @@ Segment appearence depends on var `vc-display-status' and faces like
   (when (and (bound-and-true-p envrc-mode)
              (not (eq envrc--status 'none)))
     (mini-echo-segment--extract envrc-lighter)))
+
+(mini-echo-define-segment "elfeed-unread"
+  "Return unread feeds count via filter from elfeed."
+  :fetch
+  (when-let ((buf (get-buffer "*elfeed-search*")))
+    (with-current-buffer buf
+      (when-let* ((str (elfeed-search--count-unread))
+                  ((string-match "\\`\\([1-9][0-9]*\\)/.*" str)))
+        (concat "elfeed["
+                (propertize (match-string 1 str) 'face
+                            'elfeed-search-unread-count-face)
+                "]")))))
 
 ;; TODO add more segments
 
