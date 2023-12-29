@@ -678,8 +678,8 @@ Segment appearence depends on var `vc-display-status' and faces like
              (not (eq envrc--status 'none)))
     (mini-echo-segment--extract envrc-lighter)))
 
-(mini-echo-define-segment "elfeed-unread"
-  "Return unread feeds count via filter from elfeed."
+(mini-echo-define-segment "elfeed"
+  "Return elfeed unread feeds count."
   :fetch
   (when-let ((buf (get-buffer "*elfeed-search*")))
     (with-current-buffer buf
