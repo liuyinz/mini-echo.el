@@ -476,7 +476,7 @@ with ellipsis."
   (when-let (((bound-and-true-p mode-line-process))
              (str (mini-echo-segment--extract mode-line-process 'force))
              ((not (string-empty-p str))))
-    (concat ">>" (mini-echo-segment--print str 'mini-echo-process 20))))
+    (mini-echo-segment--print str 'mini-echo-process 20)))
 
 (mini-echo-define-segment "time"
   "Return current time."
