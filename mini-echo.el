@@ -1,6 +1,6 @@
 ;;; mini-echo.el --- Echo buffer status in minibuffer window -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 liuyinz
+;; Copyright (C) 2023, 2024 liuyinz
 
 ;; Author: liuyinz <liuyinz95@gmail.com>
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
