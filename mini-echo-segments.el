@@ -283,7 +283,7 @@ nil means to use `default-directory'.
                (setf (mini-echo-segment-fetch segment) ',fetch-func)
                ;; update
                (when (consp ',update)
-                 (defun ,update-func ()
+                 (defun ,update-func (&rest _args)
                    (when (bound-and-true-p mini-echo-mode)
                      ,update))
                  (setf (mini-echo-segment-update segment) ',update-func)
