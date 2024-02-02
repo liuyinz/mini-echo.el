@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.2](https://github.com/liuyinz/mini-echo.el/compare/v0.7.1..v0.7.2) - 2024-02-02
+
+### Bug Fixes
+
+- renmae segment elfeed-unread to elfeed - ([4a44c09](https://github.com/liuyinz/mini-echo.el/commit/4a44c098feb321cec4913380a36c0ea4e0463f86))
+- make `update-func` more compatible - ([cd58b8d](https://github.com/liuyinz/mini-echo.el/commit/cd58b8ded9f8280d00e1a1052e22a141f4e13f7c))
+
+### Features
+
+- add segment elfeed - ([f547997](https://github.com/liuyinz/mini-echo.el/commit/f54799741131527ff6e200795b9f288ddc6d93c5))
+
+### Miscellaneous Chores
+
+- bump copyright years - ([3aed734](https://github.com/liuyinz/mini-echo.el/commit/3aed734872a8657c4cc443590b065a331e16ff3e))
+
+### Refactoring
+
+- provide new faces for segments - ([371d0fb](https://github.com/liuyinz/mini-echo.el/commit/371d0fb348a93bd18cf8b4933f1a3e3ffcddb66a))
+
 ## [0.7.1](https://github.com/liuyinz/mini-echo.el/compare/v0.7.0..v0.7.1) - 2023-12-27
 
 ### Bug Fixes
