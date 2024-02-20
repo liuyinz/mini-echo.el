@@ -501,10 +501,10 @@ Display format is inherited from `battery-mode-line-format'."
 (mini-echo-define-segment "macro"
   "Indicator of macro being recorded or executed."
   :fetch
-  (when (or defining-kbd-macro executing-kbd-macro)
+  (when defining-kbd-macro
     (let ((str (if (bound-and-true-p evil-this-macro)
                    (format "@%s" (char-to-string evil-this-macro))
-                 "MACRO")))
+                 "Def")))
       (mini-echo-segment--print str 'mini-echo-macro))))
 
 (mini-echo-define-segment "narrow"
