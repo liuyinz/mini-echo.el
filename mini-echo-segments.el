@@ -66,7 +66,7 @@
 (declare-function elfeed-search--count-unread "ext:elfeed")
 
 (defcustom mini-echo-position-format "%l:%c,%p"
-  "Format used to display lin, number and percentage in mini echo."
+  "Format used to display line, number and percentage in mini echo."
   :type 'string
   :group 'mini-echo)
 
@@ -510,9 +510,7 @@ Display format is inherited from `battery-mode-line-format'."
 (mini-echo-define-segment "narrow"
   "Indicator of narrow status of current buffer."
   :fetch
-  (when (or (buffer-narrowed-p)
-            (bound-and-true-p dired-narrow-mode))
-    (mini-echo-segment--print "NARROW" 'mini-echo-narrow)))
+  (mini-echo-segment--print (mini-echo-segment--extract "%n" t) 'mini-echo-narrow))
 
 (defvar mini-echo--repeat nil)
 (mini-echo-define-segment "repeat"
