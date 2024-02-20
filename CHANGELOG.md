@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.7.2](https://github.com/liuyinz/mini-echo.el/compare/v0.7.1..v0.7.2) - 2024-02-02
+## [0.7.2](https://github.com/liuyinz/mini-echo.el/compare/v0.7.1..v0.7.2) - 2024-02-20
 
 ### Bug Fixes
 
@@ -17,6 +17,8 @@
 
 ### Refactoring
 
+- **(macro)** use default info instead - ([54affbe](https://github.com/liuyinz/mini-echo.el/commit/54affbea08a7023ff373d8ec3e4a693b049b38ae))
+- **(narrow)** use mode-line-format instead - ([b504ea9](https://github.com/liuyinz/mini-echo.el/commit/b504ea9ae180e85c335bc52e2db2857795ded4d5))
 - provide new faces for segments - ([371d0fb](https://github.com/liuyinz/mini-echo.el/commit/371d0fb348a93bd18cf8b4933f1a3e3ffcddb66a))
 
 ## [0.7.1](https://github.com/liuyinz/mini-echo.el/compare/v0.7.0..v0.7.1) - 2023-12-27
