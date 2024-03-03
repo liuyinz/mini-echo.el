@@ -34,6 +34,7 @@ Echo buffer status in echo area, get rid of mode-line !
 ### dependencies
 
 - Emacs, version >= 29.1
+- [hide-mode-line](https://github.com/hlissner/emacs-hide-mode-line)
 
 ### package
 
