@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.0](https://github.com/liuyinz/mini-echo.el/compare/v0.7.2..v0.8.0) - 2024-03-03
+
+### Refactoring
+
+- **(dependency)** [**breaking**] add new dependency of hide-mode-line - ([1fd8311](https://github.com/liuyinz/mini-echo.el/commit/1fd831111fc81aeb82156715af340dda15f346d7))
+
 ## [0.7.2](https://github.com/liuyinz/mini-echo.el/compare/v0.7.1..v0.7.2) - 2024-02-20
 
 ### Bug Fixes
