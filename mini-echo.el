@@ -5,7 +5,7 @@
 ;; Author: liuyinz <liuyinz95@gmail.com>
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
 ;; Version: 0.7.2
-;; Package-Requires: ((emacs "29.1"))
+;; Package-Requires: ((emacs "29.1") (hide-mode-line "1.0.3"))
 ;; Keywords: frames
 ;; Homepage: https://github.com/liuyinz/mini-echo.el
 
@@ -36,6 +36,8 @@
 (require 'seq)
 (require 'subr-x)
 (require 'face-remap)
+
+(require 'hide-mode-line)
 
 (require 'mini-echo-segments)
 
@@ -127,9 +129,7 @@ Format is a list of three argument:
 (defvar mini-echo-overlays nil)
 
 (defvar mini-echo--orig-colors nil)
-(defvar-local mini-echo--orig-mdf nil)
 (defvar-local mini-echo--remap-cookie nil)
-
 (defvar mini-echo--valid-segments nil)
 (defvar mini-echo--default-segments nil)
 (defvar mini-echo--toggled-segments nil)
@@ -268,26 +268,6 @@ If optional arg HIDE is non-nil, disable the mode instead."
         mini-echo-window-divider-args
       (window-divider-mode 1))))
 
-(defun mini-echo-hide-modeline (&optional show)
-  "Hide mode-line in mini echo.
-If optional arg SHOW is non-nil, show the mode-line instead."
-  (if show
-      ;; FIXME new buffer created under mini-echo-mode has mode line face
-      ;; bug after disable mini-echo-mode
-      (let ((orig-value (get 'mode-line-format 'standard-value)))
-        (dolist (buf (buffer-list))
-          (with-current-buffer buf
-            (setq mode-line-format (or mini-echo--orig-mdf orig-value))
-            (setq mini-echo--orig-mdf nil)))
-        (setq-default mode-line-format orig-value))
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf
-        (setq mini-echo--orig-mdf mode-line-format)
-        (setq mode-line-format nil)))
-    (setq-default mode-line-format nil))
-  (when (called-interactively-p 'any)
-    (redraw-display)))
-
 (defun mini-echo-fontify-minibuffer-window ()
   "Fontify whole window with user defined face attributes."
   (face-remap-add-relative 'default 'mini-echo-minibuffer-window))
@@ -400,17 +380,17 @@ If optional arg RESET is non-nil, clear all toggled segments."
   :global t
   (if mini-echo-mode
       (progn
+        (global-hide-mode-line-mode 1)
         (mini-echo-ensure-segments)
         (mini-echo-show-divider)
-        (mini-echo-hide-modeline)
         (mini-echo-init-echo-area)
         ;; FIXME sometimes update twice when switch from echo to minibuf
         (run-with-timer 0 mini-echo-update-interval #'mini-echo-update)
         (advice-add 'message :before #'mini-echo-update-overlays-before-message)
         (add-hook 'window-size-change-functions
                   #'mini-echo-update-overlays-when-resized))
+    (global-hide-mode-line-mode -1)
     (mini-echo-show-divider 'hide)
-    (mini-echo-hide-modeline 'show)
     (mini-echo-init-echo-area 'deinit)
     (cancel-function-timers #'mini-echo-update)
     (advice-remove 'message #'mini-echo-update-overlays-before-message)
