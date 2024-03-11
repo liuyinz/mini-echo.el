@@ -128,7 +128,6 @@ Format is a list of three argument:
 
 (defvar mini-echo-overlays nil)
 
-(defvar mini-echo--orig-colors nil)
 (defvar-local mini-echo--remap-cookie nil)
 (defvar mini-echo--valid-segments nil)
 (defvar mini-echo--default-segments nil)
@@ -286,6 +285,8 @@ If optional arg DEINIT is non-nil, remove all overlays."
             (face-remap-remove-relative mini-echo--remap-cookie)
             (setq-local mini-echo--remap-cookie nil)))
         (remove-hook 'minibuffer-inactive-mode-hook
+                     #'mini-echo-fontify-minibuffer-window)
+        (remove-hook 'minibuffer-setup-hook
                      #'mini-echo-fontify-minibuffer-window))
     (dolist (buf mini-echo-managed-buffers)
       (with-current-buffer (get-buffer-create buf)
@@ -297,6 +298,8 @@ If optional arg DEINIT is non-nil, remove all overlays."
     ;; NOTE every time activating minibuffer would reset face,
     ;; so re-fontify when entering inactive-minibuffer-mode
     (add-hook 'minibuffer-inactive-mode-hook
+              #'mini-echo-fontify-minibuffer-window)
+    (add-hook 'minibuffer-setup-hook
               #'mini-echo-fontify-minibuffer-window)))
 
 (defun mini-echo-minibuffer-width ()
