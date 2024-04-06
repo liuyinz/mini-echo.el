@@ -135,7 +135,8 @@ Format is a list of three argument:
 (defvar mini-echo--rules nil)
 (defvar mini-echo--info-last-build nil)
 
-;;; segments
+
+;;; Segments functions
 
 (defun mini-echo-segment-valid-p (segment)
   "Return non-nil if SEGMENT is valid."
@@ -254,7 +255,8 @@ Format is a list of three argument:
                  (mini-echo-get-segments 'toggle)))
        string pred))))
 
-;;; ui
+
+;;; Ui painting
 
 (defun mini-echo-show-divider (&optional hide)
   "Show window divider when enable mini echo.
@@ -358,6 +360,9 @@ ARGS is optional."
       (unless (string-empty-p (overlay-get ov 'after-string))
         (overlay-put ov 'after-string (mini-echo-build-info))))))
 
+
+;;; Commands
+
 ;;;###autoload
 (defun mini-echo-toggle (&optional reset)
   "Enable or disable selected segment temporarily.
@@ -375,6 +380,9 @@ If optional arg RESET is non-nil, clear all toggled segments."
                            nil nil #'equal)
                 (if (member segment (mini-echo-get-segments 'current)) nil t))))
     (user-error "Please enable mini-echo-mode first")))
+
+
+;;; Minor mode
 
 ;;;###autoload
 (define-minor-mode mini-echo-mode
