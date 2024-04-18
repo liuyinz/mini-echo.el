@@ -48,6 +48,8 @@
 (defvar battery-mode-line-string)
 (defvar envrc-lighter)
 (defvar keycast-mode-line-format)
+(defvar text-scale-mode-lighter)
+(defvar mise-lighter)
 
 (declare-function projectile-project-root "ext:projectile")
 (declare-function ffip-project-root "ext:ffip")
@@ -591,6 +593,12 @@ Segment appearence depends on var `vc-display-status' and faces like
     (mini-echo-segment--print (mini-echo-segment--extract vc-mode)
                               nil mini-echo-vcs-max-length)))
 
+(mini-echo-define-segment "text-scale"
+  "Return info of `text-scale-mode' of current buffer."
+  :fetch
+  (unless (string= "+0" text-scale-mode-lighter)
+    (mini-echo-segment--print text-scale-mode-lighter 'mini-echo-cyan)))
+
 ;;; Third-party segments
 
 (mini-echo-define-segment "flycheck"
@@ -675,6 +683,12 @@ Segment appearence depends on var `vc-display-status' and faces like
   (when (and (bound-and-true-p envrc-mode)
              (not (eq envrc--status 'none)))
     (mini-echo-segment--extract envrc-lighter)))
+
+(mini-echo-define-segment "mise"
+  "Return mise status of current buffer."
+  :fetch
+  (when (bound-and-true-p mise-mode)
+    (mini-echo-segment--extract mise-lighter)))
 
 (mini-echo-define-segment "elfeed"
   "Return elfeed unread feeds count."
