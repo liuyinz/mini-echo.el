@@ -391,9 +391,8 @@ If optional arg RESET is non-nil, clear all toggled segments."
   :global t
   (if mini-echo-mode
       (progn
-        (put 'hide-mode-line-excluded-modes 'orig hide-mode-line-excluded-modes)
-        (setq hide-mode-line-excluded-modes nil)
-        (global-hide-mode-line-mode 1)
+        (let ((hide-mode-line-excluded-modes nil))
+          (global-hide-mode-line-mode 1))
         (mini-echo-ensure-segments)
         (mini-echo-show-divider)
         (mini-echo-init-echo-area)
@@ -402,8 +401,6 @@ If optional arg RESET is non-nil, clear all toggled segments."
         (advice-add 'message :before #'mini-echo-update-overlays-before-message)
         (add-hook 'window-size-change-functions
                   #'mini-echo-update-overlays-when-resized))
-    (setq hide-mode-line-excluded-modes
-          (get 'hide-mode-line-excluded-modes 'orig))
     (global-hide-mode-line-mode -1)
     (mini-echo-show-divider 'hide)
     (mini-echo-init-echo-area 'deinit)
