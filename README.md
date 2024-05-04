@@ -22,6 +22,7 @@ Echo buffer status in echo area, get rid of mode-line !
   - [Similar Package](#similar-package)
   - [Todo](#todo)
   - [FAQ](#faq)
+  - [Donate](#donate)
 
 <!-- markdown-toc end -->
 
@@ -76,7 +77,7 @@ There are three ways to adjust mini-echo segments display:
 ```
 
 2. `mini-echo-rules`: variable, list of rules applied for major modes.
-if your emacs version >= 30, then you can write a rule for parent mode which will take effect in all children modes. Otherwise, write rules for every specific major mode instead. 
+   if your emacs version >= 30, then you can write a rule for parent mode which will take effect in all children modes. Otherwise, write rules for every specific major mode instead.
 
 ```elisp
 ;; Concell of (SEGMENT . POSITION) is required to adjust the appearence.
@@ -207,3 +208,14 @@ For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 
   Customize face `mini-echo-minibuffer-window` to set different background color from
   default.
+
+## Donate
+
+If you think the it's helpful for you, please consider paying a cup of coffee
+for me. Thank you! :smile:
+
+<a href="https://paypal.me/liuyinz" target="_blank">
+<img
+src="https://www.paypalobjects.com/digitalassets/c/website/marketing/apac/C2/logos-buttons/optimize/44_Grey_PayPal_Pill_Button.png"
+alt="PayPal" width="120" />
+</a>
