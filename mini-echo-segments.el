@@ -67,11 +67,6 @@
 (declare-function flycheck-count-errors "ext:flycheck")
 (declare-function elfeed-search--count-unread "ext:elfeed")
 
-(defcustom mini-echo-position-format "%l:%c,%p"
-  "Format used to display line, number and percentage in mini echo."
-  :type 'string
-  :group 'mini-echo)
-
 (defcustom mini-echo-buffer-status-style 'sign
   "Style used to display buffer status in mini echo."
   :type '(choice (const :tag "Change extra sign after buffer name" sign)
@@ -344,10 +339,10 @@ with ellipsis."
 (mini-echo-define-segment "buffer-position"
   "Return the cursor position of current buffer."
   :fetch
-  (when (bound-and-true-p mini-echo-position-format)
-    (let ((pos (mini-echo-segment--extract mini-echo-position-format 'force)))
-      (mini-echo-segment--print (string-replace "Bottom" "Bot" pos)
-                                'mini-echo-buffer-position))))
+  (when-let* ((format mode-line-position-column-line-format)
+              (pos (mini-echo-segment--extract format 'force)))
+    (mini-echo-segment--print (string-replace "Bottom" "Bot" pos)
+                              'mini-echo-buffer-position)))
 
 (mini-echo-define-segment "char-info"
   "Return the char information of point in current buffer."
