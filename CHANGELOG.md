@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.9.0](https://github.com/liuyinz/mini-echo.el/compare/v0.8.0..v0.9.0) - 2024-05-08
+
+### Bug Fixes
+
+- fontify minibuffer when activated too - ([9b3fd95](https://github.com/liuyinz/mini-echo.el/commit/9b3fd955e04ec168fa769a79cb9f480e84f90ffd))
+- force hide all mode line when mini-echo-mode is enabled - ([8285a5f](https://github.com/liuyinz/mini-echo.el/commit/8285a5f9e87be869b1853e7c10024ca5231ab0d9))
+
+### Documentation
+
+- update dependencies section - ([b3e41b7](https://github.com/liuyinz/mini-echo.el/commit/b3e41b7997d02698b9cedbd0f2ceb8500bcce0c4))
+
+### Features
+
+- **(segment)** add segment of text-scale and mise - ([adeb402](https://github.com/liuyinz/mini-echo.el/commit/adeb402f5e508424960b6165d596b25fd6a6d756))
+
+### Refactoring
+
+- **(segment)** rewrite segment - buffer-position - ([aca80ea](https://github.com/liuyinz/mini-echo.el/commit/aca80ea92ee74f222ae82e52c146419484bf2abc))
+- optimize hide-mode-line feature - ([e85294e](https://github.com/liuyinz/mini-echo.el/commit/e85294e06e9ce9824735aed0ab6d828661439c9a))
+
 ## [0.8.0](https://github.com/liuyinz/mini-echo.el/compare/v0.7.2..v0.8.0) - 2024-03-03
 
 ### Refactoring
