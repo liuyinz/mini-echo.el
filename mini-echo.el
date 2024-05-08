@@ -54,7 +54,7 @@
   "Plist of segments which are default to all major modes."
   :type '(plist :key-type symbol
                 :options '(:long :short)
-                :value-type (repeat strings))
+                :value-type (repeat string))
   :group 'mini-echo)
 
 (defcustom mini-echo-rules
