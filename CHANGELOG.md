@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.1](https://github.com/liuyinz/mini-echo.el/compare/v0.9.0..v0.9.1) - 2024-05-14
+
+### Bug Fixes
+
+- type error in defcustom - ([cc1ffcc](https://github.com/liuyinz/mini-echo.el/commit/cc1ffccbc35ccfffbefa5c5bb34d658dbdfe0763))
+
+### Refactoring
+
+- use dash function instead - ([4cc246c](https://github.com/liuyinz/mini-echo.el/commit/4cc246cdaa025bcd46f0509a9cb468bea425f17a))
+
 ## [0.9.0](https://github.com/liuyinz/mini-echo.el/compare/v0.8.0..v0.9.0) - 2024-05-08
 
 ### Bug Fixes
