@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.2](https://github.com/liuyinz/mini-echo.el/compare/v0.9.1..v0.9.2) - 2024-05-14
+
+### Miscellaneous Chores
+
+- **(cliff)** fix changelog link error - ([76433e6](https://github.com/liuyinz/mini-echo.el/commit/76433e622657cfc4f991b886cc20bcaacb9df0d0))
+
 ## [0.9.1](https://github.com/liuyinz/mini-echo.el/compare/v0.9.0..v0.9.1) - 2024-05-14
 
 ### Bug Fixes
