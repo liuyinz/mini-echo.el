@@ -28,6 +28,7 @@
   (require 'let-alist))
 (require 'cl-lib)
 (require 'subr-x)
+(require 'dash)
 
 (defvar mini-echo-ellipsis)
 (defvar meow--indicator)
@@ -267,10 +268,8 @@ nil means to use `default-directory'.
       (cl-destructuring-bind (&key fetch setup update update-hook update-advice)
           props
         (cl-destructuring-bind (fetch-func update-func setup-func)
-            (mapcar (lambda (prop)
-                      (intern (concat "mini-echo-segment-"
-                                      (format "%s-%s" prop name))))
-                    '("-fetch" "-update" "-setup"))
+            (--map (intern (concat "mini-echo-segment--" (format "%s-%s" it name)))
+                   '("fetch" "update" "setup"))
           `(progn
              (let ((segment (make-mini-echo-segment :name ,name)))
                (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal)
@@ -290,10 +289,8 @@ nil means to use `default-directory'.
                (and (or ,update-hook ,update-advice (consp ',setup))
                     (defun ,setup-func ()
                       ,setup
-                      (mapc (lambda (x) (add-hook x ',update-func)) ,update-hook)
-                      (mapc (lambda (x)
-                              (advice-add (car x) (cdr x) ',update-func))
-                            ,update-advice))
+                      (--each ,update-hook (add-hook it ',update-func))
+                      (--each ,update-advice (advice-add (car it) (cdr it) ',update-func)))
                     (setf (mini-echo-segment-setup segment) ',setup-func))
                segment))))
     (message "mini-echo-define-segment: %s properties error!" name)))
@@ -445,14 +442,13 @@ with ellipsis."
              ((not (string-empty-p project)))
              ((string-prefix-p project filepath))
              (parts (split-string (string-trim filepath project) "/")))
-       (mapconcat #'identity
-                  `(,(propertize (file-name-nondirectory
-                                  (directory-file-name project))
-                                 'face 'mini-echo-project)
-                    ,@(mapcar (lambda (x) (substring x 0 1)) (butlast parts))
-                    nil)
-                  "/"))
-   (mini-echo-buffer-name-short))
+       (string-join `(,(propertize (file-name-nondirectory
+                                    (directory-file-name project))
+                                   'face 'mini-echo-project)
+                      ,@(--map (substring it 0 1) (butlast parts))
+                      nil)
+                    "/")
+     (mini-echo-buffer-name-short)))
   :update (mini-echo-update-project-root))
 
 (mini-echo-define-segment "buffer-name-short"
@@ -530,11 +526,11 @@ Display format is inherited from `battery-mode-line-format'."
                        (propertize "*" 'face 'compilation-mode-line-run)
                        (substring ind 1)))
      (let ((flymake-suppress-zero-counters nil))
-       (mapconcat #'mini-echo-segment--extract
-                  '(flymake-mode-line-error-counter
-                    flymake-mode-line-warning-counter
-                    flymake-mode-line-note-counter)
-                  "/")))))
+       (string-join (-map #'mini-echo-segment--extract
+                          '(flymake-mode-line-error-counter
+                            flymake-mode-line-warning-counter
+                            flymake-mode-line-note-counter))
+                    "/")))))
 
 (defsubst mini-echo-column (pos)
   "Get the column of the position `POS'."
@@ -608,11 +604,11 @@ Segment appearence depends on var `vc-display-status' and faces like
                        (finished nil))))
        (propertize ind 'face 'compilation-mode-line-run))
      (apply #'format "%s/%s/%s"
-            (seq-mapn (lambda (x y) (propertize x 'face y))
-                      (let-alist (flycheck-count-errors flycheck-current-errors)
-                        (mapcar (lambda (s) (number-to-string (or s 0)))
-                                (list .error .warning .info)))
-                      (list 'error 'warning 'success))))))
+            (--zip-with (propertize it 'face other)
+                        (let-alist (flycheck-count-errors flycheck-current-errors)
+                          (--map (number-to-string (or it 0))
+                                 (list .error .warning .info)))
+                        (list 'error 'warning 'success))))))
 
 (mini-echo-define-segment "meow"
   "Return the meow status of current buffer."

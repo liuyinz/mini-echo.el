@@ -5,7 +5,7 @@
 ;; Author: liuyinz <liuyinz95@gmail.com>
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
 ;; Version: 0.9.0
-;; Package-Requires: ((emacs "29.1") (hide-mode-line "1.0.3"))
+;; Package-Requires: ((emacs "29.1") (dash "2.19.1") (hide-mode-line "1.0.3"))
 ;; Keywords: frames
 ;; Homepage: https://github.com/liuyinz/mini-echo.el
 
@@ -33,10 +33,10 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'seq)
 (require 'subr-x)
 (require 'face-remap)
 
+(require 'dash)
 (require 'hide-mode-line)
 
 (require 'mini-echo-segments)
@@ -144,13 +144,9 @@ Format is a list of three argument:
 
 (defun mini-echo-merge-segments (orig extra)
   "Merge EXTRA segments into ORIG list."
-  (let* ((extra (seq-filter (lambda (x)
-                              (mini-echo-segment-valid-p (car x)))
-                            extra))
-         (orig-uniq (seq-remove (lambda (x)
-                                  (member x (mapcar #'car extra)))
-                                orig))
-         (extra-active (seq-remove (lambda (x) (= (cdr x) 0)) extra))
+  (let* ((extra (--filter (mini-echo-segment-valid-p (car it)) extra))
+         (orig-uniq (--remove (member it (-map #'car extra)) orig))
+         (extra-active (--remove (= (cdr it) 0) extra))
          (index 1)
          result)
     ;; TODO use length sum as boundary
@@ -160,33 +156,31 @@ Format is a list of three argument:
             (push (car match) result)
             (setq extra-active (delete match extra-active)))
         (and-let* ((head (pop orig-uniq))) (push head result)))
-      (setq index (1+ index)))
-    (append (reverse result) orig-uniq)))
+      (cl-incf index))
+    (-concat (reverse result) orig-uniq)))
 
 (defun mini-echo-ensure-segments ()
   "Ensure all predefined segments variable ready for mini echo."
-  (setq mini-echo--valid-segments (mapcar #'car mini-echo-segment-alist))
+  (setq mini-echo--valid-segments (-map #'car mini-echo-segment-alist))
   (cl-destructuring-bind (&key long short)
       mini-echo-default-segments
     (setq mini-echo--default-segments
-          (list :long (seq-filter #'mini-echo-segment-valid-p long)
-                :short (seq-filter #'mini-echo-segment-valid-p short))))
+          (list :long (-filter #'mini-echo-segment-valid-p long)
+                :short (-filter #'mini-echo-segment-valid-p short))))
   (setq mini-echo--rules
         (cl-loop for rule in mini-echo-rules
                  collect
                  (cl-destructuring-bind (mode &key both long short)
                      rule
                    (list mode :long (mini-echo-merge-segments
-                                     (plist-get mini-echo--default-segments
-                                                :long)
+                                     (plist-get mini-echo--default-segments :long)
                                      (cl-remove-duplicates
-                                      (append both long)
+                                      (-concat both long)
                                       :key #'car :test #'equal))
                               :short (mini-echo-merge-segments
-                                      (plist-get mini-echo--default-segments
-                                                 :short)
+                                      (plist-get mini-echo--default-segments :short)
                                       (cl-remove-duplicates
-                                       (append both short)
+                                       (-concat both short)
                                        :key #'car :test #'equal)))))))
 
 (defun mini-echo-get-segments (style)
@@ -196,30 +190,28 @@ Format is a list of three argument:
     (selected (plist-get
                ;; parent mode rules take effect in children modes if possible
                (or (and (fboundp #'derived-mode-all-parents)
-                        (car (seq-keep
-                              (lambda (x) (alist-get x mini-echo--rules))
-                              (derived-mode-all-parents major-mode))))
+                        (car (--keep (alist-get it mini-echo--rules)
+                                     (derived-mode-all-parents major-mode))))
                    (alist-get major-mode mini-echo--rules)
                    mini-echo--default-segments)
-               (if (funcall mini-echo-short-style-predicate)
-                   :short :long)))
+               (if (funcall mini-echo-short-style-predicate) :short :long)))
     (current
      (let ((result (mini-echo-get-segments 'selected))
            extra)
        (dolist (filter mini-echo--toggled-segments)
-         (cl-destructuring-bind (segment . enable)
-             filter
+         (-let [(segment . enable) filter]
            (if enable
                (unless (member segment result)
                  (push segment extra))
              (setq result (remove segment result)))))
-       (append result extra)))
-    (no-current (seq-difference (mini-echo-get-segments 'valid)
-                                (mini-echo-get-segments 'current)))
+
+       (-concat result extra)))
+    (no-current (-difference (mini-echo-get-segments 'valid)
+                             (mini-echo-get-segments 'current)))
     (toggle (cl-remove-duplicates
-             (append (mapcar #'car mini-echo--toggled-segments)
-                     (mini-echo-get-segments 'current)
-                     (mini-echo-get-segments 'no-current))
+             (-concat (-map #'car mini-echo--toggled-segments)
+                      (mini-echo-get-segments 'current)
+                      (mini-echo-get-segments 'no-current))
              :test #'equal
              :from-end t))))
 
@@ -239,8 +231,7 @@ Format is a list of three argument:
           (and (functionp setup) (funcall setup))
           (and (functionp update) (funcall update)))
         (and-let* ((info (funcall fetch))) (push info result))))
-    (mapconcat #'identity (seq-remove #'string-empty-p result)
-               mini-echo-separator)))
+    (string-join (-remove #'string-empty-p result) mini-echo-separator)))
 
 (defun mini-echo--toggle-completion ()
   "Return completion table for command mini echo toggle."
@@ -250,9 +241,8 @@ Format is a list of three argument:
       (complete-with-action
        action
        (let ((current (mini-echo-get-segments 'current)))
-         (mapcar (lambda (s)
-                   (propertize s 'face (if (member s current) 'success 'error)))
-                 (mini-echo-get-segments 'toggle)))
+         (--map (propertize it 'face (if (member it current) 'success 'error))
+                (mini-echo-get-segments 'toggle)))
        string pred))))
 
 
@@ -263,10 +253,10 @@ Format is a list of three argument:
 If optional arg HIDE is non-nil, disable the mode instead."
   (if hide
       (window-divider-mode -1)
-    (cl-destructuring-bind (window-divider-default-places
-                            window-divider-default-right-width
-                            window-divider-default-bottom-width)
-        mini-echo-window-divider-args
+    (-let [(window-divider-default-places
+            window-divider-default-right-width
+            window-divider-default-bottom-width)
+           mini-echo-window-divider-args]
       (window-divider-mode 1))))
 
 (defun mini-echo-fontify-minibuffer-window ()
@@ -277,7 +267,7 @@ If optional arg HIDE is non-nil, disable the mode instead."
   "Initialize echo area and minibuffer in mini echo.
 If optional arg DEINIT is non-nil, remove all overlays."
   ;; delete old overlays by default
-  (mapc #'delete-overlay mini-echo-overlays)
+  (-each mini-echo-overlays #'delete-overlay)
   (setq mini-echo-overlays nil)
   (if deinit
       (progn
