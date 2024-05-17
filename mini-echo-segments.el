@@ -25,7 +25,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'let-alist))
+  (require 'let-alist)
+  (require 'eieio))
+
 (require 'cl-lib)
 (require 'subr-x)
 (require 'dash)
@@ -52,6 +54,7 @@
 (defvar text-scale-mode-lighter)
 (defvar mise-lighter)
 
+(declare-function eieio-oset "eieio-core")
 (declare-function projectile-project-root "ext:projectile")
 (declare-function ffip-project-root "ext:ffip")
 (declare-function keycast--format "ext:keycast")
@@ -265,34 +268,37 @@ nil means to use `default-directory'.
   "Define a mini echo segment NAME with DOCSTRING and PROPS."
   (declare (indent defun) (doc-string 2))
   (if (plistp props)
-      (cl-destructuring-bind (&key fetch setup update update-hook update-advice)
-          props
-        (cl-destructuring-bind (fetch-func update-func setup-func)
-            (--map (intern (concat "mini-echo-segment--" (format "%s-%s" it name)))
-                   '("fetch" "update" "setup"))
-          `(progn
-             (let ((segment (make-mini-echo-segment :name ,name)))
-               (setf (alist-get ,name mini-echo-segment-alist nil nil #'equal)
-                     segment)
+      (-let (((&plist :fetch :setup :update :update-hook :update-advice) props)
+             ((fetch-func update-func setup-func)
+              (--map (intern (concat "mini-echo-segment--" (format "%s-%s" it name)))
+                     '("fetch" "update" "setup"))))
+        `(progn
+           (let ((segment (make-mini-echo-segment :name ,name)))
+             ;; push segment into mini echo alist
+             (setf (alist-get ,name mini-echo-segment-alist nil nil #'string=) segment)
+             (with-slots ((to-fetch fetch) (to-update update)
+                          (to-hook update-hook) (to-advice update-advice)
+                          (to-setup setup))
+                 segment
                ;; fetch
                (defun ,fetch-func () ,docstring ,fetch)
-               (setf (mini-echo-segment-fetch segment) ',fetch-func)
+               (setf to-fetch ',fetch-func)
                ;; update
                (when (consp ',update)
                  (defun ,update-func (&rest _args)
                    (when (bound-and-true-p mini-echo-mode)
                      ,update))
-                 (setf (mini-echo-segment-update segment) ',update-func)
-                 (setf (mini-echo-segment-update-hook segment) ,update-hook)
-                 (setf (mini-echo-segment-update-advice segment) ,update-advice))
+                 (setf to-update ',update-func
+                       to-hook ,update-hook
+                       to-advice ,update-advice))
                ;; setup
                (and (or ,update-hook ,update-advice (consp ',setup))
                     (defun ,setup-func ()
                       ,setup
                       (--each ,update-hook (add-hook it ',update-func))
                       (--each ,update-advice (advice-add (car it) (cdr it) ',update-func)))
-                    (setf (mini-echo-segment-setup segment) ',setup-func))
-               segment))))
+                    (setf to-setup ',setup-func)))
+             segment)))
     (message "mini-echo-define-segment: %s properties error!" name)))
 
 (defun mini-echo-segment--extract (construct &optional force)
@@ -423,13 +429,13 @@ with ellipsis."
                               'face 'mini-echo-blob-revision))))))
    ((bound-and-true-p atomic-chrome-edit-mode)
     (mini-echo-segment--print (buffer-name) nil 25))
-   (t (let ((name (buffer-name)))
-        (cl-destructuring-bind (sign . face)
-            (mini-echo-buffer-status)
-          (cl-case mini-echo-buffer-status-style
-            (sign (concat name (propertize sign 'face face)))
-            (color (propertize name 'face face))
-            (both (propertize (concat name sign) 'face face))))))))
+   (t
+    (-let ((name (buffer-name))
+           ((sign . face) (mini-echo-buffer-status)))
+      (cl-case mini-echo-buffer-status-style
+        (sign (concat name (propertize sign 'face face)))
+        (color (propertize name 'face face))
+        (both (propertize (concat name sign) 'face face)))))))
 
 (mini-echo-define-segment "buffer-name"
   "Return file path of current buffer."
@@ -542,10 +548,10 @@ Display format is inherited from `battery-mode-line-format'."
   :fetch
   (when (or mark-active (and (bound-and-true-p evil-local-mode)
                              (eq evil-state 'visual)))
-    (cl-destructuring-bind (beg . end)
-        (if (and (bound-and-true-p evil-local-mode) (eq evil-state 'visual))
-            (cons evil-visual-beginning evil-visual-end)
-          (cons (region-beginning) (region-end)))
+    (-let [(beg . end)
+           (if (and (bound-and-true-p evil-local-mode) (eq evil-state 'visual))
+               (cons evil-visual-beginning evil-visual-end)
+             (cons (region-beginning) (region-end)))]
       (let* ((lines (count-lines beg (min end (point-max))))
              (str (cond ((or (bound-and-true-p rectangle-mark-mode)
                              (and (bound-and-true-p evil-visual-selection)
@@ -606,9 +612,8 @@ Segment appearence depends on var `vc-display-status' and faces like
      (apply #'format "%s/%s/%s"
             (--zip-with (propertize it 'face other)
                         (let-alist (flycheck-count-errors flycheck-current-errors)
-                          (--map (number-to-string (or it 0))
-                                 (list .error .warning .info)))
-                        (list 'error 'warning 'success))))))
+                          (--map (number-to-string (or it 0)) (list .error .warning .info)))
+                        '(error warning success))))))
 
 (mini-echo-define-segment "meow"
   "Return the meow status of current buffer."
