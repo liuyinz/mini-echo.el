@@ -38,6 +38,7 @@
 (require 'cl-lib)
 (require 'subr-x)
 (require 'face-remap)
+(require 'pcase)
 
 (require 'dash)
 (require 'hide-mode-line)
@@ -183,17 +184,17 @@ Format is a list of three argument:
 
 (defun mini-echo-get-segments (target)
   "Return list of segments according to TARGET."
-  (cl-case target
-    (valid mini-echo--valid-segments)
-    (selected (plist-get
-               ;; parent mode rules take effect in children modes if possible
-               (or (and (fboundp #'derived-mode-all-parents)
-                        (car (--keep (alist-get it mini-echo--rules)
-                                     (derived-mode-all-parents major-mode))))
-                   (alist-get major-mode mini-echo--rules)
-                   mini-echo--default-segments)
-               (if (funcall mini-echo-short-style-predicate) :short :long)))
-    (current
+  (pcase target
+    ('valid mini-echo--valid-segments)
+    ('selected (plist-get
+                ;; parent mode rules take effect in children modes if possible
+                (or (and (fboundp #'derived-mode-all-parents)
+                         (car (--keep (alist-get it mini-echo--rules)
+                                      (derived-mode-all-parents major-mode))))
+                    (alist-get major-mode mini-echo--rules)
+                    mini-echo--default-segments)
+                (if (funcall mini-echo-short-style-predicate) :short :long)))
+    ('current
      (let ((result (mini-echo-get-segments 'selected))
            extra)
        (--each mini-echo--toggled-segments
@@ -203,14 +204,14 @@ Format is a list of three argument:
                  (push segment extra))
              (setq result (remove segment result)))))
        (-concat result extra)))
-    (no-current (-difference (mini-echo-get-segments 'valid)
-                             (mini-echo-get-segments 'current)))
-    (toggle (cl-remove-duplicates
-             (-concat (-map #'car mini-echo--toggled-segments)
-                      (mini-echo-get-segments 'current)
-                      (mini-echo-get-segments 'no-current))
-             :test #'equal
-             :from-end t))))
+    ('no-current (-difference (mini-echo-get-segments 'valid)
+                              (mini-echo-get-segments 'current)))
+    ('toggle (cl-remove-duplicates
+              (-concat (-map #'car mini-echo--toggled-segments)
+                       (mini-echo-get-segments 'current)
+                       (mini-echo-get-segments 'no-current))
+              :test #'equal
+              :from-end t))))
 
 (defun mini-echo-concat-segments ()
   "Return concatenated information of selected segments."

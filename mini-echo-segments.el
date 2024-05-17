@@ -377,20 +377,20 @@ with ellipsis."
   "Update and return current project root path if exists."
   (setq mini-echo--project-root
         (or (and (buffer-file-name)
-                 (cl-case mini-echo-project-detection
-                   (ffip (and (fboundp 'ffip-project-root)
-                              (let ((inhibit-message t))
-                                (ffip-project-root))))
-                   (projectile (and (bound-and-true-p projectile-mode)
-                                    (projectile-project-root)))
-                   (project (when-let (((fboundp 'project-current))
-                                       (project (project-current)))
-                              (expand-file-name
-                               (if (fboundp 'project-root)
-                                   (project-root project)
-                                 (car (with-no-warnings
-                                        (project-roots project)))))))
-                   (t (funcall mini-echo-project-detection))))
+                 (pcase mini-echo-project-detection
+                   ('ffip (and (fboundp 'ffip-project-root)
+                               (let ((inhibit-message t))
+                                 (ffip-project-root))))
+                   ('projectile (and (bound-and-true-p projectile-mode)
+                                     (projectile-project-root)))
+                   ('project (when-let (((fboundp 'project-current))
+                                        (project (project-current)))
+                               (expand-file-name
+                                (if (fboundp 'project-root)
+                                    (project-root project)
+                                  (car (with-no-warnings
+                                         (project-roots project)))))))
+                   (_ (funcall mini-echo-project-detection))))
             "")))
 
 (mini-echo-define-segment "project"
@@ -432,10 +432,10 @@ with ellipsis."
    (t
     (-let ((name (buffer-name))
            ((sign . face) (mini-echo-buffer-status)))
-      (cl-case mini-echo-buffer-status-style
-        (sign (concat name (propertize sign 'face face)))
-        (color (propertize name 'face face))
-        (both (propertize (concat name sign) 'face face)))))))
+      (pcase mini-echo-buffer-status-style
+        ('sign (concat name (propertize sign 'face face)))
+        ('color (propertize name 'face face))
+        ('both (propertize (concat name sign) 'face face)))))))
 
 (mini-echo-define-segment "buffer-name"
   "Return file path of current buffer."
@@ -603,16 +603,17 @@ Segment appearence depends on var `vc-display-status' and faces like
   :fetch
   (when (bound-and-true-p flycheck-mode)
     (concat
-     (when-let ((ind (cl-case flycheck-last-status-change
-                       ((not-checked no-checker suspicious) "?")
-                       ((errord interrupted) "!")
-                       (running "*")
-                       (finished nil))))
+     (when-let ((ind (pcase flycheck-last-status-change
+                       ((and n (guard (memq n '(not-checked no-checker suspicious)))) "?")
+                       ((and n (guard (memq n '(errord interrupted)))) "!")
+                       ('running "*")
+                       ('finished nil))))
        (propertize ind 'face 'compilation-mode-line-run))
      (apply #'format "%s/%s/%s"
             (--zip-with (propertize it 'face other)
                         (let-alist (flycheck-count-errors flycheck-current-errors)
-                          (--map (number-to-string (or it 0)) (list .error .warning .info)))
+                          (--map (number-to-string (or it 0))
+                                 (list .error .warning .info)))
                         '(error warning success))))))
 
 (mini-echo-define-segment "meow"
