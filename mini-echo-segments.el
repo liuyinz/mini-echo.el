@@ -350,21 +350,20 @@ with ellipsis."
 (mini-echo-define-segment "char-info"
   "Return the char information of point in current buffer."
   :fetch
-  (let* ((pos (point))
-         (char (char-after pos))
-         (eight-bit-p (and (not enable-multibyte-characters) (>= char 128)))
-         (charset (if eight-bit-p 'eight-bit
-                    (or (get-text-property pos 'charset)
-                        (char-charset char))))
-         (multibyte-p enable-multibyte-characters)
-         (char-description (if (< char 128)
-                               (single-key-description char)
-                             (string (if (not multibyte-p)
-                                         (decode-char 'eight-bit char)
-                                       char)))))
-    (mini-echo-segment--print (format "\"%s\",%s,(%d,#o%o,#x%x)"
-                                      char-description charset char char char)
-                              'mini-echo-char-info)))
+  (when-let* ((pos (point))
+              (char (char-after pos))
+              (charset (if (and (not enable-multibyte-characters) (>= char 128))
+                           'eight-bit
+                         (or (get-text-property pos 'charset)
+                             (char-charset char))))
+              (char-description (if (< char 128)
+                                    (single-key-description char)
+                                  (string (if (not enable-multibyte-characters)
+                                              (decode-char 'eight-bit char)
+                                            char)))))
+    (mini-echo-segment--print
+     (format "\"%s\",%s,(%d,#o%o,#x%x)" char-description charset char char char)
+     'mini-echo-char-info)))
 
 (mini-echo-define-segment "buffer-size"
   "Return the size of current buffer."
