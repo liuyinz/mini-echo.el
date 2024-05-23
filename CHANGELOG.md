@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.3](https://github.com/liuyinz/mini-echo.el/compare/v0.9.2..v0.9.3) - 2024-05-23
+
+### Bug Fixes
+
+- **(char-info)** only display info when character exist - ([4e29182](https://github.com/liuyinz/mini-echo.el/commit/4e2918225bea7fa7d232260bd0b2de48df68c6f8))
+- calculate string length correctly on gui - ([9bcc56c](https://github.com/liuyinz/mini-echo.el/commit/9bcc56cb25951fcf6b317499e90335e9e127c4ef))
+
+### Refactoring
+
+- macro mini-echo-define-segment - ([c11620f](https://github.com/liuyinz/mini-echo.el/commit/c11620f0a7d083f740382f2c4e0af1a28a1c4e1d))
+- use pcase instead cl-case - ([19689a1](https://github.com/liuyinz/mini-echo.el/commit/19689a14f465704a6a854da895eeb7b3288f7bf7))
+
 ## [0.9.2](https://github.com/liuyinz/mini-echo.el/compare/v0.9.1..v0.9.2) - 2024-05-14
 
 ### Miscellaneous Chores
