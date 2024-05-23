@@ -298,13 +298,21 @@ If optional arg DEINIT is non-nil, remove all overlays."
   "Return non-nil if current minibuffer window width less than 120."
   (< (mini-echo-minibuffer-width) 120))
 
+(defun mini-echo-calculate-length (str)
+  "Return length of STR.
+On the gui, calculate length based on pixel, otherwise based on char."
+  (if (display-graphic-p)
+      (ceiling (/ (string-pixel-width str) (float (frame-char-width))))
+    (string-width str)))
+
 (defun mini-echo-build-info ()
   "Build mini-echo information."
   (condition-case nil
       (if-let* ((win (get-buffer-window))
                 ((window-live-p win)))
           (let* ((combined (mini-echo-concat-segments))
-                 (padding (+ mini-echo-right-padding (string-width combined)))
+                 (padding (+ mini-echo-right-padding
+                             (mini-echo-calculate-length combined)))
                  (prop `(space :align-to (- right-fringe ,padding))))
             (setq mini-echo--info-last-build
                   (concat (propertize " " 'cursor 1 'display prop) combined)))
