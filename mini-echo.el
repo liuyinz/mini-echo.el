@@ -386,7 +386,7 @@ If optional arg RESET is non-nil, clear all toggled segments."
         (let ((hide-mode-line-excluded-modes nil))
           (global-hide-mode-line-mode 1))
         (mini-echo-ensure-segments)
-        (mini-show-echo-divider)
+        (mini-echo-show-divider)
         (mini-echo-init-echo-area)
         ;; FIXME sometimes update twice when switch from echo to minibuf
         (run-with-timer 0 mini-echo-update-interval #'mini-echo-update)
