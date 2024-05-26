@@ -678,13 +678,16 @@ Segment appearence depends on var `vc-display-status' and faces like
   :fetch
   (when (and (bound-and-true-p envrc-mode)
              (not (eq envrc--status 'none)))
-    (mini-echo-segment--extract envrc-lighter)))
+    (let ((orig (mini-echo-segment--extract envrc-lighter)))
+      (string-replace "[" "/" (substring orig 0 7)))))
 
 (mini-echo-define-segment "mise"
   "Return mise status of current buffer."
   :fetch
-  (when (bound-and-true-p mise-mode)
-    (mini-echo-segment--extract mise-lighter)))
+  (when (and (bound-and-true-p mise-mode)
+             (not (eq mise--status 'none)))
+    (let ((orig (mini-echo-segment--extract mise-lighter)))
+      (string-replace "[" "/" (substring orig 0 6)))))
 
 (mini-echo-define-segment "elfeed"
   "Return elfeed unread feeds count."
