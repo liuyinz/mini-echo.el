@@ -470,11 +470,23 @@ with ellipsis."
 (mini-echo-define-segment "process"
   "Return current process info."
   :fetch
-  ;; FIXME exlude shell-mode persistent infos
   (when-let (((bound-and-true-p mode-line-process))
              (str (mini-echo-segment--extract mode-line-process 'force))
              ((not (string-empty-p str))))
-    (mini-echo-segment--print str 'mini-echo-process 20)))
+    (pcase major-mode
+      ('ibuffer-mode
+       (let ((sign (if (string-match-p "\\[rev]" str) "\u2193" "\u2191"))
+             (auto-p (if (string-match-p "Auto" str) "auto|" ""))
+             (sort-item (cadr (string-split str "[ ]"))))
+         (format "%s|%s|%s"
+                 (propertize "Ibuffer" 'face 'dired-special)
+                 (propertize (if ibuffer-display-maybe-show-predicates "show" "hide")
+                             'face 'dired-warning)
+                 (concat
+                  (propertize auto-p 'face 'dired-special)
+                  (propertize sort-item 'face 'dired-symlink)
+                  (propertize sign 'face 'dired-warning)))))
+      (_ (mini-echo-segment--print str 'mini-echo-process 20)))))
 
 (mini-echo-define-segment "time"
   "Return current time."
