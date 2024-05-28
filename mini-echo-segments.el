@@ -95,6 +95,12 @@ nil means to use `default-directory'.
                  function)
   :group 'mini-echo)
 
+(defcustom mini-echo-mise-show-always t
+  "If nil, do not show mise section when `mise--status' is global or none.
+Otherwise, show mise section always."
+  :type 'boolean
+  :group 'mini-echo)
+
 ;; faces
 (defface mini-echo-green
   '((t (:foreground "#8BD49C")))
@@ -697,7 +703,8 @@ Segment appearence depends on var `vc-display-status' and faces like
   "Return mise status of current buffer."
   :fetch
   (when (and (bound-and-true-p mise-mode)
-             (not (eq mise--status 'none)))
+             (or mini-echo-mise-show-always
+                 (not (memq mise--status '(none global)))))
     (let ((orig (mini-echo-segment--extract mise-lighter)))
       (string-replace "[" "/" (substring orig 0 6)))))
 
