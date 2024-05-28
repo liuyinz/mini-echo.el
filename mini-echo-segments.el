@@ -53,6 +53,8 @@
 (defvar keycast-mode-line-format)
 (defvar text-scale-mode-lighter)
 (defvar mise-lighter)
+(defvar mise--status)
+(defvar ibuffer-display-maybe-show-predicates)
 
 (declare-function eieio-oset "eieio-core")
 (declare-function projectile-project-root "ext:projectile")
