@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/liuyinz/mini-echo.el/compare/v0.9.3..v0.10.0) - 2024-05-28
+
+### Bug Fixes
+
+- **(mise)** update mise/envrc status info - ([fb16e84](https://github.com/liuyinz/mini-echo.el/commit/fb16e8400af1634b2dd583beecbb801a8e8003c3))
+- typos - ([3989ab9](https://github.com/liuyinz/mini-echo.el/commit/3989ab957ff8c1a7ae4c20ca6f977de964a4f420))
+
+### Features
+
+- **(mise)** add option mini-echo-mise-show-always - ([5b8ecb7](https://github.com/liuyinz/mini-echo.el/commit/5b8ecb7f0ead15f5ba5c0d05d145b3a4f9627961))
+
+### Refactoring
+
+- **(process)** handle ibuffer-mode specially - ([b79abee](https://github.com/liuyinz/mini-echo.el/commit/b79abeedde684f6e73e950856fead3ff748b19d7))
+
 ## [0.9.3](https://github.com/liuyinz/mini-echo.el/compare/v0.9.2..v0.9.3) - 2024-05-23
 
 ### Bug Fixes

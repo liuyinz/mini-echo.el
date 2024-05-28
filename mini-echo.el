@@ -4,7 +4,7 @@
 
 ;; Author: liuyinz <liuyinz95@gmail.com>
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
-;; Version: 0.9.3
+;; Version: 0.10.0
 ;; Package-Requires: ((emacs "29.1") (dash "2.19.1") (hide-mode-line "1.0.3"))
 ;; Keywords: frames
 ;; Homepage: https://github.com/liuyinz/mini-echo.el
