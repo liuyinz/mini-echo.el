@@ -61,20 +61,23 @@
                 :value-type (repeat string))
   :group 'mini-echo)
 
+(defvar mini-echo--ruleset
+  '((remove-five ("major-mode" . 0) ("buffer-position" . 0)
+                 ("buffer-size" . 0) ("buffer-name" . 0)
+                 ("shrink-path" . 0))
+    (remove-size/pos ("buffer-position" . 0) ("buffer-size" . 0))
+    (keep-path/name ("major-mode" . 0) ("buffer-position" . 0)
+                    ("buffer-size" . 0))))
+
 ;; TODO support :only to simplify these options
 (defcustom mini-echo-rules
-  '((special-mode :both (("buffer-size" . 0)))
-    (dired-mode :both (("buffer-size" . 0) ("major-mode" . 0)
-                       ("buffer-position" . 0) ("dired" . 3)))
-    (vterm-mode :both (("major-mode" . 0) ("buffer-position" . 0)
-                       ("buffer-size" . 0) ("buffer-name" . 0)
-                       ("shrink-path" . 0)))
-    (quickrun--mode :both (("major-mode" . 0) ("buffer-position" . 0)
-                           ("buffer-size" . 0)))
-    (xwidget-webkit-mode :both (("buffer-size" . 0) ("buffer-position" . 0)))
-    (ibuffer-mode :both (("major-mode" . 0) ("buffer-position" . 0)
-                         ("buffer-size" . 0) ("shrink-path" . 0)
-                         ("buffer-name" . 0))))
+  `((vterm-mode :both (,@(alist-get 'remove-five mini-echo--ruleset)))
+    (ibuffer-mode :both (,@(alist-get 'remove-five mini-echo--ruleset)))
+    (quickrun--mode :both (,@(alist-get 'keep-path/name mini-echo--ruleset)))
+    (xwidget-webkit-mode :both (,@(alist-get 'remove-size/pos mini-echo--ruleset)))
+    (dired-mode :both (,@(alist-get 'keep-path/name mini-echo--ruleset)
+                       ("dired" . 3)))
+    (special-mode :both (("buffer-size" . 0))))
   "List of rules which are only take effect in some major mode.
 The format is like:
  (MAJOR-MODE :both  ((SEGMENT . POSITION) ...))
