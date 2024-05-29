@@ -423,7 +423,7 @@ with ellipsis."
     (cons "!" 'error))
    (t (cons " " nil))))
 
-(defun mini-echo-buffer-name-short ()
+(defun mini-echo-buffer-name ()
   "Return current buffer name."
   (cond
    (;; TODO support timemachine file
@@ -445,28 +445,33 @@ with ellipsis."
         ('both (propertize (concat name sign) 'face face)))))))
 
 (mini-echo-define-segment "buffer-name"
-  "Return file path of current buffer."
+  "Return name of current buffer."
+  :fetch (mini-echo-buffer-name))
+
+(mini-echo-define-segment "shrink-path"
+  "Return shrinked path of current buffer in project or parent dir."
   :update-advice '((vc-refresh-state . :after))
   :fetch
   (concat
-   (if-let* ((filepath (buffer-file-name))
-             (project (or mini-echo--project-root
-                          (mini-echo-update-project-root)))
-             ((not (string-empty-p project)))
-             ((string-prefix-p project filepath))
-             (parts (split-string (string-trim filepath project) "/")))
-       (string-join `(,(propertize (file-name-nondirectory
-                                    (directory-file-name project))
-                                   'face 'mini-echo-project)
-                      ,@(--map (substring it 0 1) (butlast parts))
+   (let* ((filepath (buffer-file-name))
+          (project (or mini-echo--project-root
+                       (mini-echo-update-project-root)))
+          (dir (->> default-directory
+                    (or (and (not (string-empty-p project)) project))
+                    (directory-file-name)
+                    (file-name-nondirectory))))
+     (cond
+      ((not filepath) "")
+      ((string-empty-p project) (concat dir "/"))
+      ((string-prefix-p project filepath)
+       (string-join `(,(propertize dir 'face 'mini-echo-project)
+                      ,@(--map (substring it 0 1)
+                               (butlast (split-string (string-trim filepath project) "/")))
                       nil)
-                    "/")
-     (mini-echo-buffer-name-short)))
+                    "/"))
+      (t "")))
+   (mini-echo-buffer-name))
   :update (mini-echo-update-project-root))
-
-(mini-echo-define-segment "buffer-name-short"
-  "Return name of current buffer."
-  :fetch (mini-echo-buffer-name-short))
 
 (mini-echo-define-segment "remote-host"
   "Return the hostname of remote buffer."

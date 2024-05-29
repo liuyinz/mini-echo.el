@@ -70,10 +70,10 @@ There are three ways to adjust mini-echo segments display:
 ```elisp
 ;; set default segments of long/short style
 (setq mini-echo-default-segments
-  '(:long ("major-mode" "buffer-name" "vcs" "buffer-position"
+  '(:long ("major-mode" "shrink-path" "vcs" "buffer-position"
            "buffer-size" "flymake" "process" "selection-info"
            "narrow" "macro" "profiler")
-    :short ("buffer-name-short" "buffer-position" "process"
+    :short ("buffer-name" "buffer-position" "process"
             "profiler" "selection-info" "narrow" "macro")))
 ```
 
