@@ -40,6 +40,7 @@
 (defvar evil-this-macro)
 (defvar flymake-suppress-zero-counters)
 (defvar flymake-mode-line-exception)
+(defvar dired-actual-switches)
 (defvar magit-blob-mode)
 (defvar display-time-string)
 (defvar lsp-bridge-mode-lighter)
@@ -472,6 +473,36 @@ with ellipsis."
       (t "")))
    (mini-echo-buffer-name))
   :update (mini-echo-update-project-root))
+
+(mini-echo-define-segment "dired"
+  "Return dired info of current buffer."
+  :fetch
+  (when (eq major-mode 'dired-mode)
+    (save-match-data
+      (let* ((switches dired-actual-switches)
+             (sort-by
+              (and (string-match
+                    (concat
+                     "--sort="
+                     (regexp-opt '("size" "time" "version" "extension" "width") t))
+                    switches)
+                   (match-string 1 switches)))
+             (time-kind
+              (and (string-match
+                    (concat
+                     "--time=" (regexp-opt '("atime" "ctime" "mtime" "birth") t))
+                    switches)
+                   (match-string 1 switches)))
+             (sort-item (if sort-by
+                            (if (string= sort-by "time")
+                                (or time-kind "mtime")
+                              sort-by)
+                          "name"))
+             (sign (if (string-match-p "--reverse" switches) "\u2191" "\u2193")))
+        (format "%s|%s%s"
+                (propertize "Dired" 'face 'dired-special)
+                (propertize sort-item 'face 'dired-symlink)
+                (propertize sign 'face 'dired-warning))))))
 
 (mini-echo-define-segment "remote-host"
   "Return the hostname of remote buffer."
