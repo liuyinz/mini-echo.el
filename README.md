@@ -184,6 +184,7 @@ For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 - [ ] add environment support, such as python, node.js, asdf...
 - [ ] add support to highlight current window
 - [ ] add support for nerd-icons
+- [ ] refactor segment to distinguish between persistent and temporary types.
 
 ## FAQ
 

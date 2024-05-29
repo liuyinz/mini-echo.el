@@ -727,6 +727,23 @@ Segment appearence depends on var `vc-display-status' and faces like
                             'elfeed-search-unread-count-face)
                 "]")))))
 
+(mini-echo-define-segment "vterm"
+  "Return info of available vterm buffers."
+  :fetch
+  (when (eq major-mode 'vterm-mode)
+    (string-join
+     (->> (buffer-list)
+          (--filter (eq (buffer-local-value 'major-mode it) 'vterm-mode))
+          (-map #'buffer-name)
+          (-sort #'string-lessp)
+          (reverse)
+          (--map (mini-echo-segment--print
+                  it (if (string= it (buffer-name))
+                         'dired-symlink
+                       'font-lock-doc-face)
+                  20)))
+     (propertize "|" 'face 'font-lock-doc-face))))
+
 ;; TODO add more segments
 
 (provide 'mini-echo-segments)

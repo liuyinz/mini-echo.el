@@ -64,6 +64,8 @@
 (defcustom mini-echo-rules
   '((special-mode :both (("buffer-size" . 0)))
     (dired-mode :both (("buffer-size" . 0)))
+    (vterm-mode :both (("major-mode" . 0) ("buffer-name" . 0) ("buffer-position" . 0)
+                       ("buffer-name-short" . 0) ("buffer-size" . 0)))
     (xwidget-webkit-mode :both (("buffer-size" . 0) ("buffer-position" . 0))))
   "List of rules which are only take effect in some major mode.
 The format is like:
