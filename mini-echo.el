@@ -50,10 +50,10 @@
   :group 'mini-echo)
 
 (defcustom mini-echo-default-segments
-  '(:long ("major-mode" "buffer-name" "vcs" "buffer-position"
+  '(:long ("major-mode" "shrink-path" "vcs" "buffer-position"
            "buffer-size" "flymake" "process" "selection-info"
            "narrow" "macro" "profiler" "repeat")
-    :short ("buffer-name-short" "buffer-position" "process"
+    :short ("buffer-name" "buffer-position" "process"
             "profiler" "selection-info" "narrow" "macro" "repeat"))
   "Plist of segments which are default to all major modes."
   :type '(plist :key-type symbol
@@ -64,8 +64,9 @@
 (defcustom mini-echo-rules
   '((special-mode :both (("buffer-size" . 0)))
     (dired-mode :both (("buffer-size" . 0)))
-    (vterm-mode :both (("major-mode" . 0) ("buffer-name" . 0) ("buffer-position" . 0)
-                       ("buffer-name-short" . 0) ("buffer-size" . 0)))
+    (vterm-mode :both (("major-mode" . 0) ("buffer-name" . 0)
+                       ("shrink-path" . 0) ("buffer-position" . 0)
+                       ("buffer-size" . 0)))
     (xwidget-webkit-mode :both (("buffer-size" . 0) ("buffer-position" . 0))))
   "List of rules which are only take effect in some major mode.
 The format is like:
