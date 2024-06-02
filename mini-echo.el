@@ -71,9 +71,12 @@
 
 ;; TODO support :only to simplify these options
 (defcustom mini-echo-rules
-  `((vterm-mode :both (,@(alist-get 'remove-five mini-echo--ruleset)))
+  `((vterm-mode :both (,@(alist-get 'remove-five mini-echo--ruleset) ("ide" . 2)))
+    (quickrun--mode :both (,@(alist-get 'remove-five mini-echo--ruleset) ("ide" . 2)))
+    (nodejs-repl-mode :both (,@(alist-get 'remove-five mini-echo--ruleset) ("ide" . 2)))
+    (inferior-python-mode :both (,@(alist-get 'remove-five mini-echo--ruleset) ("ide" . 2)))
+    (inferior-emacs-lisp-mode :both (,@(alist-get 'remove-five mini-echo--ruleset) ("ide" . 2)))
     (ibuffer-mode :both (,@(alist-get 'remove-five mini-echo--ruleset)))
-    (quickrun--mode :both (,@(alist-get 'keep-path/name mini-echo--ruleset)))
     (xwidget-webkit-mode :both (,@(alist-get 'remove-size/pos mini-echo--ruleset)))
     (dired-mode :both (,@(alist-get 'keep-path/name mini-echo--ruleset)
                        ("dired" . 3)))

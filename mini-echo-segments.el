@@ -140,6 +140,30 @@ Otherwise, show mise section always."
   "Face for mini-echo segment with gray color."
   :group 'mini-echo)
 
+(defface mini-echo-green-bold
+  '((t (:inherit (bold mini-echo-green))))
+  "Face for mini-echo segment wiht bold green color.")
+
+(defface mini-echo-yellow-bold
+  '((t (:inherit (bold mini-echo-yellow))))
+  "Face for mini-echo segment wiht bold yellow color.")
+
+(defface mini-echo-blue-bold
+  '((t (:inherit (bold mini-echo-blue))))
+  "Face for mini-echo segment wiht bold blue color.")
+
+(defface mini-echo-red-bold
+  '((t (:inherit (bold mini-echo-red))))
+  "Face for mini-echo segment wiht bold red color.")
+
+(defface mini-echo-cyan-bold
+  '((t (:inherit (bold mini-echo-cyan))))
+  "Face for mini-echo segment wiht bold cyan color.")
+
+(defface mini-echo-violet-bold
+  '((t (:inherit (bold mini-echo-violet))))
+  "Face for mini-echo segment wiht bold violet color.")
+
 (defface mini-echo-major-mode
   '((t (:inherit bold)))
   "Face for mini-echo segment of major mode."
@@ -765,22 +789,32 @@ Segment appearence depends on var `vc-display-status' and faces like
                             'elfeed-search-unread-count-face)
                 "]")))))
 
-(mini-echo-define-segment "vterm"
-  "Return info of available vterm buffers."
+(mini-echo-define-segment "ide"
+  "Return info about vterm,quickrun and other repl buffers."
   :fetch
-  (when (eq major-mode 'vterm-mode)
-    (string-join
-     (->> (buffer-list)
-          (--filter (eq (buffer-local-value 'major-mode it) 'vterm-mode))
-          (-map #'buffer-name)
-          (-sort #'string-lessp)
-          (reverse)
-          (--map (mini-echo-segment--print
-                  it (if (string= it (buffer-name))
-                         'dired-symlink
-                       'font-lock-doc-face)
-                  20)))
-     (propertize "|" 'face 'font-lock-doc-face))))
+  (let* ((modes '(vterm-mode quickrun--mode nodejs-repl-mode
+                             inferior-emacs-lisp-mode
+                             inferior-python-mode))
+         (face (pcase major-mode
+                 ('vterm-mode 'mini-echo-blue-bold)
+                 ('quickrun--mode 'mini-echo-yellow-bold)
+                 ((or 'nodejs-repl-mode 'inferior-emacs-lisp-mode
+                      'inferior-python-mode)
+                  'mini-echo-red-bold)
+                 (_ nil))))
+    (when face
+      (string-join
+       (->> (buffer-list)
+            (--filter (memq (buffer-local-value 'major-mode it) modes))
+            (-map #'buffer-name)
+            (-sort #'string-lessp)
+            (reverse)
+            (--map (mini-echo-segment--print
+                    it (if (string= it (buffer-name))
+                           face
+                         'font-lock-doc-face)
+                    20)))
+       (propertize "|" 'face 'font-lock-doc-face)))))
 
 ;; TODO add more segments
 
