@@ -447,7 +447,7 @@ with ellipsis."
   (-let* ((name-full (mini-echo-buffer-name))
           (name-end (file-name-nondirectory name-full))
           ((sign . face) (mini-echo-buffer-status)))
-    (concat (string-trim name-full nil name-end)
+    (concat (string-remove-suffix name-end name-full)
             (pcase mini-echo-buffer-status-style
               ('sign (concat name-end (propertize sign 'face face)))
               ('color (propertize name-end 'face face))
@@ -471,7 +471,9 @@ with ellipsis."
       ((string-prefix-p project filepath)
        (string-join `(,(propertize dir 'face 'mini-echo-project)
                       ,@(--map (substring it 0 1)
-                               (butlast (split-string (string-trim filepath project) "/")))
+                               (butlast (split-string
+                                         (string-remove-prefix project filepath)
+                                         "/")))
                       nil)
                     "/"))
       (t "")))
