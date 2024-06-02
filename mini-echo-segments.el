@@ -475,7 +475,7 @@ with ellipsis."
                       nil)
                     "/"))
       (t "")))
-   (mini-echo-buffer-name))
+   (file-name-nondirectory (mini-echo-segment--fetch-buffer-name)))
   :update (mini-echo-update-project-root))
 
 (mini-echo-define-segment "dired"
