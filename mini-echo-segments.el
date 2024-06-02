@@ -437,17 +437,21 @@ with ellipsis."
                               'face 'mini-echo-blob-revision))))))
    ((bound-and-true-p atomic-chrome-edit-mode)
     (mini-echo-segment--print (buffer-name) nil 25))
-   (t
-    (-let ((name (buffer-name))
-           ((sign . face) (mini-echo-buffer-status)))
-      (pcase mini-echo-buffer-status-style
-        ('sign (concat name (propertize sign 'face face)))
-        ('color (propertize name 'face face))
-        ('both (propertize (concat name sign) 'face face)))))))
+   (t (let ((uniquify-buffer-name-style 'forward))
+        (buffer-name)))))
 
 (mini-echo-define-segment "buffer-name"
   "Return name of current buffer."
-  :fetch (mini-echo-buffer-name))
+  :fetch
+  ;; NOTE only highlight the last part of buffer-name due to `uniquify-buffer-name-style'
+  (-let* ((name-full (mini-echo-buffer-name))
+          (name-end (file-name-nondirectory name-full))
+          ((sign . face) (mini-echo-buffer-status)))
+    (concat (string-trim name-full nil name-end)
+            (pcase mini-echo-buffer-status-style
+              ('sign (concat name-end (propertize sign 'face face)))
+              ('color (propertize name-end 'face face))
+              ('both (propertize (concat name-end sign) 'face face))))))
 
 (mini-echo-define-segment "shrink-path"
   "Return shrinked path of current buffer in project or parent dir."
