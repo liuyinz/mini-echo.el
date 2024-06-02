@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.11.0](https://github.com/liuyinz/mini-echo.el/compare/v0.10.0..v0.11.0) - 2024-06-02
+
+### Bug Fixes
+
+- **(buffer-name)** only update last part of buffer-name due to uniquify style - ([3c9ba73](https://github.com/liuyinz/mini-echo.el/commit/3c9ba7313f350120c66bef4429b55010b8c75b5a))
+- **(shrink-path)** show duplicated dir due to uniquify - ([6fd22cf](https://github.com/liuyinz/mini-echo.el/commit/6fd22cf6bbfd7710e572a09130927c6df0af43ae))
+- silent byte-comp warning - ([079015f](https://github.com/liuyinz/mini-echo.el/commit/079015fecb83f020c7c12c6868cbf3013db5f4ca))
+- update mini-echo default options with shrink-path - ([029ce41](https://github.com/liuyinz/mini-echo.el/commit/029ce410aff7f8c15424c837853acfafc35b732f))
+- use origin face for process segment - ([6d419f8](https://github.com/liuyinz/mini-echo.el/commit/6d419f8b118fa2858da3563e2dfeadcbc51e8902))
+
+### Features
+
+- add segment vterm - ([d5ec3be](https://github.com/liuyinz/mini-echo.el/commit/d5ec3beaad8a13fedbc34f8d6f5f670c45c47151))
+- add segment dired - ([f7e9cea](https://github.com/liuyinz/mini-echo.el/commit/f7e9cea2af294422f48577c40da11b2478104eb1))
+
+### Refactoring
+
+- [**breaking**] update some segments name - ([e3b0d9e](https://github.com/liuyinz/mini-echo.el/commit/e3b0d9e5f65077cfb38ff6bb39a628cb2e4a6c5e))
+- simplify rules with mini-echo--ruleset - ([a5f6f30](https://github.com/liuyinz/mini-echo.el/commit/a5f6f300bcd4a2cd63e4fcd860775adafdcdd2aa))
+
 ## [0.10.0](https://github.com/liuyinz/mini-echo.el/compare/v0.9.3..v0.10.0) - 2024-05-28
 
 ### Bug Fixes
