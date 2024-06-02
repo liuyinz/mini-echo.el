@@ -530,7 +530,8 @@ with ellipsis."
                   (propertize auto-p 'face 'dired-special)
                   (propertize sort-item 'face 'dired-symlink)
                   (propertize sign 'face 'dired-warning)))))
-      (_ (mini-echo-segment--print str 'mini-echo-process 20)))))
+      ('rg-mode (mini-echo-segment--print str nil 25))
+      (_ (mini-echo-segment--print str nil nil)))))
 
 (mini-echo-define-segment "time"
   "Return current time."
