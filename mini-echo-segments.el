@@ -464,18 +464,21 @@ with ellipsis."
    (t (let ((uniquify-buffer-name-style 'forward))
         (buffer-name)))))
 
+(defun mini-echo-buffer-name-with-status ()
+  "Return last part of buffer name with status."
+  ;; NOTE only highlight the last part of buffer-name due to `uniquify-buffer-name-style'
+  (-let* ((name-end (file-name-nondirectory (mini-echo-buffer-name)))
+          ((sign . face) (mini-echo-buffer-status)))
+    (pcase mini-echo-buffer-status-style
+      ('sign (concat name-end (propertize sign 'face face)))
+      ('color (propertize name-end 'face face))
+      ('both (propertize (concat name-end sign) 'face face)))))
+
 (mini-echo-define-segment "buffer-name"
   "Return name of current buffer."
   :fetch
-  ;; NOTE only highlight the last part of buffer-name due to `uniquify-buffer-name-style'
-  (-let* ((name-full (mini-echo-buffer-name))
-          (name-end (file-name-nondirectory name-full))
-          ((sign . face) (mini-echo-buffer-status)))
-    (concat (string-remove-suffix name-end name-full)
-            (pcase mini-echo-buffer-status-style
-              ('sign (concat name-end (propertize sign 'face face)))
-              ('color (propertize name-end 'face face))
-              ('both (propertize (concat name-end sign) 'face face))))))
+  (concat (file-name-directory (mini-echo-buffer-name))
+          (mini-echo-buffer-name-with-status)))
 
 (mini-echo-define-segment "shrink-path"
   "Return shrinked path of current buffer in project or parent dir."
@@ -501,7 +504,7 @@ with ellipsis."
                       nil)
                     "/"))
       (t "")))
-   (file-name-nondirectory (mini-echo-segment--fetch-buffer-name)))
+   (mini-echo-buffer-name-with-status))
   :update (mini-echo-update-project-root))
 
 (mini-echo-define-segment "dired"
