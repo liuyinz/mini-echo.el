@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.1](https://github.com/liuyinz/mini-echo.el/compare/v0.11.0..v0.11.1) - 2024-06-03
+
+### Bug Fixes
+
+- **(shrink-path)** string-trim fails when buffer name contains * - ([bba194a](https://github.com/liuyinz/mini-echo.el/commit/bba194a1e4d3cf243917ed0a456de6a689f78115))
+- **(shrink-path)** lose properties of current buffer status - ([ca7a7af](https://github.com/liuyinz/mini-echo.el/commit/ca7a7af6f0c6381c69d95b13bf25b0014c337d95))
+
+### Refactoring
+
+- remove segment vterm, add segment ide - ([8b54310](https://github.com/liuyinz/mini-echo.el/commit/8b543100c9695c32a51c40f5caf6f8b65a4e694f))
+- update mini-echo-rules about segment "ide" - ([0d2b9ce](https://github.com/liuyinz/mini-echo.el/commit/0d2b9ce0afa6bec76a6ca31fd79be024fbfb0551))
+
 ## [0.11.0](https://github.com/liuyinz/mini-echo.el/compare/v0.10.0..v0.11.0) - 2024-06-02
 
 ### Bug Fixes
