@@ -321,7 +321,10 @@ If optional arg DEINIT is non-nil, remove all overlays."
   "Return length of STR.
 On the gui, calculate length based on pixel, otherwise based on char."
   (if (display-graphic-p)
-      (ceiling (/ (string-pixel-width str) (float (frame-char-width))))
+      (unwind-protect
+          (ceiling (/ (string-pixel-width str) (float (frame-char-width))))
+        (and-let* ((buf (get-buffer " *string-pixel-width*")))
+          (kill-buffer buf)))
     (string-width str)))
 
 (defun mini-echo-build-info ()
