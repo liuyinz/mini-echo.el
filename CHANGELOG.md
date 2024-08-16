@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.0](https://github.com/liuyinz/mini-echo.el/compare/v0.11.1..v0.12.0) - 2024-08-16
+
+### Bug Fixes
+
+- kill temp buffer for calculating string-pixel-width - ([802321f](https://github.com/liuyinz/mini-echo.el/commit/802321f0658b364d4e9d90a4ac43959d46048015))
+
+### Features
+
+- use ellipsis when shrink-path is too long - ([f15119b](https://github.com/liuyinz/mini-echo.el/commit/f15119b90e46acc6ead73ea03cf2a6308799f72a))
+
 ## [0.11.1](https://github.com/liuyinz/mini-echo.el/compare/v0.11.0..v0.11.1) - 2024-06-03
 
 ### Bug Fixes
