@@ -262,15 +262,19 @@ Format is a list of three argument:
 ;;; Ui painting
 
 (defun mini-echo-hide-mode-line (&optional show)
+  "Hide or show mode line when toggle mini-echo.
+If optional arg SHOW is non-nil, show the mode line."
   (if show
       (global-hide-mode-line-mode -1)
-    (let ((hide-mode-line-excluded-modes nil))
-      (global-hide-mode-line-mode 1))
-    ;; NOTE hide mode line of buffers which missing
-    (when-let ((missing (--remove (buffer-local-value 'hide-mode-line-mode it)
-                                  (buffer-list))))
-      (temp-log (format"missing buffers: %S" missing))
-      (-each missing #'hide-mode-line-mode))))
+    (setq hide-mode-line-excluded-modes nil)
+    (global-hide-mode-line-mode 1)
+    ;; HACK some buffers are failed to hide mode line globally so setup a timer
+    ;; to hide it
+    (run-with-timer
+     5 nil
+     (lambda () (when-let ((bufs (--remove (buffer-local-value 'hide-mode-line-mode it)
+                                           (buffer-list))))
+                  (--each bufs (with-current-buffer it (hide-mode-line-mode 1))))))))
 
 (defun mini-echo-show-divider (&optional hide)
   "Show window divider when enable mini echo.
