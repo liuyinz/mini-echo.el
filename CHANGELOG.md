@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.1](https://github.com/liuyinz/mini-echo.el/compare/v0.12.0..v0.12.1) - 2024-08-27
+
+### Bug Fixes
+
+- hide mode lines in all buffers if some failed globally - ([f38cb0f](https://github.com/liuyinz/mini-echo.el/commit/f38cb0fff7b96322433731546aa2d33626a24422))
+
+### Refactoring
+
+- mini-echo-init-echo-area - ([0434313](https://github.com/liuyinz/mini-echo.el/commit/0434313f3149a557cc91c21605a499b6480cdf54))
+
 ## [0.12.0](https://github.com/liuyinz/mini-echo.el/compare/v0.11.1..v0.12.0) - 2024-08-16
 
 ### Bug Fixes
