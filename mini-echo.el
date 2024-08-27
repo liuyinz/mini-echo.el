@@ -261,6 +261,17 @@ Format is a list of three argument:
 
 ;;; Ui painting
 
+(defun mini-echo-hide-mode-line (&optional show)
+  (if show
+      (global-hide-mode-line-mode -1)
+    (let ((hide-mode-line-excluded-modes nil))
+      (global-hide-mode-line-mode 1))
+    ;; NOTE hide mode line of buffers which missing
+    (when-let ((missing (--remove (buffer-local-value 'hide-mode-line-mode it)
+                                  (buffer-list))))
+      (temp-log (format"missing buffers: %S" missing))
+      (-each missing #'hide-mode-line-mode))))
+
 (defun mini-echo-show-divider (&optional hide)
   "Show window divider when enable mini echo.
 If optional arg HIDE is non-nil, disable the mode instead."
@@ -289,10 +300,11 @@ If optional arg DEINIT is non-nil, remove all overlays."
             (when (minibufferp) (delete-minibuffer-contents))
             (face-remap-remove-relative mini-echo--remap-cookie)
             (setq-local mini-echo--remap-cookie nil)))
-        (remove-hook 'minibuffer-inactive-mode-hook
-                     #'mini-echo-fontify-minibuffer-window)
-        (remove-hook 'minibuffer-setup-hook
-                     #'mini-echo-fontify-minibuffer-window))
+        (cancel-function-timers #'mini-echo-update)
+        (advice-remove 'message #'mini-echo-update-overlays-before-message)
+        (remove-hook 'window-size-change-functions #'mini-echo-update-overlays-when-resized)
+        (remove-hook 'minibuffer-inactive-mode-hook #'mini-echo-fontify-minibuffer-window)
+        (remove-hook 'minibuffer-setup-hook #'mini-echo-fontify-minibuffer-window))
     (--each mini-echo-managed-buffers
       (with-current-buffer (get-buffer-create it)
         (and (minibufferp) (= (buffer-size) 0) (insert " "))
@@ -300,12 +312,14 @@ If optional arg DEINIT is non-nil, remove all overlays."
               mini-echo-overlays)
         (setq-local mini-echo--remap-cookie
                     (mini-echo-fontify-minibuffer-window))))
+    ;; FIXME sometimes update twice when switch from echo to minibuf
+    (run-with-timer 0 mini-echo-update-interval #'mini-echo-update)
+    (advice-add 'message :before #'mini-echo-update-overlays-before-message)
+    (add-hook 'window-size-change-functions #'mini-echo-update-overlays-when-resized)
     ;; NOTE every time activating minibuffer would reset face,
     ;; so re-fontify when entering inactive-minibuffer-mode
-    (add-hook 'minibuffer-inactive-mode-hook
-              #'mini-echo-fontify-minibuffer-window)
-    (add-hook 'minibuffer-setup-hook
-              #'mini-echo-fontify-minibuffer-window)))
+    (add-hook 'minibuffer-inactive-mode-hook #'mini-echo-fontify-minibuffer-window)
+    (add-hook 'minibuffer-setup-hook #'mini-echo-fontify-minibuffer-window)))
 
 (defun mini-echo-minibuffer-width ()
   "Return width of minibuffer window in current non-child frame."
@@ -405,23 +419,13 @@ If optional arg RESET is non-nil, clear all toggled segments."
   :global t
   (if mini-echo-mode
       (progn
-        (let ((hide-mode-line-excluded-modes nil))
-          (global-hide-mode-line-mode 1))
         (mini-echo-ensure-segments)
+        (mini-echo-hide-mode-line)
         (mini-echo-show-divider)
-        (mini-echo-init-echo-area)
-        ;; FIXME sometimes update twice when switch from echo to minibuf
-        (run-with-timer 0 mini-echo-update-interval #'mini-echo-update)
-        (advice-add 'message :before #'mini-echo-update-overlays-before-message)
-        (add-hook 'window-size-change-functions
-                  #'mini-echo-update-overlays-when-resized))
-    (global-hide-mode-line-mode -1)
+        (mini-echo-init-echo-area))
+    (mini-echo-hide-mode-line 'show)
     (mini-echo-show-divider 'hide)
-    (mini-echo-init-echo-area 'deinit)
-    (cancel-function-timers #'mini-echo-update)
-    (advice-remove 'message #'mini-echo-update-overlays-before-message)
-    (remove-hook 'window-size-change-functions
-                 #'mini-echo-update-overlays-when-resized)))
+    (mini-echo-init-echo-area 'deinit)))
 
 (provide 'mini-echo)
 ;;; mini-echo.el ends here
