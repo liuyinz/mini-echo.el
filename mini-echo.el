@@ -268,13 +268,14 @@ If optional arg SHOW is non-nil, show the mode line."
       (global-hide-mode-line-mode -1)
     (setq hide-mode-line-excluded-modes nil)
     (global-hide-mode-line-mode 1)
-    ;; HACK some buffers are failed to hide mode line globally so setup a timer
-    ;; to hide it
-    (run-with-timer
-     5 nil
-     (lambda () (when-let ((bufs (--remove (buffer-local-value 'hide-mode-line-mode it)
-                                           (buffer-list))))
-                  (--each bufs (with-current-buffer it (hide-mode-line-mode 1))))))))
+    ;; HACK in some older emacs versions, global-hide-mode-line-mode may fails in some
+    ;; fundamental-mode buffers, so add a timer to force manually
+    (when (< emacs-major-version 31)
+      (run-with-timer
+       5 nil
+       (lambda () (when-let ((bufs (--remove (buffer-local-value 'hide-mode-line-mode it)
+                                             (buffer-list))))
+                    (--each bufs (with-current-buffer it (hide-mode-line-mode 1)))))))))
 
 (defun mini-echo-show-divider (&optional hide)
   "Show window divider when enable mini echo.
