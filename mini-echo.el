@@ -61,52 +61,21 @@
                 :value-type (repeat string))
   :group 'mini-echo)
 
-(defvar mini-echo--ruleset
-  '((remove-five ("major-mode" . 0) ("buffer-position" . 0)
-                 ("buffer-size" . 0) ("buffer-name" . 0)
-                 ("shrink-path" . 0))
-    (remove-size/pos ("buffer-position" . 0) ("buffer-size" . 0))
-    (keep-path/name ("major-mode" . 0) ("buffer-position" . 0)
-                    ("buffer-size" . 0))))
-
-;; TODO support :only to simplify these options
-(defcustom mini-echo-rules
-  `((vterm-mode :both (,@(alist-get 'remove-five mini-echo--ruleset) ("ide" . 2)))
-    (quickrun--mode :both (,@(alist-get 'remove-five mini-echo--ruleset) ("ide" . 2)))
-    (nodejs-repl-mode :both (,@(alist-get 'remove-five mini-echo--ruleset)
-                             ("process" . 0) ("ide" . 2)))
-    (inferior-python-mode :both (,@(alist-get 'remove-five mini-echo--ruleset)
-                                 ("ide" . 2)))
-    (inferior-emacs-lisp-mode :both (,@(alist-get 'remove-five mini-echo--ruleset)
-                                     ("process" . 0) ("ide" . 2)))
-    (ibuffer-mode :both (,@(alist-get 'remove-five mini-echo--ruleset)))
-    (xwidget-webkit-mode :both (,@(alist-get 'remove-size/pos mini-echo--ruleset)))
-    (dired-mode :both (,@(alist-get 'keep-path/name mini-echo--ruleset)
-                       ("dired" . 3)))
-    (special-mode :both (("buffer-size" . 0))))
-  "List of rules which are only take effect in some major mode.
-The format is like:
- (MAJOR-MODE :both  ((SEGMENT . POSITION) ...))
-             :long  ((SEGMENT . POSITION) ...))
-             :short ((SEGMENT . POSITION) ...)).
-:both would setup for both long and short style, :long and :short have higher
-priority over :both.
-If Emacs version >= 30, write rule for a parent mode will take effect in every
-children modes.  Otherwise, write rule for every specific major mode instead."
-  :type '(alist :key-type symbol
-                :value-type (plist :key-type symbol
-                                   :options '(:both :long :short)
-                                   :value-type (alist :key-type string
-                                                      :value-type integer)))
-  :package-version '(mini-echo . "0.6.3")
+(defcustom mini-echo-rule-detect
+  #'mini-echo-rules
+  "Detect function to return segments if condition matched.
+Return value should be a plist like (:both SEGMENTS...) or (:long .. :short ..)
+or nil."
+  :type '(choice (const :tag "return segments if match the rule" mini-echo-rules)
+                 function)
+  :package-version '(mini-echo . "0.13.0")
   :group 'mini-echo)
 
 (defcustom mini-echo-short-style-predicate
   #'mini-echo-minibuffer-width-lessp
   "Predicate to select short style segments."
-  :type '(choice
-          (const :tag "" mini-echo-minibuffer-width-lessp)
-          function)
+  :type '(choice (const :tag "default predicate function" mini-echo-minibuffer-width-lessp)
+                 function)
   :package-version '(mini-echo . "0.5.1")
   :group 'mini-echo)
 
@@ -154,6 +123,7 @@ Format is a list of three argument:
 (defvar-local mini-echo--remap-cookie nil)
 (defvar mini-echo--valid-segments nil)
 (defvar mini-echo--default-segments nil)
+(defvar-local mini-echo--selected-segments nil)
 (defvar mini-echo--toggled-segments nil)
 (defvar mini-echo--rules nil)
 (defvar mini-echo--info-last-build nil)
@@ -165,56 +135,52 @@ Format is a list of three argument:
   "Return non-nil if SEGMENT is valid."
   (member segment mini-echo--valid-segments))
 
-(defun mini-echo-merge-segments (rule style)
-  "Return new segments list which combine default and STYLE of RULE."
-  (let* ((plst (cdr rule))
-         (extra (--filter (mini-echo-segment-valid-p (car it))
-                          (cl-remove-duplicates
-                           (-concat (plist-get plst :both)
-                                    (plist-get plst style))
-                           :key #'car :test #'equal)))
-         (default-uniq (-difference (plist-get mini-echo--default-segments style)
-                                    (-map #'car extra)))
-         (extra-active (--remove (= (cdr it) 0) extra))
-         (index 1)
-         result)
-    ;; TODO use length sum as boundary
-    (while (consp extra-active)
-      (if-let ((match (rassoc index extra-active)))
-          (progn
-            (push (car match) result)
-            (setq extra-active (delete match extra-active)))
-        (and-let* ((head (pop default-uniq))) (push head result)))
-      (cl-incf index))
-    (-concat (reverse result) default-uniq)))
+(defun mini-echo-validate-segments (segments)
+  "Return list of validated SEGMENTS."
+  (--map-when (not (keywordp it))
+              (-filter #'mini-echo-segment-valid-p it)
+              segments))
+
+(defun mini-echo-rules ()
+  "Return a plist of segments under some conditions.
+If no conditions matched, then return nil and `mini-echo-default-segments'
+would be used as fallback."
+  (with-current-buffer (current-buffer)
+    (let ((temp '("process" "selection-info" "narrow" "macro" "profiler" "repeat")))
+      (pcase major-mode
+        ('ibuffer-mode `(:both ,temp))
+        ('dired-mode `(:both ("dired" ,@temp)))
+        ('special-mode `(:both ("buffer-position" ,@temp)))
+        ('xwidget-webkit-mode `(:long ("shrink-path" ,@temp)
+                                :short ("buffer-name" ,@temp)))
+        ((or 'vterm-mode 'quickrun--mode 'inferior-python-mode
+             'nodejs-repl-mode 'inferior-emacs-lisp-mode)
+         `(:both ("ide" ,@temp)))
+        (_ nil)))))
 
 (defun mini-echo-ensure-segments ()
   "Ensure all predefined segments variable ready for mini echo."
   (setq mini-echo--valid-segments (-map #'car mini-echo-segment-alist))
   (setq mini-echo--default-segments
-        (--map-when (not (keywordp it))
-                    (-filter #'mini-echo-segment-valid-p it)
-                    mini-echo-default-segments))
-  (setq mini-echo--rules
-        (--map (list (car it)
-                     :long (mini-echo-merge-segments it :long)
-                     :short (mini-echo-merge-segments it :short))
-               mini-echo-rules)))
+        (mini-echo-validate-segments mini-echo-default-segments)))
 
 (defun mini-echo-get-segments (target)
   "Return list of segments according to TARGET."
   (pcase target
     ('valid mini-echo--valid-segments)
-    ('selected (plist-get
-                ;; parent mode rules take effect in children modes if possible
-                (or (and (fboundp #'derived-mode-all-parents)
-                         (car (--keep (alist-get it mini-echo--rules)
-                                      (derived-mode-all-parents major-mode))))
-                    (alist-get major-mode mini-echo--rules)
-                    mini-echo--default-segments)
-                (if (funcall mini-echo-short-style-predicate) :short :long)))
+    ('selected
+     (with-memoization mini-echo--selected-segments
+       (or (when-let ((rule (mini-echo-validate-segments
+                             (funcall mini-echo-rule-detect))))
+             (if (memq :both rule)
+                 (list :long (plist-get rule :both)
+                       :short (plist-get rule :both))
+               rule))
+           mini-echo--default-segments)))
     ('current
-     (let ((result (mini-echo-get-segments 'selected))
+     (let ((result (plist-get (mini-echo-get-segments 'selected)
+                              (if (funcall mini-echo-short-style-predicate)
+                                  :short :long)))
            extra)
        (--each mini-echo--toggled-segments
          (-let [(segment . enable) it]
@@ -405,13 +371,16 @@ If optional arg RESET is non-nil, clear all toggled segments."
       (if reset
           (progn
             (setq mini-echo--toggled-segments nil)
-            (message "Mini-echo-toggle: reset."))
+            (message "Mini-echo-toggle: reset to default."))
         (when-let ((segment (completing-read
                              "Mini-echo toggle: "
                              (mini-echo--toggle-completion) nil t)))
-          (setf (alist-get segment mini-echo--toggled-segments
-                           nil nil #'string=)
-                (if (member segment (mini-echo-get-segments 'current)) nil t))))
+
+          (setf (alist-get segment mini-echo--toggled-segments nil nil #'string=)
+                (let ((val (alist-get segment mini-echo--toggled-segments 'non-exist)))
+                  (not (if (eq 'non-exist val)
+                           (member segment (mini-echo-get-segments 'current))
+                         val))))))
     (user-error "Please enable mini-echo-mode first")))
 
 

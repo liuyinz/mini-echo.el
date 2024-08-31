@@ -77,22 +77,7 @@ There are three ways to adjust mini-echo segments display:
             "profiler" "selection-info" "narrow" "macro")))
 ```
 
-2. `mini-echo-rules`: variable, list of rules applied for major modes.
-   if your emacs version >= 30, then you can write a rule for parent mode which will take effect in all children modes. Otherwise, write rules for every specific major mode instead.
-
-```elisp
-;; Concell of (SEGMENT . POSITION) is required to adjust the appearence.
-;; 0 means hide the segment in major mode if it's displayed by default.
-;; non-zero number means the order of segment to be put, it's counted from 1.
-(setq mini-echo-rules
-      '((emacs-lisp-mode :both (("buffer-position" . 3))
-                         :long (("evil" . 1) ("buffer-size" . 4))
-                         :short (("vcs" . 0)))))
-```
-
-Explanation:
-when `emacs-lisp-mode` is enabled, long-style shows "evil" segment in first place, shows "buffer-size" segment in fourth place (right-align). short-style hide "vcs" segment. And
-both long/short style show "buffer-position" in third place.
+2. `mini-echo-rule-detect`: A function which return a plist of segments if condition matched. Return value should be a plist like (:both SEGMENTS...) or (:long .. :short ..) or nil.
 
 3. `mini-echo-toggle`: command, show or hide some segment temporarily
 
