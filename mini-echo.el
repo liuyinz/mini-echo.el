@@ -147,10 +147,15 @@ If no conditions matched, then return nil and `mini-echo-default-segments'
 would be used as fallback."
   (with-current-buffer (current-buffer)
     (let ((temp '("process" "selection-info" "narrow" "macro" "profiler" "repeat")))
+      ;; NOTE function return the first match, so the former has higher priority
       (pcase major-mode
+        ((guard (bound-and-true-p atomic-chrome-edit-mode))
+         `(:both ("major-mode" "atomic-chrome" "buffer-name",@temp)))
         ('ibuffer-mode `(:both ,temp))
+        ('diff-mode `(:both ("diff" ,@temp)))
         ('dired-mode `(:both ("dired" ,@temp)))
         ('special-mode `(:both ("buffer-position" ,@temp)))
+        ('magit-status-mode `(:both ("major-mode" "buffer-name" ,@temp)))
         ('xwidget-webkit-mode `(:long ("shrink-path" ,@temp)
                                 :short ("buffer-name" ,@temp)))
         ((or 'vterm-mode 'quickrun--mode 'inferior-python-mode
