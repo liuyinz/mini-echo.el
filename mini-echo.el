@@ -55,18 +55,19 @@
            "narrow" "macro" "profiler" "repeat")
     :short ("buffer-name" "buffer-position" "process"
             "profiler" "selection-info" "narrow" "macro" "repeat"))
-  "Plist of segments which are default to all major modes."
+  "Plist of segments which is default for all buffers."
   :type '(plist :key-type symbol
                 :options '(:long :short)
                 :value-type (repeat string))
   :group 'mini-echo)
 
-(defcustom mini-echo-rule-detect
-  #'mini-echo-rules
-  "Detect function to return segments if condition matched.
-Return value should be a plist like (:both SEGMENTS...) or (:long .. :short ..)
-or nil."
-  :type '(choice (const :tag "return segments if match the rule" mini-echo-rules)
+(defcustom mini-echo-rules-function
+  #'mini-echo-default-rules
+  "Function to fetch segments according to buffers.
+Return a plist of (:both SEGMENTS..) or (:long SEGMENTS.. :short SEGMENTS..)
+when some rule matched, otherwise return nil and use
+`mini-echo-default-segments' as fallback."
+  :type '(choice (const :tag "fetch segments when rule matched" mini-echo-default-rules)
                  function)
   :package-version '(mini-echo . "0.13.0")
   :group 'mini-echo)
@@ -125,7 +126,6 @@ Format is a list of three argument:
 (defvar mini-echo--default-segments nil)
 (defvar-local mini-echo--selected-segments nil)
 (defvar mini-echo--toggled-segments nil)
-(defvar mini-echo--rules nil)
 (defvar mini-echo--info-last-build nil)
 
 
@@ -141,13 +141,11 @@ Format is a list of three argument:
               (-filter #'mini-echo-segment-valid-p it)
               segments))
 
-(defun mini-echo-rules ()
-  "Return a plist of segments under some conditions.
-If no conditions matched, then return nil and `mini-echo-default-segments'
-would be used as fallback."
+(defun mini-echo-default-rules ()
+  "Default function to return segments."
   (with-current-buffer (current-buffer)
     (let ((temp '("process" "selection-info" "narrow" "macro" "profiler" "repeat")))
-      ;; NOTE function return the first match, so the former has higher priority
+      ;; NOTE return the first match, so the former has higher priority
       (pcase major-mode
         ((guard (bound-and-true-p atomic-chrome-edit-mode))
          `(:both ("atomic-chrome" "buffer-name" "buffer-position" "flymake" ,@temp)))
@@ -176,7 +174,7 @@ would be used as fallback."
     ('selected
      (with-memoization mini-echo--selected-segments
        (or (when-let ((rule (mini-echo-validate-segments
-                             (funcall mini-echo-rule-detect))))
+                             (funcall mini-echo-rules-function))))
              (if (memq :both rule)
                  (list :long (plist-get rule :both)
                        :short (plist-get rule :both))
