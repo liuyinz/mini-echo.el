@@ -819,16 +819,16 @@ Segment appearence depends on var `vc-display-status' and faces like
        (propertize "|" 'face 'font-lock-doc-face)))))
 
 (mini-echo-define-segment "diff"
-  "Return info about diff buffers."
+  "Return info of diff buffers."
   :fetch
   (when (eq major-mode 'diff-mode)
     (propertize "Diff" 'face 'dired-symlink)))
 
 (mini-echo-define-segment "atomic-chrome"
-  "Return info about atomic chrome edit buffers."
+  "Return info of atomic chrome edit buffers."
   :fetch
   (when (bound-and-true-p atomic-chrome-edit-mode)
-    (propertize "Atomic-chrome" 'face 'dired-symlink)))
+    (propertize "Atomic" 'face 'dired-symlink)))
 
 ;; TODO add more segments
 

@@ -149,7 +149,7 @@ Format is a list of three argument:
       (pcase major-mode
         ((guard (bound-and-true-p atomic-chrome-edit-mode))
          `(:both ("atomic-chrome" "buffer-name" "buffer-position" "flymake" ,@temp)))
-        ('ibuffer-mode `(:both ,temp))
+        ('ibuffer-mode `(:both ,@temp))
         ('diff-mode `(:both ("diff" ,@temp)))
         ('dired-mode `(:both ("dired" ,@temp)))
         ('special-mode `(:both ("buffer-position" ,@temp)))
