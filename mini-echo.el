@@ -153,12 +153,14 @@ Format is a list of three argument:
         ('diff-mode `(:both ("diff" ,@temp)))
         ('dired-mode `(:both ("dired" ,@temp)))
         ('special-mode `(:both ("buffer-position" ,@temp)))
-        ('magit-status-mode `(:both ("major-mode" "buffer-name" ,@temp)))
         ('xwidget-webkit-mode `(:long ("shrink-path" ,@temp)
                                 :short ("buffer-name" ,@temp)))
         ((or 'vterm-mode 'quickrun--mode 'inferior-python-mode
              'nodejs-repl-mode 'inferior-emacs-lisp-mode)
          `(:both ("ide" ,@temp)))
+        ((guard (or (memq major-mode '(git-commit-elisp-text-mode git-rebase-mode))
+                    (string-match-p "\\`magit-.*-mode\\'" (symbol-name major-mode))))
+         `(:both ("major-mode" "project" ,@temp)))
         (_ nil)))))
 
 (defun mini-echo-ensure-segments ()
