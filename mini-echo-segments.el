@@ -408,29 +408,29 @@ with ellipsis."
 (defun mini-echo-update-project-root ()
   "Update and return current project root path if exists."
   (setq mini-echo--project-root
-        (or (and (buffer-file-name)
-                 (pcase mini-echo-project-detection
-                   ('ffip (and (fboundp 'ffip-project-root)
-                               (let ((inhibit-message t))
-                                 (ffip-project-root))))
-                   ('projectile (and (bound-and-true-p projectile-mode)
-                                     (projectile-project-root)))
-                   ('project (when-let (((fboundp 'project-current))
-                                        (project (project-current)))
-                               (expand-file-name
-                                (if (fboundp 'project-root)
-                                    (project-root project)
-                                  (car (with-no-warnings
-                                         (project-roots project)))))))
-                   (_ (funcall mini-echo-project-detection))))
+        (or (pcase mini-echo-project-detection
+              ('ffip (and (fboundp 'ffip-project-root)
+                          (let ((inhibit-message t))
+                            (ffip-project-root))))
+              ('projectile (and (bound-and-true-p projectile-mode)
+                                (projectile-project-root)))
+              ('project (when-let (((fboundp 'project-current))
+                                   (project (project-current)))
+                          (expand-file-name
+                           (if (fboundp 'project-root)
+                               (project-root project)
+                             (car (with-no-warnings
+                                    (project-roots project)))))))
+              (_ (funcall mini-echo-project-detection)))
             "")))
 
 (mini-echo-define-segment "project"
   "Display the project name of current buffer."
   :update-advice '((vc-refresh-state . :after))
   :fetch
-  (when-let ((project (or mini-echo--project-root
-                          (mini-echo-update-project-root))))
+  (when-let* ((project (or mini-echo--project-root
+                           (mini-echo-update-project-root)))
+              ((not (string-empty-p project))))
     (mini-echo-segment--print (file-name-nondirectory (directory-file-name project))
                               'mini-echo-project))
   :update (mini-echo-update-project-root))
