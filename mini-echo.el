@@ -150,7 +150,7 @@ would be used as fallback."
       ;; NOTE function return the first match, so the former has higher priority
       (pcase major-mode
         ((guard (bound-and-true-p atomic-chrome-edit-mode))
-         `(:both ("major-mode" "atomic-chrome" "buffer-name",@temp)))
+         `(:both ("atomic-chrome" "buffer-name" "buffer-position" "flymake" ,@temp)))
         ('ibuffer-mode `(:both ,temp))
         ('diff-mode `(:both ("diff" ,@temp)))
         ('dired-mode `(:both ("dired" ,@temp)))
