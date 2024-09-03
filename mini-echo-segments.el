@@ -838,6 +838,19 @@ Segment appearence depends on var `vc-display-status' and faces like
         (propertize "Blame" 'face 'mini-echo-cyan)
       (mini-echo-segment--print magit-blame-mode-lighter 'mini-echo-cyan))))
 
+(mini-echo-define-segment "helpful"
+  "Return info of helpful buffers."
+  :fetch
+  (when (eq major-mode 'helpful-mode)
+    (let ((str (buffer-name)))
+      (save-match-data
+        (if (string-match "\\`\\*helpful \\(.*\\): \\(.*\\)\\*\\'" str)
+            (format "*%s* [%s]"
+                    (propertize (match-string 2 str) 'face 'mini-echo-green)
+                    (propertize (match-string 1 str) 'face 'mini-echo-gray))
+          (propertize "lambda" 'face 'mini-echo-green))))))
+
+
 ;; TODO add more segments
 
 (provide 'mini-echo-segments)
