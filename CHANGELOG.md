@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.13.0](https://github.com/liuyinz/mini-echo.el/compare/v0.12.1..v0.13.0) - 2024-09-03
+
+### Bug Fixes
+
+- **(project)** return project correctly even if non-file buffers - ([724ffc7](https://github.com/liuyinz/mini-echo.el/commit/724ffc7b1b418181ed5fa9be37b6b9af3ed1f131))
+- update atomic-chrome segments rule - ([1451178](https://github.com/liuyinz/mini-echo.el/commit/1451178a3e983ec95f3b3b5d17f574bf14ae67c7))
+- typos in mini-echo-default-rules - ([ddb2510](https://github.com/liuyinz/mini-echo.el/commit/ddb25108bb09b61461aba582df97f16725de6a23))
+- remove major-mode from diff and dired segments - ([c83ad5c](https://github.com/liuyinz/mini-echo.el/commit/c83ad5c228044242fa7a07e3a4c6eb02ed86edc5))
+- typos in description and documentation - ([7efd7e3](https://github.com/liuyinz/mini-echo.el/commit/7efd7e3dda7b7d273abda7c9165b1282982501b7))
+
+### Features
+
+- **(helpful)** add segment helpful - ([28a623b](https://github.com/liuyinz/mini-echo.el/commit/28a623b8c0a9ceb949c5065d54094f3022d02084))
+- **(mini-echo-rule-detect)** [**breaking**] use function rather than var to handle special conditions - ([15b2897](https://github.com/liuyinz/mini-echo.el/commit/15b28973e2cf498660e7bc4ac6b82eafd407be66))
+- **(mini-echo-rules-function)** rename mini-echo-rule-detect to mini-echo-rules-function - ([7eb4b0b](https://github.com/liuyinz/mini-echo.el/commit/7eb4b0bd2f3b741b16e56f38fb741447155663ed))
+- add segments of diff and atomic-chrome - ([862f6fa](https://github.com/liuyinz/mini-echo.el/commit/862f6facee14f12cb662f6e8b4651c8d3af98e8a))
+- add rule for magit related buffers - ([db876b1](https://github.com/liuyinz/mini-echo.el/commit/db876b16c0c8b83e87ae86ef0fb89aabde636d14))
+- add segment blame - ([535c2fb](https://github.com/liuyinz/mini-echo.el/commit/535c2fba6783df72871418c9c17853f00c4dcd3d))
+
+### Refactoring
+
+- only add timer to check buffers in older versions emacs - ([371fbaf](https://github.com/liuyinz/mini-echo.el/commit/371fbafdb14a293703ae7f7d2a94fbc79837f2b6))
+- diff/atomic face - ([89d6e25](https://github.com/liuyinz/mini-echo.el/commit/89d6e25f3d9afbf8eec7fd9aa7a7e061f9fdef3b))
+- [**breaking**] deprecated some options with new one - ([7ce9622](https://github.com/liuyinz/mini-echo.el/commit/7ce9622607ae668de263be24616d0cd799181a74))
+
 ## [0.12.1](https://github.com/liuyinz/mini-echo.el/compare/v0.12.0..v0.12.1) - 2024-08-27
 
 ### Bug Fixes
