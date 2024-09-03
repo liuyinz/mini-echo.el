@@ -830,6 +830,14 @@ Segment appearence depends on var `vc-display-status' and faces like
   (when (bound-and-true-p atomic-chrome-edit-mode)
     (propertize "Atomic" 'face 'dired-symlink)))
 
+(mini-echo-define-segment "blame"
+  "Return info of blame buffers."
+  :fetch
+  (when (bound-and-true-p magit-blame-mode)
+    (if (string-empty-p magit-blame-mode-lighter)
+        (propertize "Blame" 'face 'mini-echo-cyan)
+      (mini-echo-segment--print magit-blame-mode-lighter 'mini-echo-cyan))))
+
 ;; TODO add more segments
 
 (provide 'mini-echo-segments)

@@ -52,9 +52,9 @@
 (defcustom mini-echo-default-segments
   '(:long ("major-mode" "shrink-path" "vcs" "buffer-position"
            "buffer-size" "flymake" "process" "selection-info"
-           "narrow" "macro" "profiler" "repeat")
-    :short ("buffer-name" "buffer-position" "process"
-            "profiler" "selection-info" "narrow" "macro" "repeat"))
+           "narrow" "macro" "profiler" "repeat" "blame")
+    :short ("buffer-name" "buffer-position" "process" "profiler"
+            "selection-info" "narrow" "macro" "repeat" "blame"))
   "Plist of segments which is default for all buffers."
   :type '(plist :key-type symbol
                 :options '(:long :short)
@@ -149,6 +149,9 @@ Format is a list of three argument:
       (pcase major-mode
         ((guard (bound-and-true-p atomic-chrome-edit-mode))
          `(:both ("atomic-chrome" "buffer-name" "buffer-position" "flymake" ,@temp)))
+        ((guard (or (memq major-mode '(git-commit-elisp-text-mode git-rebase-mode))
+                    (string-match-p "\\`magit-.*-mode\\'" (symbol-name major-mode))))
+         `(:both ("major-mode" "project" ,@temp)))
         ('ibuffer-mode `(:both ,@temp))
         ('diff-mode `(:both ("diff" ,@temp)))
         ('dired-mode `(:both ("dired" ,@temp)))
@@ -158,9 +161,6 @@ Format is a list of three argument:
         ((or 'vterm-mode 'quickrun--mode 'inferior-python-mode
              'nodejs-repl-mode 'inferior-emacs-lisp-mode)
          `(:both ("ide" ,@temp)))
-        ((guard (or (memq major-mode '(git-commit-elisp-text-mode git-rebase-mode))
-                    (string-match-p "\\`magit-.*-mode\\'" (symbol-name major-mode))))
-         `(:both ("major-mode" "project" ,@temp)))
         (_ nil)))))
 
 (defun mini-echo-ensure-segments ()
