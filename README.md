@@ -3,7 +3,7 @@
 [![License GPL 3](https://img.shields.io/badge/license-GPL_3-green.svg?style=flat)](LICENSE)
 [![MELPA](https://melpa.org/packages/mini-echo-badge.svg)](https://melpa.org/#/mini-echo)
 
-Echo buffer status in echo area, get rid of mode-line !
+Show buffer status in echo area, get rid of mode-line !
 
 <!-- markdown-toc start -->
 
@@ -63,23 +63,61 @@ Install with `M-x package-install` `RET` `mini-echo` within Emacs.
 (mini-echo-mode)
 ```
 
-There are three ways to adjust mini-echo segments display:
+There are two kinds of segments, `persistent` and `temporary`:
 
-1. `mini-echo-default-segments`: variable, plist of segments which are default to all major-modes
+- `persistent`: segments like `major-mode`, `buffer-size`, `vcs` displayed persistently, which mainly used by `mini-echo-persistent-rule` and `mini-echo-persistent-function`.
+  Any buffer get persistent segments following order: calling `mini-echo-persistent-function` to get plist of segments, otherwise use `mini-echo-persistent-rule` as fallback.
+
+- `temporary`: segments like `process`, `narrow` displayed temporarily, which used by `mini-echo-temorary-rule`. All buffer get same temporary segments according to `mini-echo-temorary-rule` .
+
+1. `mini-echo-persistent-rule`: variable, plist of persistent segments which are default to all buffers, support `:both` or `:long/:short` keywords.
 
 ```elisp
-;; set default segments of long/short style
-(setq mini-echo-default-segments
-  '(:long ("major-mode" "shrink-path" "vcs" "buffer-position"
-           "buffer-size" "flymake" "process" "selection-info"
-           "narrow" "macro" "profiler")
-    :short ("buffer-name" "buffer-position" "process"
-            "profiler" "selection-info" "narrow" "macro")))
+(setq mini-echo-persistent-rule
+  '(:long ("major-mode" "shrink-path" "vcs" "buffer-position" "buffer-size" "flymake")
+    :short ("buffer-name" "buffer-position" "flymake")))
 ```
 
-2. `mini-echo-rule-detect`: A function which return a plist of segments if condition matched. Return value should be a plist like (:both SEGMENTS...) or (:long .. :short ..) or nil.
+2. `mini-echo-temorary-rule`: variable, plist of temporary segments which are default to all buffers, support `:both` or `:long/:short` keywords.
 
-3. `mini-echo-toggle`: command, show or hide some segment temporarily
+```elisp
+(setq mini-echo-temorary-rule
+  '(:both ("process" "selection-info" "narrow" "macro"
+           "profiler" "repeat" "blame" "text-scale")))
+```
+
+3. `mini-echo-persistent-function`: A function which return a plist of persistent segments on conditions.
+   `mini-echo-persistent-detect` is the default function to detect whether rule exists. e.g.
+
+```elisp
+(defun mini-echo-persistent-detect ()
+  "Return a plist of persistent rule if matched.
+Otherwise, return nil."
+  (with-current-buffer (current-buffer)
+    ;; NOTE return the first match, so the former has higher priority
+    (pcase major-mode
+      ((guard (bound-and-true-p atomic-chrome-edit-mode))
+       '(:both ("atomic-chrome" "buffer-name" "buffer-position" "flymake")))
+      ((guard (or (memq major-mode '(git-commit-elisp-text-mode git-rebase-mode))
+                  (string-match-p "\\`magit-.*-mode\\'" (symbol-name major-mode))))
+       '(:both ("major-mode" "project")))
+      ('ibuffer-mode '(:both "major-mode"))
+      ('diff-mode '(:both ("major-mode")))
+      ('dired-mode '(:both ("major-mode" "dired")))
+      ('helpful-mode '(:both ("major-mode" "helpful")))
+      ('xwidget-webkit-mode '(:long ("shrink-path") :short ("buffer-name")))
+      ((or 'vterm-mode 'quickrun--mode 'inferior-python-mode
+           'nodejs-repl-mode 'inferior-emacs-lisp-mode)
+       '(:both ("ide")))
+      (_ nil))))
+```
+
+In `ibuffer` buffer, return `(:both "major-mode")` as persistent segments.
+in `dired` buffer, return `(:both ("major-mode" "dired"))` as persistent segments.
+In buffers created by `atomic-chrome` package, return `(:both ("atomic-chrome" "buffer-name" "buffer-position" "flymake"))` as persistent segments.
+If not matched in the function, use `mini-echo-persistent-rule` as fallback.
+
+4. `mini-echo-toggle`: command, show or hide some segment temporarily
 
 Other options are here, see more info please check the file
 
@@ -169,7 +207,7 @@ For more information, please see [mini-echo-segments.el](mini-echo-segments.el).
 - [ ] add environment support, such as python, node.js, asdf...
 - [ ] add support to highlight current window
 - [ ] add support for nerd-icons
-- [ ] refactor segment to distinguish between persistent and temporary types.
+- [x] refactor segment to distinguish between persistent and temporary types.
 
 ## FAQ
 
