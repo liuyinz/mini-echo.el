@@ -142,27 +142,27 @@ Otherwise, show mise section always."
 
 (defface mini-echo-green-bold
   '((t (:inherit (bold mini-echo-green))))
-  "Face for mini-echo segment wiht bold green color.")
+  "Face for mini-echo segment with bold green color.")
 
 (defface mini-echo-yellow-bold
   '((t (:inherit (bold mini-echo-yellow))))
-  "Face for mini-echo segment wiht bold yellow color.")
+  "Face for mini-echo segment with bold yellow color.")
 
 (defface mini-echo-blue-bold
   '((t (:inherit (bold mini-echo-blue))))
-  "Face for mini-echo segment wiht bold blue color.")
+  "Face for mini-echo segment with bold blue color.")
 
 (defface mini-echo-red-bold
   '((t (:inherit (bold mini-echo-red))))
-  "Face for mini-echo segment wiht bold red color.")
+  "Face for mini-echo segment with bold red color.")
 
 (defface mini-echo-cyan-bold
   '((t (:inherit (bold mini-echo-cyan))))
-  "Face for mini-echo segment wiht bold cyan color.")
+  "Face for mini-echo segment with bold cyan color.")
 
 (defface mini-echo-violet-bold
   '((t (:inherit (bold mini-echo-violet))))
-  "Face for mini-echo segment wiht bold violet color.")
+  "Face for mini-echo segment with bold violet color.")
 
 (defface mini-echo-major-mode
   '((t (:inherit bold)))
@@ -439,7 +439,7 @@ with ellipsis."
   :update (mini-echo-update-project-root))
 
 (defun mini-echo-buffer-status ()
-  "Display th status of current buffer."
+  "Display the status of current buffer."
   (cond
    ((bound-and-true-p magit-blob-mode) (cons "" nil))
    (buffer-read-only (cons "%" 'warning))
@@ -484,7 +484,7 @@ with ellipsis."
           (mini-echo-buffer-name-with-status)))
 
 (mini-echo-define-segment "shrink-path"
-  "Return shrinked path of current buffer in project or parent dir."
+  "Return shrink path of current buffer in project or parent dir."
   :update-advice '((vc-refresh-state . :after))
   :fetch
   (concat
@@ -671,7 +671,7 @@ Display format is inherited from `battery-mode-line-format'."
 
 (mini-echo-define-segment "vcs"
   "Return vcs info of current buffer.
-Segment appearence depends on var `vc-display-status' and faces like
+Segment appearance depends on var `vc-display-status' and faces like
 `vc-state-base' and related `vc-**-state'."
   :fetch
   (when (bound-and-true-p vc-mode)
