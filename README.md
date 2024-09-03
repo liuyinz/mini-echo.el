@@ -113,8 +113,11 @@ Otherwise, return nil."
 ```
 
 In `ibuffer` buffer, return `(:both "major-mode")` as persistent segments.
+
 in `dired` buffer, return `(:both ("major-mode" "dired"))` as persistent segments.
+
 In buffers created by `atomic-chrome` package, return `(:both ("atomic-chrome" "buffer-name" "buffer-position" "flymake"))` as persistent segments.
+
 If not matched in the function, use `mini-echo-persistent-rule` as fallback.
 
 4. `mini-echo-toggle`: command, show or hide some segment temporarily
