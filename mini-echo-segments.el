@@ -42,6 +42,7 @@
 (defvar flymake-mode-line-exception)
 (defvar dired-actual-switches)
 (defvar magit-blob-mode)
+(defvar magit-blame-mode-lighter)
 (defvar display-time-string)
 (defvar lsp-bridge-mode-lighter)
 (defvar eglot--mode-line-format)
