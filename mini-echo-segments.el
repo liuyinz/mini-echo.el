@@ -822,13 +822,13 @@ Segment appearence depends on var `vc-display-status' and faces like
   "Return info of diff buffers."
   :fetch
   (when (eq major-mode 'diff-mode)
-    (propertize "Diff" 'face 'dired-symlink)))
+    (propertize "Diff" 'face 'mini-echo-cyan)))
 
 (mini-echo-define-segment "atomic-chrome"
   "Return info of atomic chrome edit buffers."
   :fetch
   (when (bound-and-true-p atomic-chrome-edit-mode)
-    (propertize "Atomic" 'face 'dired-symlink)))
+    (propertize "Atomic" 'face 'mini-echo-cyan)))
 
 (mini-echo-define-segment "blame"
   "Return info of blame buffers."
