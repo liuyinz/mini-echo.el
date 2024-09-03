@@ -369,7 +369,10 @@ with ellipsis."
   :fetch
   (when (bound-and-true-p mode-name)
     (mini-echo-segment--print
-     (substring-no-properties (mini-echo-segment--extract mode-name))
+     (substring-no-properties
+      (pcase major-mode
+        ('dired-mode "Dired")
+        (_ (mini-echo-segment--extract mode-name))))
      'mini-echo-major-mode)))
 
 (mini-echo-define-segment "buffer-position"
@@ -531,8 +534,7 @@ with ellipsis."
                               sort-by)
                           "name"))
              (sign (if (string-match-p "--reverse" switches) "\u2191" "\u2193")))
-        (format "%s|%s%s"
-                (propertize "Dired" 'face 'dired-special)
+        (format "%s%s"
                 (propertize sort-item 'face 'dired-symlink)
                 (propertize sign 'face 'dired-warning))))))
 
@@ -552,16 +554,14 @@ with ellipsis."
     (pcase major-mode
       ('ibuffer-mode
        (let ((sign (if (string-match-p "\\[rev]" str) "\u2193" "\u2191"))
-             (auto-p (if (string-match-p "Auto" str) "auto|" ""))
+             (auto-p (if (string-match-p "Auto" str) "auto" ""))
              (sort-item (cadr (string-split str "[ ]"))))
          (format "%s|%s|%s"
-                 (propertize "Ibuffer" 'face 'dired-special)
+                 (propertize auto-p 'face 'dired-special)
                  (propertize (if ibuffer-display-maybe-show-predicates "show" "hide")
                              'face 'dired-warning)
-                 (concat
-                  (propertize auto-p 'face 'dired-special)
-                  (propertize sort-item 'face 'dired-symlink)
-                  (propertize sign 'face 'dired-warning)))))
+                 (concat (propertize sort-item 'face 'mini-echo-red)
+                         (propertize sign 'face 'mini-echo-yellow)))))
       ('rg-mode (mini-echo-segment--print str nil 25))
       (_ (mini-echo-segment--print str nil nil)))))
 
@@ -818,11 +818,12 @@ Segment appearence depends on var `vc-display-status' and faces like
                     20)))
        (propertize "|" 'face 'font-lock-doc-face)))))
 
-(mini-echo-define-segment "diff"
-  "Return info of diff buffers."
-  :fetch
-  (when (eq major-mode 'diff-mode)
-    (propertize "Diff" 'face 'mini-echo-cyan)))
+;; TODO show diff-mode switches
+;; (mini-echo-define-segment "diff"
+;;   "Return info of diff buffers."
+;;   :fetch
+;;   (when (eq major-mode 'diff-mode)
+;;     (propertize "Diff" 'face 'mini-echo-cyan)))
 
 (mini-echo-define-segment "atomic-chrome"
   "Return info of atomic chrome edit buffers."
