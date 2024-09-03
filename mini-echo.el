@@ -4,7 +4,7 @@
 
 ;; Author: liuyinz <liuyinz95@gmail.com>
 ;; Maintainer: liuyinz <liuyinz95@gmail.com>
-;; Version: 0.12.1
+;; Version: 0.13.0
 ;; Package-Requires: ((emacs "29.1") (dash "2.19.1") (hide-mode-line "1.0.3"))
 ;; Keywords: frames
 ;; Homepage: https://github.com/liuyinz/mini-echo.el
@@ -39,43 +39,59 @@
 (require 'subr-x)
 (require 'face-remap)
 (require 'pcase)
+(require 'map)
 
 (require 'dash)
 (require 'hide-mode-line)
 
 (require 'mini-echo-segments)
 
+(make-obsolete-variable 'mini-echo-default-segments
+                        'mini-echo-persistent-rules "0.13.0")
+
 (defgroup mini-echo nil
   "Echo buffer status in minibuffer window."
   :group 'mini-echo)
 
-(defcustom mini-echo-default-segments
-  '(:long ("major-mode" "shrink-path" "vcs" "buffer-position"
-           "buffer-size" "flymake" "process" "selection-info"
-           "narrow" "macro" "profiler" "repeat" "blame")
-    :short ("buffer-name" "buffer-position" "process" "profiler"
-            "selection-info" "narrow" "macro" "repeat" "blame"))
-  "Plist of segments which is default for all buffers."
+(defcustom mini-echo-persistent-rules
+  '(:long ("major-mode" "shrink-path" "vcs" "buffer-position" "buffer-size" "flymake")
+    :short ("buffer-name" "buffer-position" "flymake"))
+  "Plist of segments which are persistent for buffers.
+Used as fallback if `mini-echo-persistent-function' return nil."
   :type '(plist :key-type symbol
-                :options '(:long :short)
+                :options '(:long :short :both)
                 :value-type (repeat string))
+  :package-version '(mini-echo . "0.13.0")
   :group 'mini-echo)
 
-(defcustom mini-echo-rules-function
-  #'mini-echo-default-rules
-  "Function to fetch segments according to buffers.
+(defcustom mini-echo-temporary-rules
+  '(:both ("process" "selection-info" "narrow" "macro"
+           "profiler" "repeat" "blame" "text-scale"))
+  "Plist of segments which are temporary for buffers.
+These segments are triggered by commands usually."
+  :type '(plist :key-type symbol
+                :options '(:long :short :both)
+                :value-type (repeat string))
+  :package-version '(mini-echo . "0.13.0")
+  :group 'mini-echo)
+
+(defcustom mini-echo-persistent-function
+  #'mini-echo-persistent-detect
+  "Function to fetch persistent rule conditionally.
 Return a plist of (:both SEGMENTS..) or (:long SEGMENTS.. :short SEGMENTS..)
-when some rule matched, otherwise return nil and use
-`mini-echo-default-segments' as fallback."
-  :type '(choice (const :tag "fetch segments when rule matched" mini-echo-default-rules)
+when matched, otherwise return nil and use `mini-echo-persistent-rules'
+as fallback."
+  :type '(choice (const :tag "fetch rule when matched"
+                        mini-echo-persistent-detect)
                  function)
   :package-version '(mini-echo . "0.13.0")
   :group 'mini-echo)
 
 (defcustom mini-echo-short-style-predicate
   #'mini-echo-minibuffer-width-lessp
-  "Predicate to select short style segments."
-  :type '(choice (const :tag "default predicate function" mini-echo-minibuffer-width-lessp)
+  "Predicate to select segments in short style."
+  :type '(choice (const :tag "default predicate function"
+                        mini-echo-minibuffer-width-lessp)
                  function)
   :package-version '(mini-echo . "0.5.1")
   :group 'mini-echo)
@@ -116,17 +132,16 @@ Format is a list of three argument:
   '((t :inherit default))
   "Face used to highlight the minibuffer window.")
 
-(defconst mini-echo-managed-buffers
+(defconst mini-echo-modified-buffers
   '(" *Echo Area 0*" " *Echo Area 1*" " *Minibuf-0*"))
 
 (defvar mini-echo-overlays nil)
-
 (defvar-local mini-echo--remap-cookie nil)
 (defvar mini-echo--valid-segments nil)
-(defvar mini-echo--default-segments nil)
-(defvar-local mini-echo--selected-segments nil)
+(defvar mini-echo--default-rule nil)
+(defvar-local mini-echo--selected-rule nil)
 (defvar mini-echo--toggled-segments nil)
-(defvar mini-echo--info-last-build nil)
+(defvar mini-echo--info-last-built nil)
 
 
 ;;; Segments functions
@@ -135,54 +150,58 @@ Format is a list of three argument:
   "Return non-nil if SEGMENT is valid."
   (member segment mini-echo--valid-segments))
 
-(defun mini-echo-validate-segments (segments)
-  "Return list of validated SEGMENTS."
-  (--map-when (not (keywordp it))
-              (-filter #'mini-echo-segment-valid-p it)
-              segments))
+(defun mini-echo-normalize-rule (rule)
+  "Return a plist of (:long ... :short ...) according to RULE."
+  (let* ((valid-rule (--map-when (not (keywordp it))
+                                 (-filter #'mini-echo-segment-valid-p it)
+                                 rule))
+         (use-both (memq :both valid-rule)))
+    (list :long (plist-get valid-rule (or (and use-both :both) :long))
+          :short (plist-get valid-rule (or (and use-both :both) :short)))))
 
-(defun mini-echo-default-rules ()
-  "Default function to return segments."
+(defun mini-echo-merge-rules (persistent)
+  "Merge PERSISTENT with `mini-echo-temporary-rules' and return the result."
+  (map-merge-with
+   'plist
+   (lambda (v1 v2) (append v1 v2))
+   (mini-echo-normalize-rule persistent)
+   (mini-echo-normalize-rule mini-echo-temporary-rules)))
+
+(defun mini-echo-persistent-detect ()
+  "Return a plist of persistent rule if matched.
+Otherwise, return nil."
   (with-current-buffer (current-buffer)
-    (let ((temp '("process" "selection-info" "narrow" "macro" "profiler" "repeat")))
-      ;; NOTE return the first match, so the former has higher priority
-      (pcase major-mode
-        ((guard (bound-and-true-p atomic-chrome-edit-mode))
-         `(:both ("atomic-chrome" "buffer-name" "buffer-position" "flymake" ,@temp)))
-        ((guard (or (memq major-mode '(git-commit-elisp-text-mode git-rebase-mode))
-                    (string-match-p "\\`magit-.*-mode\\'" (symbol-name major-mode))))
-         `(:both ("major-mode" "project" ,@temp)))
-        ('ibuffer-mode `(:both "major-mode" ,@temp))
-        ('diff-mode `(:both ("major-mode" ,@temp)))
-        ('dired-mode `(:both ("dired" ,@temp)))
-        ('helpful-mode `(:both ("major-mode" "helpful" ,@temp)))
-        ('special-mode `(:both ("buffer-position" ,@temp)))
-        ('xwidget-webkit-mode `(:long ("shrink-path" ,@temp)
-                                :short ("buffer-name" ,@temp)))
-        ((or 'vterm-mode 'quickrun--mode 'inferior-python-mode
-             'nodejs-repl-mode 'inferior-emacs-lisp-mode)
-         `(:both ("ide" ,@temp)))
-        (_ nil)))))
+    ;; NOTE return the first match, so the former has higher priority
+    (pcase major-mode
+      ((guard (bound-and-true-p atomic-chrome-edit-mode))
+       '(:both ("atomic-chrome" "buffer-name" "buffer-position" "flymake")))
+      ((guard (or (memq major-mode '(git-commit-elisp-text-mode git-rebase-mode))
+                  (string-match-p "\\`magit-.*-mode\\'" (symbol-name major-mode))))
+       '(:both ("major-mode" "project")))
+      ('ibuffer-mode '(:both "major-mode"))
+      ('diff-mode '(:both ("major-mode")))
+      ('dired-mode '(:both ("major-mode" "dired")))
+      ('helpful-mode '(:both ("major-mode" "helpful")))
+      ('xwidget-webkit-mode '(:long ("shrink-path") :short ("buffer-name")))
+      ((or 'vterm-mode 'quickrun--mode 'inferior-python-mode
+           'nodejs-repl-mode 'inferior-emacs-lisp-mode)
+       '(:both ("ide")))
+      (_ nil))))
 
-(defun mini-echo-ensure-segments ()
-  "Ensure all predefined segments variable ready for mini echo."
+(defun mini-echo-ensure ()
+  "Ensure all predefined variable ready for mini echo."
   (setq mini-echo--valid-segments (-map #'car mini-echo-segment-alist))
-  (setq mini-echo--default-segments
-        (mini-echo-validate-segments mini-echo-default-segments)))
+  (setq mini-echo--default-rule
+        (mini-echo-merge-rules mini-echo-persistent-rules)))
 
 (defun mini-echo-get-segments (target)
   "Return list of segments according to TARGET."
   (pcase target
-    ('valid mini-echo--valid-segments)
     ('selected
-     (with-memoization mini-echo--selected-segments
-       (or (when-let ((rule (mini-echo-validate-segments
-                             (funcall mini-echo-rules-function))))
-             (if (memq :both rule)
-                 (list :long (plist-get rule :both)
-                       :short (plist-get rule :both))
-               rule))
-           mini-echo--default-segments)))
+     (with-memoization mini-echo--selected-rule
+       (or (when-let ((rule (funcall mini-echo-persistent-function)))
+             (mini-echo-merge-rules rule))
+           mini-echo--default-rule)))
     ('current
      (let ((result (plist-get (mini-echo-get-segments 'selected)
                               (if (funcall mini-echo-short-style-predicate)
@@ -195,7 +214,8 @@ Format is a list of three argument:
                  (push segment extra))
              (setq result (remove segment result)))))
        (-concat result extra)))
-    ('no-current (-difference (mini-echo-get-segments 'valid)
+    ;; FIXME only filter persistent segments
+    ('no-current (-difference mini-echo--valid-segments
                               (mini-echo-get-segments 'current)))
     ('toggle (cl-remove-duplicates
               (-concat (-map #'car mini-echo--toggled-segments)
@@ -272,7 +292,7 @@ If optional arg DEINIT is non-nil, remove all overlays."
   (setq mini-echo-overlays nil)
   (if deinit
       (progn
-        (--each mini-echo-managed-buffers
+        (--each mini-echo-modified-buffers
           (with-current-buffer (get-buffer-create it)
             (when (minibufferp) (delete-minibuffer-contents))
             (face-remap-remove-relative mini-echo--remap-cookie)
@@ -282,7 +302,7 @@ If optional arg DEINIT is non-nil, remove all overlays."
         (remove-hook 'window-size-change-functions #'mini-echo-update-overlays-when-resized)
         (remove-hook 'minibuffer-inactive-mode-hook #'mini-echo-fontify-minibuffer-window)
         (remove-hook 'minibuffer-setup-hook #'mini-echo-fontify-minibuffer-window))
-    (--each mini-echo-managed-buffers
+    (--each mini-echo-modified-buffers
       (with-current-buffer (get-buffer-create it)
         (and (minibufferp) (= (buffer-size) 0) (insert " "))
         (push (make-overlay (point-min) (point-max) nil nil t)
@@ -327,9 +347,9 @@ On the gui, calculate length based on pixel, otherwise based on char."
                  (padding (+ mini-echo-right-padding
                              (mini-echo-calculate-length combined)))
                  (prop `(space :align-to (- right-fringe ,padding))))
-            (setq mini-echo--info-last-build
+            (setq mini-echo--info-last-built
                   (concat (propertize " " 'cursor 1 'display prop) combined)))
-        mini-echo--info-last-build)
+        mini-echo--info-last-built)
     (format "mini-echo info building error")))
 
 (defun mini-echo-update-overlays (&optional msg)
@@ -399,7 +419,7 @@ If optional arg RESET is non-nil, clear all toggled segments."
   :global t
   (if mini-echo-mode
       (progn
-        (mini-echo-ensure-segments)
+        (mini-echo-ensure)
         (mini-echo-hide-mode-line)
         (mini-echo-show-divider)
         (mini-echo-init-echo-area))
