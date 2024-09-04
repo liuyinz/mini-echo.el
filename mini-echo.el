@@ -183,9 +183,6 @@ Otherwise, return nil."
       ('dired-mode '(:both ("major-mode" "dired")))
       ('helpful-mode '(:both ("major-mode" "helpful")))
       ('xwidget-webkit-mode '(:long ("shrink-path") :short ("buffer-name")))
-      ((or 'vterm-mode 'quickrun--mode 'inferior-python-mode
-           'nodejs-repl-mode 'inferior-emacs-lisp-mode)
-       '(:both ("ide")))
       (_ nil))))
 
 (defun mini-echo-ensure ()

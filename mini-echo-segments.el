@@ -792,33 +792,6 @@ Segment appearance depends on var `vc-display-status' and faces like
                             'elfeed-search-unread-count-face)
                 "]")))))
 
-(mini-echo-define-segment "ide"
-  "Return info about vterm,quickrun and other repl buffers."
-  :fetch
-  (let* ((modes '(vterm-mode quickrun--mode nodejs-repl-mode
-                             inferior-emacs-lisp-mode
-                             inferior-python-mode))
-         (face (pcase major-mode
-                 ('vterm-mode 'mini-echo-blue-bold)
-                 ('quickrun--mode 'mini-echo-yellow-bold)
-                 ((or 'nodejs-repl-mode 'inferior-emacs-lisp-mode
-                      'inferior-python-mode)
-                  'mini-echo-red-bold)
-                 (_ nil))))
-    (when face
-      (string-join
-       (->> (buffer-list)
-            (--filter (memq (buffer-local-value 'major-mode it) modes))
-            (-map #'buffer-name)
-            (-sort #'string-lessp)
-            (reverse)
-            (--map (mini-echo-segment--print
-                    it (if (string= it (buffer-name))
-                           face
-                         'font-lock-doc-face)
-                    20)))
-       (propertize "|" 'face 'font-lock-doc-face)))))
-
 ;; TODO show diff-mode switches
 ;; (mini-echo-define-segment "diff"
 ;;   "Return info of diff buffers."
