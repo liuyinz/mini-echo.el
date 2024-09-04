@@ -47,13 +47,13 @@
 (require 'mini-echo-segments)
 
 (make-obsolete-variable 'mini-echo-default-segments
-                        'mini-echo-persistent-rules "0.13.0")
+                        'mini-echo-persistent-rule "0.13.0")
 
 (defgroup mini-echo nil
   "Echo buffer status in minibuffer window."
   :group 'mini-echo)
 
-(defcustom mini-echo-persistent-rules
+(defcustom mini-echo-persistent-rule
   '(:long ("major-mode" "shrink-path" "vcs" "buffer-position" "buffer-size" "flymake")
     :short ("buffer-name" "buffer-position" "flymake"))
   "Plist of segments which are persistent for buffers.
@@ -64,7 +64,7 @@ Used as fallback if `mini-echo-persistent-function' return nil."
   :package-version '(mini-echo . "0.13.0")
   :group 'mini-echo)
 
-(defcustom mini-echo-temporary-rules
+(defcustom mini-echo-temporary-rule
   '(:both ("process" "selection-info" "narrow" "macro"
            "profiler" "repeat" "blame" "text-scale"))
   "Plist of segments which are temporary for buffers.
@@ -79,7 +79,7 @@ These segments are triggered by commands usually."
   #'mini-echo-persistent-detect
   "Function to fetch persistent rule conditionally.
 Return a plist of (:both SEGMENTS..) or (:long SEGMENTS.. :short SEGMENTS..)
-when matched, otherwise return nil and use `mini-echo-persistent-rules'
+when matched, otherwise return nil and use `mini-echo-persistent-rule'
 as fallback."
   :type '(choice (const :tag "fetch rule when matched"
                         mini-echo-persistent-detect)
@@ -160,12 +160,12 @@ Format is a list of three argument:
           :short (plist-get valid-rule (or (and use-both :both) :short)))))
 
 (defun mini-echo-merge-rules (persistent)
-  "Merge PERSISTENT with `mini-echo-temporary-rules' and return the result."
+  "Merge PERSISTENT with `mini-echo-temporary-rule' and return the result."
   (map-merge-with
    'plist
    (lambda (v1 v2) (append v1 v2))
    (mini-echo-normalize-rule persistent)
-   (mini-echo-normalize-rule mini-echo-temporary-rules)))
+   (mini-echo-normalize-rule mini-echo-temporary-rule)))
 
 (defun mini-echo-persistent-detect ()
   "Return a plist of persistent rule if matched.
@@ -192,7 +192,7 @@ Otherwise, return nil."
   "Ensure all predefined variable ready for mini echo."
   (setq mini-echo--valid-segments (-map #'car mini-echo-segment-alist))
   (setq mini-echo--default-rule
-        (mini-echo-merge-rules mini-echo-persistent-rules)))
+        (mini-echo-merge-rules mini-echo-persistent-rule)))
 
 (defun mini-echo-get-segments (target)
   "Return list of segments according to TARGET."
