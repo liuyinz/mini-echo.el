@@ -46,9 +46,6 @@
 
 (require 'mini-echo-segments)
 
-(make-obsolete-variable 'mini-echo-default-segments
-                        'mini-echo-persistent-rule "0.13.0")
-
 (defgroup mini-echo nil
   "Echo buffer status in minibuffer window."
   :group 'mini-echo)
@@ -63,6 +60,10 @@ Used as fallback if `mini-echo-persistent-function' return nil."
                 :value-type (repeat string))
   :package-version '(mini-echo . "0.13.0")
   :group 'mini-echo)
+
+(make-obsolete-variable 'mini-echo-default-segments
+                        'mini-echo-persistent-rule
+                        "0.13.0")
 
 (defcustom mini-echo-temporary-rule
   '(:both ("process" "selection-info" "narrow" "macro"
