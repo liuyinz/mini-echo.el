@@ -439,18 +439,24 @@ with ellipsis."
                               'mini-echo-project))
   :update (mini-echo-update-project-root))
 
+(defun mini-echo-buffer-read-only ()
+  "Return read only info of current buffer."
+  (when buffer-read-only (propertize "%" 'face 'mini-echo-yellow-bold)))
+
 (defun mini-echo-buffer-status ()
-  "Display the status of current buffer."
-  (cond
-   ((bound-and-true-p magit-blob-mode) (cons "" nil))
-   (buffer-read-only (cons "%" 'warning))
-   ((and buffer-file-name (buffer-modified-p))
-    (cons "*" 'success))
-   ((and buffer-file-name
-         (not (file-remote-p buffer-file-name))
-         (not (file-exists-p buffer-file-name)))
-    (cons "!" 'error))
-   (t (cons " " nil))))
+  "Display the visited file status of current buffer."
+  (let* ((file-name (buffer-file-name))
+         (file-exist (and file-name (file-exists-p file-name)))
+         (file-remote (and file-name (file-remote-p file-name))))
+    (cond
+     ;; for buffers which files are modified outside Emacs
+     ((and file-exist (not file-remote) (not (verify-visited-file-modtime)))
+      (cons "!" 'mini-echo-yellow-bold))
+     ((and file-exist (buffer-modified-p))
+      (cons "*" 'mini-echo-green-bold))
+     ((and buffer-file-name (not file-exist) (not file-remote))
+      (cons "?" 'mini-echo-red-bold))
+     (t (cons " " nil)))))
 
 (defun mini-echo-buffer-name ()
   "Return current buffer name."
@@ -481,14 +487,17 @@ with ellipsis."
 (mini-echo-define-segment "buffer-name"
   "Return name of current buffer."
   :fetch
-  (concat (file-name-directory (mini-echo-buffer-name))
-          (mini-echo-buffer-name-with-status)))
+  (concat
+   (mini-echo-buffer-read-only)
+   (file-name-directory (mini-echo-buffer-name))
+   (mini-echo-buffer-name-with-status)))
 
 (mini-echo-define-segment "shrink-path"
   "Return shrink path of current buffer in project or parent dir."
   :update-advice '((vc-refresh-state . :after))
   :fetch
   (concat
+   (mini-echo-buffer-read-only)
    (let* ((filepath (buffer-file-name))
           (project (or mini-echo--project-root
                        (mini-echo-update-project-root)))
