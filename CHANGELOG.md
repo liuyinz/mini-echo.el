@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.13.1](https://github.com/liuyinz/mini-echo.el/compare/v0.13.0..v0.13.1) - 2024-09-07
+
+### Bug Fixes
+
+- byte warning of missing variable - ([931f440](https://github.com/liuyinz/mini-echo.el/commit/931f440ce2264a13599780811e8fc27494cfb202))
+- typos in option names - ([288fd3b](https://github.com/liuyinz/mini-echo.el/commit/288fd3bb6fe9b2653babcd797e06909be8e01fa2))
+- silent compile warning - ([c08646b](https://github.com/liuyinz/mini-echo.el/commit/c08646bc6c11191ceaaf49dc5e45d1849e60cc1e))
+
+### Refactoring
+
+- **(segment)** enhance buffer name segments info - ([80062f8](https://github.com/liuyinz/mini-echo.el/commit/80062f821efbb923f5159cd614ae478b796784f1))
+- remove segment ide - ([6637a9e](https://github.com/liuyinz/mini-echo.el/commit/6637a9e5cba7ab141259f27a8291fc73a039f008))
+- adjust face of dired segments - ([f377035](https://github.com/liuyinz/mini-echo.el/commit/f37703572c879d40484a57a1ea429f22b6288830))
+
 ## [0.13.0](https://github.com/liuyinz/mini-echo.el/compare/v0.12.1..v0.13.0) - 2024-09-03
 
 ### Bug Fixes
