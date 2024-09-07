@@ -165,6 +165,11 @@ Otherwise, show mise section always."
   '((t (:inherit (bold mini-echo-violet))))
   "Face for mini-echo segment with bold violet color.")
 
+(defface mini-echo-gray-bold
+  '((t (:inherit (bold mini-echo-gray))))
+  "Face for mini-echo segment with bold gray color."
+  :group 'mini-echo)
+
 (defface mini-echo-major-mode
   '((t (:inherit bold)))
   "Face for mini-echo segment of major mode."
@@ -567,11 +572,11 @@ with ellipsis."
              (auto-p (if (string-match-p "Auto" str) "auto" ""))
              (sort-item (cadr (string-split str "[ ]"))))
          (format "%s|%s|%s"
-                 (propertize auto-p 'face 'dired-special)
+                 (propertize auto-p 'face 'mini-echo-gray-bold)
                  (propertize (if ibuffer-display-maybe-show-predicates "show" "hide")
-                             'face 'dired-warning)
-                 (concat (propertize sort-item 'face 'mini-echo-red)
-                         (propertize sign 'face 'mini-echo-yellow)))))
+                             'face 'mini-echo-green-bold)
+                 (concat (propertize sort-item 'face 'mini-echo-blue-bold)
+                         (propertize sign 'face 'mini-echo-yellow-bold)))))
       ('rg-mode (mini-echo-segment--print str nil 25))
       (_ (mini-echo-segment--print str nil nil)))))
 
