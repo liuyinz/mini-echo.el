@@ -839,6 +839,25 @@ Segment appearance depends on var `vc-display-status' and faces like
                     (propertize (match-string 1 str) 'face 'mini-echo-gray))
           (propertize "lambda" 'face 'mini-echo-green))))))
 
+(mini-echo-define-segment "popper"
+  "Return info of popper buffers."
+  :fetch
+  (when (rassq (current-buffer) popper-open-popup-alist)
+    (string-join
+     (->>
+      popper-buried-popup-alist
+      (alist-get (and popper-group-function (funcall popper-group-function)))
+      (-map #'cdr)
+      (cons (current-buffer))
+      (-map #'buffer-name)
+      (-sort #'string-lessp)
+      (reverse)
+      (--map (mini-echo-segment--print
+              it (if (string= it (buffer-name))
+                     'mini-echo-yellow-bold
+                   'mini-echo-gray)
+              25)))
+     (propertize "|" 'face 'font-lock-doc-face))))
 
 ;; TODO add more segments
 

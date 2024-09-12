@@ -179,6 +179,8 @@ Otherwise, return nil."
       ((guard (or (memq major-mode '(git-commit-elisp-text-mode git-rebase-mode))
                   (string-match-p "\\`magit-.*-mode\\'" (symbol-name major-mode))))
        '(:both ("major-mode" "project")))
+      ((guard (rassq (current-buffer) popper-open-popup-alist))
+       '(:both ("popper")))
       ('ibuffer-mode '(:both "major-mode"))
       ('diff-mode '(:both ("major-mode")))
       ('dired-mode '(:both ("major-mode" "dired")))
