@@ -842,8 +842,8 @@ Segment appearance depends on var `vc-display-status' and faces like
 (mini-echo-define-segment "popper"
   "Return info of popper buffers."
   :fetch
-  (when (and (bound-and-true-p popper-open-popup-alist)
-             (rassq (current-buffer) popper-open-popup-alist))
+  (when (and (fboundp 'popper-display-control-p)
+             (popper-display-control-p (current-buffer)))
     (string-join
      (->>
       popper-buried-popup-alist
