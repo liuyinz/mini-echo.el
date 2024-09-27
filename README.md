@@ -101,14 +101,14 @@ Otherwise, return nil."
       ((guard (or (memq major-mode '(git-commit-elisp-text-mode git-rebase-mode))
                   (string-match-p "\\`magit-.*-mode\\'" (symbol-name major-mode))))
        '(:both ("major-mode" "project")))
-      ('ibuffer-mode '(:both "major-mode"))
+      ('ibuffer-mode '(:both ("major-mode")))
       ('diff-mode '(:both ("major-mode")))
       ('dired-mode '(:both ("major-mode" "dired")))
       ('helpful-mode '(:both ("major-mode" "helpful")))
       ('xwidget-webkit-mode '(:long ("shrink-path") :short ("buffer-name")))
-      ((or 'vterm-mode 'quickrun--mode 'inferior-python-mode
-           'nodejs-repl-mode 'inferior-emacs-lisp-mode)
-       '(:both ("ide")))
+      ((guard (and (fboundp 'popper-display-control-p)
+                   (popper-display-control-p (current-buffer))))
+       '(:both ("popper")))
       (_ nil))))
 ```
 
