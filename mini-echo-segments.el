@@ -111,28 +111,28 @@ Otherwise, show mise section always."
 
 ;; faces
 (defface mini-echo-green
-  '((t (:foreground "#8BD49C")))
+  '((t (:foreground "green")))
   "Face for mini-echo segment with green color."
   :group 'mini-echo)
 
 (defface mini-echo-yellow
-  '((t (:foreground "#EBBF83")))
+  '((t (:foreground "yellow")))
   "Face for mini-echo segment with yellow color."
   :group 'mini-echo)
 
 (defface mini-echo-blue
-  '((t (:foreground "#5EC4FF")))
+  '((t (:foreground "blue")))
   "Face for mini-echo segment with blue color."
   :group 'mini-echo)
 
 (defface mini-echo-red
-  '((t (:foreground "#E27E8D")))
+  '((t (:foreground "red")))
   "Face for mini-echo segment with red color."
   :group 'mini-echo)
 
-(defface mini-echo-violet
-  '((t (:foreground "violet")))
-  "Face for mini-echo segment with violet color."
+(defface mini-echo-magenta
+  '((t (:foreground "magenta")))
+  "Face for mini-echo segment with magenta color."
   :group 'mini-echo)
 
 (defface mini-echo-cyan
@@ -141,7 +141,7 @@ Otherwise, show mise section always."
   :group 'mini-echo)
 
 (defface mini-echo-gray
-  '((t (:foreground "#a0b3c5")))
+  '((t (:foreground "gray")))
   "Face for mini-echo segment with gray color."
   :group 'mini-echo)
 
@@ -165,9 +165,9 @@ Otherwise, show mise section always."
   '((t (:inherit (bold mini-echo-cyan))))
   "Face for mini-echo segment with bold cyan color.")
 
-(defface mini-echo-violet-bold
-  '((t (:inherit (bold mini-echo-violet))))
-  "Face for mini-echo segment with bold violet color.")
+(defface mini-echo-magenta-bold
+  '((t (:inherit (bold mini-echo-magenta))))
+  "Face for mini-echo segment with bold magenta color.")
 
 (defface mini-echo-gray-bold
   '((t (:inherit (bold mini-echo-gray))))
@@ -185,12 +185,12 @@ Otherwise, show mise section always."
   :group 'mini-echo)
 
 (defface mini-echo-buffer-position
-  '((t (:inherit mini-echo-violet)))
+  '((t (:inherit mini-echo-magenta)))
   "Face for mini-echo segment of buffer position."
   :group 'mini-echo)
 
 (defface mini-echo-char-info
-  '((t (:inherit mini-echo-violet)))
+  '((t (:inherit mini-echo-magenta)))
   "Face for mini-echo segment of char info."
   :group 'mini-echo)
 
@@ -275,7 +275,7 @@ Otherwise, show mise section always."
   :group 'mini-echo)
 
 (defface mini-echo-evil-emacs-state
-  '((t (:inherit mini-echo-violet)))
+  '((t (:inherit mini-echo-magenta)))
   "Face for mini-echo segment of evil Emacs state."
   :group 'mini-echo)
 
