@@ -57,6 +57,10 @@
 (defvar mise-lighter)
 (defvar mise--status)
 (defvar ibuffer-display-maybe-show-predicates)
+(defvar popper-group-function)
+(defvar popper-buried-popup-alist)
+(defvar wgrep-prepared)
+(defvar wgrep-sibling-buffer)
 
 (declare-function eieio-oset "eieio-core")
 (declare-function projectile-project-root "ext:projectile")
