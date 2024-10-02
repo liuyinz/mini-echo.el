@@ -860,6 +860,13 @@ Segment appearance depends on var `vc-display-status' and faces like
               25)))
      (propertize "|" 'face 'font-lock-doc-face))))
 
+(mini-echo-define-segment "wgrep"
+  "Return info of wgrep-able buffers."
+  :fetch
+  (when (and (bound-and-true-p wgrep-prepared)
+             wgrep-sibling-buffer)
+    (propertize "Wgrep" 'face 'mini-echo-yellow-bold)))
+
 ;; TODO add more segments
 
 (provide 'mini-echo-segments)
