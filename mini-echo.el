@@ -186,6 +186,7 @@ Otherwise, return nil."
       ('diff-mode '(:both ("major-mode")))
       ('dired-mode '(:both ("major-mode" "dired")))
       ('helpful-mode '(:both ("major-mode" "helpful")))
+      ('rg-mode '(:both ("major-mode")))
       ('xwidget-webkit-mode '(:long ("shrink-path") :short ("buffer-name")))
       (_ nil))))
 

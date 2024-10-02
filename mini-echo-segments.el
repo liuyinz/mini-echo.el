@@ -577,7 +577,8 @@ with ellipsis."
                              'face 'mini-echo-green-bold)
                  (concat (propertize sort-item 'face 'mini-echo-blue-bold)
                          (propertize sign 'face 'mini-echo-yellow-bold)))))
-      ('rg-mode (mini-echo-segment--print str nil 25))
+      ((guard (derived-mode-p 'sh-base-mode)) nil)
+      ('rg-mode (car (string-split str " ")))
       (_ (mini-echo-segment--print str nil nil)))))
 
 (mini-echo-define-segment "time"
