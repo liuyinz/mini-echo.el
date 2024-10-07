@@ -66,7 +66,7 @@ Used as fallback if `mini-echo-persistent-function' return nil."
                         "0.13.0")
 
 (defcustom mini-echo-temporary-rule
-  '(:both ("process" "selection-info" "narrow" "macro"
+  '(:both ("input-method" "process" "selection-info" "narrow" "macro"
            "profiler" "repeat" "blame" "text-scale" "wgrep"))
   "Plist of segments which are temporary for buffers.
 These segments are triggered by commands usually."

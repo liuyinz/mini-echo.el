@@ -61,6 +61,7 @@
 (defvar popper-buried-popup-alist)
 (defvar wgrep-prepared)
 (defvar wgrep-sibling-buffer)
+(defvar current-input-method-title)
 
 (declare-function eieio-oset "eieio-core")
 (declare-function projectile-project-root "ext:projectile")
@@ -242,6 +243,11 @@ Otherwise, show mise section always."
 (defface mini-echo-macro
   '((t (:inherit mini-echo-status-global)))
   "Face for mini-echo segment of macro status."
+  :group 'mini-echo)
+
+(defface mini-echo-input-method
+  '((t (:inherit mini-echo-status-local)))
+  "Face for mini-echo segment of input method."
   :group 'mini-echo)
 
 (defface mini-echo-process
@@ -613,6 +619,12 @@ Display format is inherited from `battery-mode-line-format'."
                    (format "@%s" (char-to-string evil-this-macro))
                  "Def")))
       (mini-echo-segment--print str 'mini-echo-macro))))
+
+(mini-echo-define-segment "input-method"
+  "Indicator that shows current input method if it is active."
+  :fetch
+  (when (stringp current-input-method-title)
+    (mini-echo-segment--print current-input-method-title 'mini-echo-input-method)))
 
 (mini-echo-define-segment "narrow"
   "Indicator of narrow status of current buffer."
