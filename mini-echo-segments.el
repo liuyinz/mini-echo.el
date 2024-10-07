@@ -244,6 +244,11 @@ Otherwise, show mise section always."
   "Face for mini-echo segment of macro status."
   :group 'mini-echo)
 
+(defface mini-echo-input-method
+  '((t (:inherit mini-echo-status-local)))
+  "Face for mini-echo segment of input method."
+  :group 'mini-echo)
+
 (defface mini-echo-process
   '((t (:inherit mini-echo-status-global)))
   "Face for mini-echo segment of process."
@@ -613,6 +618,13 @@ Display format is inherited from `battery-mode-line-format'."
                    (format "@%s" (char-to-string evil-this-macro))
                  "Def")))
       (mini-echo-segment--print str 'mini-echo-macro))))
+
+(mini-echo-define-segment "input-method"
+  "Indicator that shows current input method if it is active."
+  :fetch
+  (when current-input-method-title
+    (mini-echo-segment--print (format "LANG: %s" current-input-method-title)
+                              'mini-echo-input-method)))
 
 (mini-echo-define-segment "narrow"
   "Indicator of narrow status of current buffer."
