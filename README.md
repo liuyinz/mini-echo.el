@@ -68,7 +68,7 @@ There are two kinds of segments, `persistent` and `temporary`:
 - `persistent`: segments like `major-mode`, `buffer-size`, `vcs` displayed persistently, which mainly used by `mini-echo-persistent-rule` and `mini-echo-persistent-function`.
   Any buffer get persistent segments following order: calling `mini-echo-persistent-function` to get plist of segments, otherwise use `mini-echo-persistent-rule` as fallback.
 
-- `temporary`: segments like `process`, `narrow` displayed temporarily, which used by `mini-echo-temorary-rule`. All buffer get same temporary segments according to `mini-echo-temorary-rule` .
+- `temporary`: segments like `process`, `narrow` displayed temporarily, which used by `mini-echo-temporary-rule`. All buffer get same temporary segments according to `mini-echo-temporary-rule` .
 
 1. `mini-echo-persistent-rule`: variable, plist of persistent segments which are default to all buffers, support `:both` or `:long/:short` keywords.
 
@@ -78,10 +78,10 @@ There are two kinds of segments, `persistent` and `temporary`:
     :short ("buffer-name" "buffer-position" "flymake")))
 ```
 
-2. `mini-echo-temorary-rule`: variable, plist of temporary segments which are default to all buffers, support `:both` or `:long/:short` keywords.
+2. `mini-echo-temporary-rule`: variable, plist of temporary segments which are default to all buffers, support `:both` or `:long/:short` keywords.
 
 ```elisp
-(setq mini-echo-temorary-rule
+(setq mini-echo-temporary-rule
   '(:both ("process" "selection-info" "narrow" "macro"
            "profiler" "repeat" "blame" "text-scale")))
 ```
