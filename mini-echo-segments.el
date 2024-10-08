@@ -623,7 +623,7 @@ Display format is inherited from `battery-mode-line-format'."
   "Indicator that shows current input method if it is active."
   :fetch
   (when current-input-method-title
-    (mini-echo-segment--print (format "LANG: %s" current-input-method-title)
+    (mini-echo-segment--print (format "%s" current-input-method-title)
                               'mini-echo-input-method)))
 
 (mini-echo-define-segment "narrow"
