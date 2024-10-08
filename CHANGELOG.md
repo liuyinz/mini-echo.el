@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.14.0](https://github.com/liuyinz/mini-echo.el/compare/v0.13.1..v0.14.0) - 2024-10-08
+
+### Bug Fixes
+
+- **(popper)** error of symbol not exist - ([a03e115](https://github.com/liuyinz/mini-echo.el/commit/a03e11587eb3e7c610ce61147cf8bd4d5f8c3e47))
+- wrong arguments in mini-echo-persistent-detect - ([48ba208](https://github.com/liuyinz/mini-echo.el/commit/48ba208a022adf970b563fe5d05bdf1e6af5c189))
+- silence byte warning - ([b6ea9a4](https://github.com/liuyinz/mini-echo.el/commit/b6ea9a4cc30e45411b7ca4d88c80a84941a31b99))
+- add missing group to silence warnings - ([4b44459](https://github.com/liuyinz/mini-echo.el/commit/4b44459197f93f1d7c85298b5be36ae32e2b8a6b))
+
+### Features
+
+- **(segment)** add segment popper - ([bda1948](https://github.com/liuyinz/mini-echo.el/commit/bda1948aaa05c875f020132833acbbf99f5c4387))
+- **(segment)** add segment wgrep - ([56c98d8](https://github.com/liuyinz/mini-echo.el/commit/56c98d87b5e989cb87e54c8086d633e0339e8634))
+- add input-method segment - ([6153421](https://github.com/liuyinz/mini-echo.el/commit/6153421b393d5652363ca3a11135bca0785f4004))
+
+### Refactoring
+
+- **(popper)** rewrite popper conditon - ([58cfc74](https://github.com/liuyinz/mini-echo.el/commit/58cfc7467f94d74a347ef98b1ff3e899804fadcb))
+- update segment process - ([19522c8](https://github.com/liuyinz/mini-echo.el/commit/19522c828ba60c8200feda54aadc1c5b660e1b2c))
+- use default color in faces - ([0c1977d](https://github.com/liuyinz/mini-echo.el/commit/0c1977d90522accfb21b89a42c6ce7c7bc83b9ed))
+
 ## [0.13.1](https://github.com/liuyinz/mini-echo.el/compare/v0.13.0..v0.13.1) - 2024-09-07
 
 ### Bug Fixes
