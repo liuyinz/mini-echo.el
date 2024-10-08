@@ -148,27 +148,33 @@ Otherwise, show mise section always."
 
 (defface mini-echo-green-bold
   '((t (:inherit (bold mini-echo-green))))
-  "Face for mini-echo segment with bold green color.")
+  "Face for mini-echo segment with bold green color."
+  :group 'mini-echo)
 
 (defface mini-echo-yellow-bold
   '((t (:inherit (bold mini-echo-yellow))))
-  "Face for mini-echo segment with bold yellow color.")
+  "Face for mini-echo segment with bold yellow color."
+  :group 'mini-echo)
 
 (defface mini-echo-blue-bold
   '((t (:inherit (bold mini-echo-blue))))
-  "Face for mini-echo segment with bold blue color.")
+  "Face for mini-echo segment with bold blue color."
+  :group 'mini-echo)
 
 (defface mini-echo-red-bold
   '((t (:inherit (bold mini-echo-red))))
-  "Face for mini-echo segment with bold red color.")
+  "Face for mini-echo segment with bold red color."
+  :group 'mini-echo)
 
 (defface mini-echo-cyan-bold
   '((t (:inherit (bold mini-echo-cyan))))
-  "Face for mini-echo segment with bold cyan color.")
+  "Face for mini-echo segment with bold cyan color."
+  :group 'mini-echo)
 
 (defface mini-echo-magenta-bold
   '((t (:inherit (bold mini-echo-magenta))))
-  "Face for mini-echo segment with bold magenta color.")
+  "Face for mini-echo segment with bold magenta color."
+  :group 'mini-echo)
 
 (defface mini-echo-gray-bold
   '((t (:inherit (bold mini-echo-gray))))
