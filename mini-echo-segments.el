@@ -62,7 +62,12 @@
 (defvar wgrep-prepared)
 (defvar wgrep-sibling-buffer)
 (defvar current-input-method-title)
+(defvar profiler-report-profile)
+(defvar profiler-report-order)
+(defvar profiler-report-reversed)
 
+(declare-function profiler-profile-type "profiler")
+(declare-function profiler-profile-diff-p "profiler")
 (declare-function eieio-oset "eieio-core")
 (declare-function projectile-project-root "ext:projectile")
 (declare-function ffip-project-root "ext:ffip")
@@ -616,6 +621,21 @@ Display format is inherited from `battery-mode-line-format'."
   (when (or (profiler-cpu-running-p)
             (profiler-memory-running-p))
     (mini-echo-segment--print "Profiler" 'mini-echo-profiler)))
+
+(mini-echo-define-segment "profiler-report"
+  "Return info of profiler report."
+  :fetch
+  (when (eq major-mode 'profiler-report-mode)
+    (let* ((profile profiler-report-profile)
+           (type (symbol-name (profiler-profile-type profile)))
+           (diff (if (profiler-profile-diff-p profile) "diff" "no-diff"))
+           (order (symbol-name profiler-report-order))
+           (direction (if profiler-report-reversed "reversed" "forward")))
+      (format "%s|%s|%s [%s]"
+              (propertize order 'face 'mini-echo-yellow)
+              (propertize direction 'face 'mini-echo-red)
+              (propertize diff 'face 'mini-echo-gray)
+              (propertize type 'face 'mini-echo-blue-bold)))))
 
 (mini-echo-define-segment "macro"
   "Indicator of macro being recorded or executed."

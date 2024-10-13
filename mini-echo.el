@@ -182,6 +182,7 @@ Otherwise, return nil."
       ((guard (and (fboundp 'popper-display-control-p)
                    (popper-display-control-p (current-buffer))))
        '(:both ("popper")))
+      ('profiler-report-mode '(:both ("major-mode" "profiler-report")))
       ('ibuffer-mode '(:both ("major-mode")))
       ('diff-mode '(:both ("major-mode")))
       ('dired-mode '(:both ("major-mode" "dired")))
