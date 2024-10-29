@@ -202,7 +202,7 @@ Otherwise, return nil."
   (pcase target
     ('selected
      (with-memoization mini-echo--selected-rule
-       (or (when-let ((rule (funcall mini-echo-persistent-function)))
+       (or (when-let* ((rule (funcall mini-echo-persistent-function)))
              (mini-echo-merge-rules rule))
            mini-echo--default-rule)))
     ('current
@@ -268,7 +268,7 @@ If optional arg SHOW is non-nil, show the mode line."
     (when (< emacs-major-version 31)
       (run-with-timer
        5 nil
-       (lambda () (when-let ((bufs (--remove (buffer-local-value 'hide-mode-line-mode it)
+       (lambda () (when-let* ((bufs (--remove (buffer-local-value 'hide-mode-line-mode it)
                                              (buffer-list))))
                     (--each bufs (with-current-buffer it (hide-mode-line-mode 1)))))))))
 
@@ -401,7 +401,7 @@ If optional arg RESET is non-nil, clear all toggled segments."
           (progn
             (setq mini-echo--toggled-segments nil)
             (message "Mini-echo-toggle: reset to default."))
-        (when-let ((segment (completing-read
+        (when-let* ((segment (completing-read
                              "Mini-echo toggle: "
                              (mini-echo--toggle-completion) nil t)))
 
