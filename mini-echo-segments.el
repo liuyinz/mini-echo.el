@@ -378,7 +378,7 @@ optional arg FORCE is non-nil, call `format-mode-line' always."
   "Return a STRING after trimmed with FACE property if it has.
 If optional arg MAX-LENGTH is a number, return truncated string or combined
 with ellipsis."
-  (let* ((str (string-trim string)))
+  (when-let* ((str (and (stringp string) (string-trim string))))
     (when (and max-length (> (length str) max-length))
       (if-let* ((suffix mini-echo-ellipsis)
                 (len (length suffix)))
