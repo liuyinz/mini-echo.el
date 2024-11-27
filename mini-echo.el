@@ -269,7 +269,7 @@ If optional arg SHOW is non-nil, show the mode line."
       (run-with-timer
        5 nil
        (lambda () (when-let* ((bufs (--remove (buffer-local-value 'hide-mode-line-mode it)
-                                             (buffer-list))))
+                                              (buffer-list))))
                     (--each bufs (with-current-buffer it (hide-mode-line-mode 1)))))))))
 
 (defun mini-echo-show-divider (&optional hide)
@@ -402,8 +402,8 @@ If optional arg RESET is non-nil, clear all toggled segments."
             (setq mini-echo--toggled-segments nil)
             (message "Mini-echo-toggle: reset to default."))
         (when-let* ((segment (completing-read
-                             "Mini-echo toggle: "
-                             (mini-echo--toggle-completion) nil t)))
+                              "Mini-echo toggle: "
+                              (mini-echo--toggle-completion) nil t)))
 
           (setf (alist-get segment mini-echo--toggled-segments nil nil #'string=)
                 (let ((val (alist-get segment mini-echo--toggled-segments 'non-exist)))

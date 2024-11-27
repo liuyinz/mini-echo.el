@@ -366,7 +366,7 @@ Otherwise, show mise section always."
 CONSTRUCT is mode line data structure ,when CONSTRUCT is not a string or
 optional arg FORCE is non-nil, call `format-mode-line' always."
   (when-let* ((str (or (and (stringp construct) (null force) construct)
-                      (copy-sequence (format-mode-line construct)))))
+                       (copy-sequence (format-mode-line construct)))))
     ;; NOTE remove all text properties except face
     (remove-list-of-text-properties 0 (length str)
                                     '(help-echo mouse-face keymap local-map
@@ -445,7 +445,7 @@ with ellipsis."
               ('projectile (and (bound-and-true-p projectile-mode)
                                 (projectile-project-root)))
               ('project (when-let* (((fboundp 'project-current))
-                                   (project (project-current)))
+                                    (project (project-current)))
                           (expand-file-name
                            (if (fboundp 'project-root)
                                (project-root project)
@@ -585,8 +585,8 @@ with ellipsis."
   "Return current process info."
   :fetch
   (when-let* (((bound-and-true-p mode-line-process))
-             (str (mini-echo-segment--extract mode-line-process 'force))
-             ((not (string-empty-p str))))
+              (str (mini-echo-segment--extract mode-line-process 'force))
+              ((not (string-empty-p str))))
     (pcase major-mode
       ('ibuffer-mode
        (let ((sign (if (string-match-p "\\[rev]" str) "\u2193" "\u2191"))
@@ -750,10 +750,10 @@ Segment appearance depends on var `vc-display-status' and faces like
   (when (bound-and-true-p flycheck-mode)
     (concat
      (when-let* ((ind (pcase flycheck-last-status-change
-                       ((and n (guard (memq n '(not-checked no-checker suspicious)))) "?")
-                       ((and n (guard (memq n '(errord interrupted)))) "!")
-                       ('running "*")
-                       ('finished nil))))
+                        ((and n (guard (memq n '(not-checked no-checker suspicious)))) "?")
+                        ((and n (guard (memq n '(errord interrupted)))) "!")
+                        ('running "*")
+                        ('finished nil))))
        (propertize ind 'face 'compilation-mode-line-run))
      (apply #'format "%s/%s/%s"
             (--zip-with (propertize it 'face other)
