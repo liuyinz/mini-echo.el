@@ -894,7 +894,9 @@ Segment appearance depends on var `vc-display-status' and faces like
       (-map #'cdr)
       (cons (current-buffer))
       (-map #'buffer-name)
+      (-uniq)
       (-sort #'string-lessp)
+      (-non-nil)
       (reverse)
       (--map (mini-echo-segment--print
               it (if (string= it (buffer-name))
