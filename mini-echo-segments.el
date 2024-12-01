@@ -458,11 +458,14 @@ with ellipsis."
   "Display the project name of current buffer."
   :update-advice '((vc-refresh-state . :after))
   :fetch
-  (when-let* ((project (or mini-echo--project-root
-                           (mini-echo-update-project-root)))
-              ((not (string-empty-p project))))
-    (mini-echo-segment--print (file-name-nondirectory (directory-file-name project))
-                              'mini-echo-project))
+  (if (bound-and-true-p project-mode-line)
+      (mini-echo-segment--extract project-mode-line-format)
+    (when-let* ((project (or mini-echo--project-root
+                             (mini-echo-update-project-root)))
+                ((not (string-empty-p project))))
+      (mini-echo-segment--print (file-name-nondirectory (directory-file-name project))
+                                (or project-mode-line-face 'mini-echo-project))))
+
   :update (mini-echo-update-project-root))
 
 (defun mini-echo-buffer-read-only ()
