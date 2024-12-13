@@ -885,6 +885,27 @@ Segment appearance depends on var `vc-display-status' and faces like
                     (propertize (match-string 1 str) 'face 'mini-echo-gray))
           (propertize "lambda" 'face 'mini-echo-green))))))
 
+(mini-echo-define-segment "treesit-inspect"
+  "Return treesit node info at point."
+  :fetch
+  (when (or (bound-and-true-p treesit-inspect-mode)
+            (bound-and-true-p treesit-explore-mode))
+    (let ((face (if treesit-explore-mode 'mini-echo-yellow-bold 'mini-echo-yellow))
+          (node (and treesit-inspect-mode (string-trim treesit--inspect-name))))
+      (format "%s%s"
+              (if (null node) ""
+                (concat node (propertize "::" 'face 'font-lock-doc-face)))
+              (propertize "TS" 'face face)))))
+
+(mini-echo-define-segment "treesit-explorer-tree"
+  "Return info of treesit explore tree buffers."
+  :fetch
+  (when (eq major-mode 'treesit--explorer-tree-mode)
+    (let ((str (buffer-name)))
+      (save-match-data
+        (when (string-match "\\`\\*tree-sitter explorer for \\(.*\\)\\*\\'" str)
+          (propertize (match-string 1 str) 'face 'mini-echo-green))))))
+
 (mini-echo-define-segment "popper"
   "Return info of popper buffers."
   :fetch

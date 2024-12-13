@@ -67,7 +67,7 @@ Used as fallback if `mini-echo-persistent-function' return nil."
 
 (defcustom mini-echo-temporary-rule
   '(:both ("input-method" "process" "selection-info" "narrow" "macro"
-           "profiler" "repeat" "blame" "text-scale" "wgrep"))
+           "profiler" "repeat" "blame" "text-scale" "wgrep" "treesit-inspect"))
   "Plist of segments which are temporary for buffers.
 These segments are triggered by commands usually."
   :type '(plist :key-type symbol
@@ -188,6 +188,7 @@ Otherwise, return nil."
       ('dired-mode '(:both ("major-mode" "dired")))
       ('helpful-mode '(:both ("major-mode" "helpful")))
       ('rg-mode '(:both ("major-mode")))
+      ('treesit--explorer-tree-mode '(:both ("major-mode" "treesit-explorer-tree")))
       ('xwidget-webkit-mode '(:long ("shrink-path") :short ("buffer-name")))
       (_ nil))))
 
