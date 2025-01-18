@@ -594,7 +594,7 @@ with ellipsis."
       ('ibuffer-mode
        (let ((sign (if (string-match-p "\\[rev]" str) "\u2193" "\u2191"))
              (auto-p (if (string-match-p "Auto" str) "auto" ""))
-             (sort-item (cadr (string-split str "[ ]"))))
+             (sort-item (cadr (split-string str "[ ]"))))
          (format "%s|%s|%s"
                  (propertize auto-p 'face 'mini-echo-gray-bold)
                  (propertize (if ibuffer-display-maybe-show-predicates "show" "hide")
@@ -602,7 +602,7 @@ with ellipsis."
                  (concat (propertize sort-item 'face 'mini-echo-blue-bold)
                          (propertize sign 'face 'mini-echo-yellow-bold)))))
       ((guard (derived-mode-p 'sh-base-mode)) nil)
-      ('rg-mode (car (string-split str " ")))
+      ('rg-mode (car (split-string str " ")))
       (_ (mini-echo-segment--print str nil nil)))))
 
 (mini-echo-define-segment "time"
