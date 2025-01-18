@@ -189,7 +189,7 @@ Otherwise, return nil."
       ('helpful-mode '(:both ("major-mode" "helpful")))
       ('rg-mode '(:both ("major-mode")))
       ('treesit--explorer-tree-mode '(:both ("major-mode" "treesit-explorer-tree")))
-      ('xwidget-webkit-mode '(:long ("shrink-path") :short ("buffer-name")))
+      ('xwidget-webkit-mode '(:both ("major-mode" "xwidget")))
       (_ nil))))
 
 (defun mini-echo-ensure ()

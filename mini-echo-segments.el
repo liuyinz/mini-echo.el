@@ -745,6 +745,22 @@ Segment appearance depends on var `vc-display-status' and faces like
   (unless (string= "+0" text-scale-mode-lighter)
     (mini-echo-segment--print text-scale-mode-lighter 'mini-echo-cyan)))
 
+;; TODO add more info like zoom level, history depth, etc
+(mini-echo-define-segment "xwidget"
+  "Return info of `xwidget-webkit-mdoe' buffers."
+  :fetch
+  (when (eq major-mode 'xwidget-webkit-mode)
+    (let* ((session (xwidget-webkit-current-session))
+           (title (xwidget-webkit-title session))
+           (progress (and xwidget-webkit--loading-p
+                          (format " [%d%%%%]"
+                                  (* 100
+                                     (xwidget-webkit-estimated-load-progress
+                                      session))))))
+      (format "%s %s"
+              (propertize (or progress "") 'face 'mini-echo-yellow-bold)
+              (propertize title 'face 'mini-echo-green-bold)))))
+
 ;;; Third-party segments
 
 (mini-echo-define-segment "flycheck"
