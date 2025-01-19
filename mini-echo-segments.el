@@ -65,10 +65,12 @@
 (defvar profiler-report-profile)
 (defvar profiler-report-order)
 (defvar profiler-report-reversed)
+(defvar xwidget-webkit--loading-p)
 
 (declare-function profiler-profile-type "profiler")
 (declare-function profiler-profile-diff-p "profiler")
 (declare-function eieio-oset "eieio-core")
+(declare-function xwidget-webkit-current-session "xwidget")
 (declare-function projectile-project-root "ext:projectile")
 (declare-function ffip-project-root "ext:ffip")
 (declare-function keycast--format "ext:keycast")
