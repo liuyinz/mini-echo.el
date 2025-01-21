@@ -466,8 +466,7 @@ with ellipsis."
                              (mini-echo-update-project-root)))
                 ((not (string-empty-p project))))
       (mini-echo-segment--print (file-name-nondirectory (directory-file-name project))
-                                (or project-mode-line-face 'mini-echo-project))))
-
+                                'mini-echo-project)))
   :update (mini-echo-update-project-root))
 
 (defun mini-echo-buffer-read-only ()
