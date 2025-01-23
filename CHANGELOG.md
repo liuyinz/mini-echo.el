@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.15.0](https://github.com/liuyinz/mini-echo.el/compare/v0.14.0..v0.15.0) - 2025-01-23
+
+### Bug Fixes
+
+- **(popper)** remove repeat buffers - ([60ff411](https://github.com/liuyinz/mini-echo.el/commit/60ff411b0ee242c4a06d9cf43a5d282bb631cbb6))
+- **(project)** respect project-mode-line first now - ([0e60543](https://github.com/liuyinz/mini-echo.el/commit/0e6054359a1826694d50a1be18c419b485ab3d81))
+- **(project)** do not use project-mode-line-face if not available - ([e82295c](https://github.com/liuyinz/mini-echo.el/commit/e82295c5c7506562fd6da5c907c88c0c32549e5d))
+- error when print string is nil - ([28268a4](https://github.com/liuyinz/mini-echo.el/commit/28268a461df6998162705c148eb95bd21ae56339))
+- silence bytecomp warning - ([1dfa091](https://github.com/liuyinz/mini-echo.el/commit/1dfa091c75e9e17142f46d3f9e3d6257b50bda92))
+
+### Features
+
+- **(segment)** add profiler-report - ([83b6c6f](https://github.com/liuyinz/mini-echo.el/commit/83b6c6f36d318943f33b347b87f8ce6bdc0cb852))
+- **(segment)** add segment treesit-explorer-tree and treesit-inspect - ([d0fd92f](https://github.com/liuyinz/mini-echo.el/commit/d0fd92f30db71b8fd37cb7f8c18155d26ef8a2f7))
+- **(segment)** add segment xwidget - ([3be6eed](https://github.com/liuyinz/mini-echo.el/commit/3be6eedc953d25991e9b2f00b58752c1bf1565cd))
+
+### Miscellaneous Chores
+
+- update author and homepage - ([e3faeed](https://github.com/liuyinz/mini-echo.el/commit/e3faeed53a2230287d183b2cf254ef8e16d4e95e))
+
+### Refactoring
+
+- use split-string instead - ([f7d2ddc](https://github.com/liuyinz/mini-echo.el/commit/f7d2ddc3c868a48d9eb24c35cd6254704aec2d9f))
+
 ## [0.14.0](https://github.com/liuyinz/mini-echo.el/compare/v0.13.1..v0.14.0) - 2024-10-08
 
 ### Bug Fixes
