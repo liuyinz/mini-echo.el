@@ -1,13 +1,13 @@
 ;;; mini-echo.el --- Echo buffer status in minibuffer window -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023, 2024 liuyinz
+;; Copyright (C) 2023-2025 Eki Zhang
 
-;; Author: liuyinz <liuyinz95@gmail.com>
-;; Maintainer: liuyinz <liuyinz95@gmail.com>
+;; Author: Eki Zhang <liuyinz95@gmail.com>
+;; Maintainer: Eki Zhang <liuyinz95@gmail.com>
 ;; Version: 0.14.0
 ;; Package-Requires: ((emacs "29.1") (dash "2.19.1") (hide-mode-line "1.0.3"))
 ;; Keywords: frames
-;; Homepage: https://github.com/liuyinz/mini-echo.el
+;; Homepage: https://github.com/eki3z/mini-echo.el
 
 ;; This file is not a part of GNU Emacs.
 
