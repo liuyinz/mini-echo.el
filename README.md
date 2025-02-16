@@ -36,7 +36,7 @@ Show buffer status in echo area, get rid of mode-line !
 
 - Emacs, version >= 29.1
 - [hide-mode-line](https://github.com/hlissner/emacs-hide-mode-line)
-- [dash](https://github.com/magnars/dash.el)
+- [llama](https://github.com/tarsius/llama)
 
 ### package
 

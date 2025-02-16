@@ -28,9 +28,12 @@
   (require 'let-alist)
   (require 'eieio))
 
+(require 'pcase)
 (require 'cl-lib)
+(require 'seq)
 (require 'subr-x)
-(require 'dash)
+
+(require 'llama)
 
 (defvar mini-echo-ellipsis)
 (defvar meow--indicator)
@@ -337,37 +340,38 @@ Otherwise, show mise section always."
   "Define a mini echo segment NAME with DOCSTRING and PROPS."
   (declare (indent defun) (doc-string 2))
   (if (plistp props)
-      (-let (((&plist :fetch :setup :update :update-hook :update-advice) props)
-             ((fetch-func update-func setup-func)
-              (--map (intern (concat "mini-echo-segment--" (format "%s-%s" it name)))
-                     '("fetch" "update" "setup"))))
-        `(progn
-           (let ((segment (make-mini-echo-segment :name ,name)))
-             ;; push segment into mini echo alist
-             (setf (alist-get ,name mini-echo-segment-alist nil nil #'string=) segment)
-             (with-slots ((to-fetch fetch) (to-update update)
-                          (to-hook update-hook) (to-advice update-advice)
-                          (to-setup setup))
-                 segment
-               ;; fetch
-               (defun ,fetch-func () ,docstring ,fetch)
-               (setf to-fetch ',fetch-func)
-               ;; update
-               (when (consp ',update)
-                 (defun ,update-func (&rest _args)
-                   (when (bound-and-true-p mini-echo-mode)
-                     ,update))
-                 (setf to-update ',update-func
-                       to-hook ,update-hook
-                       to-advice ,update-advice))
-               ;; setup
-               (and (or ,update-hook ,update-advice (consp ',setup))
-                    (defun ,setup-func ()
-                      ,setup
-                      (--each ,update-hook (add-hook it ',update-func))
-                      (--each ,update-advice (advice-add (car it) (cdr it) ',update-func)))
-                    (setf to-setup ',setup-func)))
-             segment)))
+      (cl-destructuring-bind (&key setup fetch update update-hook update-advice)
+          props
+        (pcase-let* ((`(,fetch-func ,update-func ,setup-func)
+                      (mapcar (##intern (concat "mini-echo-segment--" (format "%s-%s" % name)))
+                              '("fetch" "update" "setup"))))
+          `(progn
+             (let ((segment (make-mini-echo-segment :name ,name)))
+               ;; push segment into mini echo alist
+               (setf (alist-get ,name mini-echo-segment-alist nil nil #'string=) segment)
+               (with-slots ((to-fetch fetch) (to-update update)
+                            (to-hook update-hook) (to-advice update-advice)
+                            (to-setup setup))
+                   segment
+                 ;; fetch
+                 (defun ,fetch-func () ,docstring ,fetch)
+                 (setf to-fetch ',fetch-func)
+                 ;; update
+                 (when (consp ',update)
+                   (defun ,update-func (&rest _args)
+                     (when (bound-and-true-p mini-echo-mode)
+                       ,update))
+                   (setf to-update ',update-func
+                         to-hook ,update-hook
+                         to-advice ,update-advice))
+                 ;; setup
+                 (and (or ,update-hook ,update-advice (consp ',setup))
+                      (defun ,setup-func ()
+                        ,setup
+                        (mapc (##add-hook % ',update-func) ,update-hook)
+                        (mapc (##advice-add (car %) (cdr %) ',update-func) ,update-advice))
+                      (setf to-setup ',setup-func)))
+               segment))))
     (message "mini-echo-define-segment: %s properties error!" name)))
 
 (defun mini-echo-segment--extract (construct &optional force)
@@ -514,8 +518,8 @@ with ellipsis."
 (defun mini-echo-buffer-name-with-status ()
   "Return last part of buffer name with status."
   ;; NOTE only highlight the last part of buffer-name due to `uniquify-buffer-name-style'
-  (-let* ((name-end (file-name-nondirectory (mini-echo-buffer-name)))
-          ((sign . face) (mini-echo-buffer-status)))
+  (pcase-let* ((name-end (file-name-nondirectory (mini-echo-buffer-name)))
+               (`(,sign . ,face) (mini-echo-buffer-status)))
     (pcase mini-echo-buffer-status-style
       ('sign (concat name-end (propertize sign 'face face)))
       ('color (propertize name-end 'face face))
@@ -538,17 +542,17 @@ with ellipsis."
    (let* ((filepath (buffer-file-name))
           (project (or mini-echo--project-root
                        (mini-echo-update-project-root)))
-          (dir (->> default-directory
-                    (or (and (not (string-empty-p project)) project))
-                    (directory-file-name)
-                    (file-name-nondirectory))))
+          (dir (thread-last default-directory
+                            (or (and (not (string-empty-p project)) project))
+                            (directory-file-name)
+                            (file-name-nondirectory))))
      (cond
       ((not filepath) "")
       ((string-empty-p project) (propertize (concat dir "/") 'face 'shadow))
       ((string-prefix-p project filepath)
        (let* ((parts (butlast (split-string (string-remove-prefix project filepath) "/")))
               (suffix (if (<= (length parts) 4)
-                          (string-join `("" ,@(--map (substring it 0 1) parts) "") "/")
+                          (string-join `("" ,@(mapcar (##substring % 0 1) parts) "") "/")
                         "/../")))
          (concat (propertize dir 'face 'mini-echo-project)
                  (propertize suffix 'face 'shadow))))
@@ -689,10 +693,10 @@ Display format is inherited from `battery-mode-line-format'."
                        (propertize "*" 'face 'compilation-mode-line-run)
                        (substring ind 1)))
      (let ((flymake-suppress-zero-counters nil))
-       (string-join (-map #'mini-echo-segment--extract
-                          '(flymake-mode-line-error-counter
-                            flymake-mode-line-warning-counter
-                            flymake-mode-line-note-counter))
+       (string-join (mapcar #'mini-echo-segment--extract
+                            '(flymake-mode-line-error-counter
+                              flymake-mode-line-warning-counter
+                              flymake-mode-line-note-counter))
                     "/")))))
 
 (defsubst mini-echo-column (pos)
@@ -705,10 +709,10 @@ Display format is inherited from `battery-mode-line-format'."
   :fetch
   (when (or mark-active (and (bound-and-true-p evil-local-mode)
                              (eq evil-state 'visual)))
-    (-let [(beg . end)
-           (if (and (bound-and-true-p evil-local-mode) (eq evil-state 'visual))
-               (cons evil-visual-beginning evil-visual-end)
-             (cons (region-beginning) (region-end)))]
+    (pcase-let* ((`(,beg . ,end)
+                  (if (and (bound-and-true-p evil-local-mode) (eq evil-state 'visual))
+                      (cons evil-visual-beginning evil-visual-end)
+                    (cons (region-beginning) (region-end)))))
       (let* ((lines (count-lines beg (min end (point-max))))
              (str (cond ((or (bound-and-true-p rectangle-mark-mode)
                              (and (bound-and-true-p evil-visual-selection)
@@ -783,11 +787,11 @@ Segment appearance depends on var `vc-display-status' and faces like
                         ('finished nil))))
        (propertize ind 'face 'compilation-mode-line-run))
      (apply #'format "%s/%s/%s"
-            (--zip-with (propertize it 'face other)
-                        (let-alist (flycheck-count-errors flycheck-current-errors)
-                          (--map (number-to-string (or it 0))
-                                 (list .error .warning .info)))
-                        '(error warning success))))))
+            (seq-mapn (##propertize %1 'face %2)
+                      (let-alist (flycheck-count-errors flycheck-current-errors)
+                        (mapcar (##number-to-string (or % 0))
+                                (list .error .warning .info)))
+                      '(error warning success))))))
 
 (mini-echo-define-segment "meow"
   "Return the meow status of current buffer."
@@ -939,21 +943,21 @@ Segment appearance depends on var `vc-display-status' and faces like
   (when (and (fboundp 'popper-display-control-p)
              (popper-display-control-p (current-buffer)))
     (string-join
-     (->>
-      popper-buried-popup-alist
-      (alist-get (and popper-group-function (funcall popper-group-function)))
-      (-map #'cdr)
-      (cons (current-buffer))
-      (-map #'buffer-name)
-      (-uniq)
-      (-sort #'string-lessp)
-      (-non-nil)
-      (reverse)
-      (--map (mini-echo-segment--print
-              it (if (string= it (buffer-name))
-                     'mini-echo-yellow-bold
-                   'mini-echo-gray)
-              25)))
+     (thread-last
+       popper-buried-popup-alist
+       (alist-get (and popper-group-function (funcall popper-group-function)))
+       (mapcar #'cdr)
+       (cons (current-buffer))
+       (mapcar #'buffer-name)
+       (seq-uniq)
+       (seq-sort #'string-lessp)
+       (seq-filter #'identity)
+       (reverse)
+       (mapcar (##mini-echo-segment--print
+                % (if (string= % (buffer-name))
+                      'mini-echo-yellow-bold
+                    'mini-echo-gray)
+                25)))
      (propertize "|" 'face 'font-lock-doc-face))))
 
 (mini-echo-define-segment "wgrep"

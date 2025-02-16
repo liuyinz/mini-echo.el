@@ -5,7 +5,7 @@
 ;; Author: Eki Zhang <liuyinz95@gmail.com>
 ;; Maintainer: Eki Zhang <liuyinz95@gmail.com>
 ;; Version: 0.15.0
-;; Package-Requires: ((emacs "29.1") (dash "2.19.1") (hide-mode-line "1.0.3"))
+;; Package-Requires: ((emacs "29.1") (llama "0.6.0") (hide-mode-line "1.0.3"))
 ;; Keywords: frames
 ;; Homepage: https://github.com/eki3z/mini-echo.el
 
@@ -41,7 +41,7 @@
 (require 'pcase)
 (require 'map)
 
-(require 'dash)
+(require 'llama)
 (require 'hide-mode-line)
 
 (require 'mini-echo-segments)
@@ -153,9 +153,11 @@ Format is a list of three argument:
 
 (defun mini-echo-normalize-rule (rule)
   "Return a plist of (:long ... :short ...) according to RULE."
-  (let* ((valid-rule (--map-when (not (keywordp it))
-                                 (-filter #'mini-echo-segment-valid-p it)
-                                 rule))
+  (let* ((valid-rule
+          (mapcar (##if (not (keywordp %))
+                      (seq-filter #'mini-echo-segment-valid-p %)
+                    %)
+                  rule))
          (use-both (memq :both valid-rule)))
     (list :long (plist-get valid-rule (or (and use-both :both) :long))
           :short (plist-get valid-rule (or (and use-both :both) :short)))))
@@ -194,7 +196,7 @@ Otherwise, return nil."
 
 (defun mini-echo-ensure ()
   "Ensure all predefined variable ready for mini echo."
-  (setq mini-echo--valid-segments (-map #'car mini-echo-segment-alist))
+  (setq mini-echo--valid-segments (mapcar #'car mini-echo-segment-alist))
   (setq mini-echo--default-rule
         (mini-echo-merge-rules mini-echo-persistent-rule)))
 
@@ -211,36 +213,38 @@ Otherwise, return nil."
                               (if (funcall mini-echo-short-style-predicate)
                                   :short :long)))
            extra)
-       (--each mini-echo--toggled-segments
-         (-let [(segment . enable) it]
-           (if enable
-               (unless (member segment result)
-                 (push segment extra))
-             (setq result (remove segment result)))))
-       (-concat result extra)))
+       (mapc (pcase-lambda (`(,segment . ,enable))
+               (if enable
+                   (unless (member segment result)
+                     (push segment extra))
+                 (setq result (remove segment result))))
+             mini-echo--toggled-segments)
+       (append result extra)))
     ;; FIXME only filter persistent segments
-    ('no-current (-difference mini-echo--valid-segments
-                              (mini-echo-get-segments 'current)))
+    ('no-current (seq-difference mini-echo--valid-segments
+                                 (mini-echo-get-segments 'current)))
     ('toggle (cl-remove-duplicates
-              (-concat (-map #'car mini-echo--toggled-segments)
-                       (mini-echo-get-segments 'current)
-                       (mini-echo-get-segments 'no-current))
+              (append (mapcar #'car mini-echo--toggled-segments)
+                      (mini-echo-get-segments 'current)
+                      (mini-echo-get-segments 'no-current))
               :test #'equal
               :from-end t))))
 
 (defun mini-echo-concat-segments ()
   "Return concatenated information of selected segments."
-  (-> (->> (mini-echo-get-segments 'current)
-           (--map (with-slots (activate setup fetch update)
-                      (alist-get it mini-echo-segment-alist nil nil #'string=)
-                    (unless activate
-                      (setq activate t)
-                      (and setup (funcall setup))
-                      (and update (funcall update)))
-                    (funcall fetch)))
-           (--filter (> (length it) 0))
-           (reverse))
-      (string-join mini-echo-separator)))
+  (string-join
+   (thread-last
+     (mini-echo-get-segments 'current)
+     (mapcar (##with-slots (activate setup fetch update)
+                 (alist-get % mini-echo-segment-alist nil nil #'string=)
+               (unless activate
+                 (setq activate t)
+                 (and setup (funcall setup))
+                 (and update (funcall update)))
+               (funcall fetch)))
+     (seq-filter (##> (length %) 0))
+     (reverse))
+   mini-echo-separator))
 
 (defun mini-echo--toggle-completion ()
   "Return completion table for command mini echo toggle."
@@ -250,8 +254,8 @@ Otherwise, return nil."
       (complete-with-action
        action
        (let ((current (mini-echo-get-segments 'current)))
-         (--map (propertize it 'face (if (member it current) 'success 'error))
-                (mini-echo-get-segments 'toggle)))
+         (mapcar (##propertize % 'face (if (member % current) 'success 'error))
+                 (mini-echo-get-segments 'toggle)))
        string pred))))
 
 
@@ -269,19 +273,19 @@ If optional arg SHOW is non-nil, show the mode line."
     (when (< emacs-major-version 31)
       (run-with-timer
        5 nil
-       (lambda () (when-let* ((bufs (--remove (buffer-local-value 'hide-mode-line-mode it)
-                                              (buffer-list))))
-                    (--each bufs (with-current-buffer it (hide-mode-line-mode 1)))))))))
+       (##when-let* ((bufs (seq-remove (##buffer-local-value 'hide-mode-line-mode %)
+                                       (buffer-list))))
+         (mapc (##with-current-buffer % (hide-mode-line-mode 1)) bufs))))))
 
 (defun mini-echo-show-divider (&optional hide)
   "Show window divider when enable mini echo.
 If optional arg HIDE is non-nil, disable the mode instead."
   (if hide
       (window-divider-mode -1)
-    (-let [(window-divider-default-places
-            window-divider-default-right-width
-            window-divider-default-bottom-width)
-           mini-echo-window-divider-args]
+    (pcase-let ((`(,window-divider-default-places
+                   ,window-divider-default-right-width
+                   ,window-divider-default-bottom-width)
+                 mini-echo-window-divider-args))
       (window-divider-mode 1))))
 
 (defun mini-echo-fontify-minibuffer-window ()
@@ -292,27 +296,28 @@ If optional arg HIDE is non-nil, disable the mode instead."
   "Initialize echo area and minibuffer in mini echo.
 If optional arg DEINIT is non-nil, remove all overlays."
   ;; delete old overlays by default
-  (-each mini-echo-overlays #'delete-overlay)
+  (mapc #'delete-overlay mini-echo-overlays)
   (setq mini-echo-overlays nil)
   (if deinit
       (progn
-        (--each mini-echo-modified-buffers
-          (with-current-buffer (get-buffer-create it)
-            (when (minibufferp) (delete-minibuffer-contents))
-            (face-remap-remove-relative mini-echo--remap-cookie)
-            (setq-local mini-echo--remap-cookie nil)))
+        (mapc (##with-current-buffer (get-buffer-create %)
+                (when (minibufferp) (delete-minibuffer-contents))
+                (face-remap-remove-relative mini-echo--remap-cookie)
+                (setq-local mini-echo--remap-cookie nil))
+              mini-echo-modified-buffers)
         (cancel-function-timers #'mini-echo-update)
         (advice-remove 'message #'mini-echo-update-overlays-before-message)
         (remove-hook 'window-size-change-functions #'mini-echo-update-overlays-when-resized)
         (remove-hook 'minibuffer-inactive-mode-hook #'mini-echo-fontify-minibuffer-window)
         (remove-hook 'minibuffer-setup-hook #'mini-echo-fontify-minibuffer-window))
-    (--each mini-echo-modified-buffers
-      (with-current-buffer (get-buffer-create it)
-        (and (minibufferp) (= (buffer-size) 0) (insert " "))
-        (push (make-overlay (point-min) (point-max) nil nil t)
-              mini-echo-overlays)
-        (setq-local mini-echo--remap-cookie
-                    (mini-echo-fontify-minibuffer-window))))
+    (mapc
+     (##with-current-buffer (get-buffer-create %)
+       (and (minibufferp) (= (buffer-size) 0) (insert " "))
+       (push (make-overlay (point-min) (point-max) nil nil t)
+             mini-echo-overlays)
+       (setq-local mini-echo--remap-cookie
+                   (mini-echo-fontify-minibuffer-window)))
+     mini-echo-modified-buffers)
     ;; FIXME sometimes update twice when switch from echo to minibuf
     (run-with-timer 0 mini-echo-update-interval #'mini-echo-update)
     (advice-add 'message :before #'mini-echo-update-overlays-before-message)
@@ -362,15 +367,15 @@ If MSG is nil, then use `current-message' instead."
   (when-let* (((not (active-minibuffer-window)))
               (msg (or msg (current-message) ""))
               (info (mini-echo-build-info)))
-    (--each mini-echo-overlays
-      (overlay-put it 'after-string
-                   (if (or (equal (buffer-name (overlay-buffer it))
-                                  " *Minibuf-0*")
-                           (> (- (mini-echo-minibuffer-width)
-                                 (string-width info)
-                                 (string-width msg))
-                              0))
-                       info "")))))
+    (mapc (##overlay-put % 'after-string
+                         (if (or (equal (buffer-name (overlay-buffer %))
+                                        " *Minibuf-0*")
+                                 (> (- (mini-echo-minibuffer-width)
+                                       (string-width info)
+                                       (string-width msg))
+                                    0))
+                             info ""))
+          mini-echo-overlays)))
 
 (defun mini-echo-update-overlays-before-message (&rest args)
   "Update mini echo info before print message.
@@ -385,9 +390,9 @@ ARGS is optional."
   "Update mini echo info in minibuf and echo area."
   (unless (active-minibuffer-window)
     ;; update echo area overlays after-string only if it's not empty
-    (--each-while mini-echo-overlays
-        (not (string-empty-p (overlay-get it 'after-string)))
-      (overlay-put it 'after-string (mini-echo-build-info)))))
+    (mapc (##unless (string-empty-p (overlay-get % 'after-string))
+            (overlay-put % 'after-string (mini-echo-build-info)))
+          mini-echo-overlays)))
 
 
 ;;; Commands
